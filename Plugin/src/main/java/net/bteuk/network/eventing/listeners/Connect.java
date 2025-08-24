@@ -1,9 +1,12 @@
 package net.bteuk.network.eventing.listeners;
 
 import lombok.Setter;
+import lombok.extern.java.Log;
 import net.bteuk.network.Network;
 import net.bteuk.network.TabManager;
 import net.bteuk.network.building_companion.BuildingCompanion;
+import net.bteuk.network.core.Constants;
+import net.bteuk.network.core.Time;
 import net.bteuk.network.gui.Gui;
 import net.bteuk.network.lib.dto.TabPlayer;
 import net.bteuk.network.lib.dto.UserConnectReply;
@@ -12,7 +15,6 @@ import net.bteuk.network.lib.dto.UserDisconnect;
 import net.bteuk.network.lib.dto.UserRemove;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.TextureUtils;
-import net.bteuk.network.utils.Time;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
@@ -28,22 +30,21 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import java.util.Set;
 import java.util.UUID;
 
-import static net.bteuk.network.utils.Constants.LOGGER;
-import static net.bteuk.network.utils.Constants.MOTD_CONTENT;
-import static net.bteuk.network.utils.Constants.MOTD_ENABLED;
-import static net.bteuk.network.utils.Constants.SERVER_NAME;
-
 // This class deals with players joining and leaving the network.
+@Log
 public class Connect implements Listener {
 
     private final Network instance;
 
+    private final Constants constants;
+
     @Setter
     private boolean blockLeaveEvent;
 
-    public Connect(Network instance) {
+    public Connect(Network instance, Constants constants) {
 
         this.instance = instance;
+        this.constants = constants;
 
         this.blockLeaveEvent = false;
 
@@ -58,38 +59,38 @@ public class Connect implements Listener {
      *
      * @param reply the {@link UserConnectReply}
      */
-    public static void handleUserConnectReply(UserConnectReply reply) {
+    public void handleUserConnectReply(UserConnectReply reply) {
 
-        Bukkit.getScheduler().runTask(Network.getInstance(), () -> {
+        Bukkit.getScheduler().runTask(instance, () -> {
             // Find the player associated with the uuid.
             Player player =
-                    Network.getInstance().getServer().getOnlinePlayers().stream()
+                    instance.getServer().getOnlinePlayers().stream()
                             .filter(p -> p.getUniqueId().toString().equals(reply.getUuid())).findFirst().orElse(null);
 
             if (player == null) {
-                LOGGER.warning("A UserConnectReply was received but no Player exists with their uuid, maybe they have" +
+                log.warning("A UserConnectReply was received but no Player exists with their uuid, maybe they have" +
                         " already left?");
                 return;
             }
 
-            LOGGER.info(String.format("User connect reply received from the proxy, creating NetworkUser for %s",
+            log.info(String.format("User connect reply received from the proxy, creating NetworkUser for %s",
                     player.getName()));
             NetworkUser user = new NetworkUser(player, reply);
-            Network.getInstance().addUser(user);
+            instance.addUser(user);
 
             // Hide this player for all players in focus mode.
-            Network.getInstance().getUsers().forEach(serverUser -> {
+            instance.getUsers().forEach(serverUser -> {
                 if (serverUser.isFocusEnabled()) {
                     serverUser.hidePlayer(player);
                 }
             });
 
             // Sends the message of the day to the player, if applicable
-            if (MOTD_ENABLED) {
+            if (constants.motdEnabled()) {
                 MiniMessage miniMessage = MiniMessage.miniMessage();
 
-                //Replaces the player placeholder
-                String rawMessage = MOTD_CONTENT.replace("%player%", player.getName());
+                // Replaces the player placeholder
+                String rawMessage = constants.motdContent().replace("%player%", player.getName());
 
                 Component componentMessage = miniMessage.deserialize(rawMessage);
                 player.sendMessage(componentMessage);
@@ -99,16 +100,17 @@ public class Connect implements Listener {
             reply.getMessages().forEach(player::sendMessage);
 
             // Add the player to the scoreboard.
-            Network.getInstance().getTab().onPlayerJoin(player);
+            // TODO: TAB
+            instance.getTab().onPlayerJoin(player);
             player.playSound(Sound.sound(Key.key("block.note_block.bell"), Sound.Source.PLAYER, 1f, 1f));
         });
     }
 
-    public static void handleUserRemove(UserRemove userRemove) {
+    public void handleUserRemove(UserRemove userRemove) {
 
         // TODO: Implement users that are no longer on the server but 'offline'.
         // TODO: This will then remove them. Currently this is not implemented.
-        LOGGER.info(String.format("User remove event received from the Proxy for %s", userRemove.getUuid()));
+        log.info(String.format("User remove event received from the Proxy for %s", userRemove.getUuid()));
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -127,20 +129,22 @@ public class Connect implements Listener {
         // When the proxy has received the request it'll send a response which will then create the user object on
         // the server.
         UserConnectRequest userConnectRequest = new UserConnectRequest(
-                SERVER_NAME, e.getPlayer().getUniqueId().toString(), e.getPlayer().getName(),
+                constants.serverName(), e.getPlayer().getUniqueId().toString(), e.getPlayer().getName(),
                 TextureUtils.getTexture(e.getPlayer().getPlayerProfile()), channels, tabPlayer,
                 e.getPlayer().hasPermission("group.architect"), e.getPlayer().hasPermission("group.reviewer")
         );
-        Bukkit.getScheduler().runTaskAsynchronously(Network.getInstance(),
-                () -> Network.getInstance().getChat().sendSocketMessage(userConnectRequest));
-        LOGGER.info(String.format("%s connected to the server, sent request to proxy to add player as NetworkUser",
+        Bukkit.getScheduler().runTaskAsynchronously(instance,
+                () -> instance.getChat().sendSocketMessage(userConnectRequest));
+        log.info(String.format("%s connected to the server, sent request to proxy to add player as NetworkUser",
                 e.getPlayer().getName()));
     }
 
     @EventHandler
     public void leaveServerEvent(PlayerQuitEvent e) {
 
-        e.quitMessage(null);
+        if (!constants.standalone()) {
+            e.quitMessage(null);
+        }
 
         if (blockLeaveEvent) {
             return;
@@ -150,12 +154,12 @@ public class Connect implements Listener {
 
         // If u is null, cancel.
         if (user == null) {
-            LOGGER.warning("User " + e.getPlayer().getName() + " was not available on disconnect!");
+            log.warning("User " + e.getPlayer().getName() + " was not available on disconnect!");
             UserDisconnect disconnectEvent = new UserDisconnect();
             disconnectEvent.setUuid(e.getPlayer().getUniqueId().toString());
-            disconnectEvent.setServer(SERVER_NAME);
-            Bukkit.getScheduler().runTaskAsynchronously(Network.getInstance(),
-                    () -> Network.getInstance().getChat().sendSocketMessage(disconnectEvent));
+            disconnectEvent.setServer(constants.serverName());
+            Bukkit.getScheduler().runTaskAsynchronously(instance,
+                    () -> instance.getChat().sendSocketMessage(disconnectEvent));
             return;
         }
 
@@ -192,8 +196,10 @@ public class Connect implements Listener {
         }
 
         // Send a disconnect event to the proxy to handle potential messages.
-        UserDisconnect userDisconnect = user.createDisconnectEvent();
-        Bukkit.getScheduler().runTaskAsynchronously(Network.getInstance(),
-                () -> Network.getInstance().getChat().sendSocketMessage(userDisconnect));
+        if (!constants.standalone()) {
+            UserDisconnect userDisconnect = user.createDisconnectEvent();
+            Bukkit.getScheduler().runTaskAsynchronously(instance,
+                    () -> instance.getChat().sendSocketMessage(userDisconnect));
+        }
     }
 }

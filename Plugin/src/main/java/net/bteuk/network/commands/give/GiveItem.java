@@ -1,6 +1,7 @@
 package net.bteuk.network.commands.give;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
+import lombok.extern.java.Log;
 import net.bteuk.network.Network;
 import net.bteuk.network.commands.AbstractCommand;
 import net.bteuk.network.lib.utils.ChatUtils;
@@ -9,13 +10,18 @@ import net.bteuk.network.utils.Utils;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import static net.bteuk.network.utils.Constants.LOGGER;
-
 /**
  * Abstract class for giving an item to a player.
  * Is used for all commands that give items to a player.
  */
+@Log
 public abstract class GiveItem extends AbstractCommand {
+
+    private final Network instance;
+
+    public GiveItem(Network instance) {
+        this.instance = instance;
+    }
 
     public void onCommand(CommandSourceStack stack, String permission, ItemStack item, String itemName) {
 
@@ -30,11 +36,11 @@ public abstract class GiveItem extends AbstractCommand {
             return;
         }
 
-        NetworkUser user = Network.getInstance().getUser(player);
+        NetworkUser user = instance.getUser(player);
 
         // If u is null, cancel.
         if (user == null) {
-            LOGGER.severe("User " + player.getName() + " can not be found!");
+            log.severe("User " + player.getName() + " can not be found!");
             player.sendMessage(ChatUtils.error("User can not be found, please relog!"));
             return;
         }

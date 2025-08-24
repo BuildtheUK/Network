@@ -1,7 +1,11 @@
 package net.bteuk.network;
 
 import io.papermc.paper.event.player.AsyncChatEvent;
+import lombok.extern.java.Log;
 import net.bteuk.network.api.ChatAPI;
+import net.bteuk.network.commands.Afk;
+import net.bteuk.network.core.Constants;
+import net.bteuk.network.core.Time;
 import net.bteuk.network.eventing.listeners.Connect;
 import net.bteuk.network.exceptions.NotMutedException;
 import net.bteuk.network.lib.dto.AbstractTransferObject;
@@ -21,10 +25,9 @@ import net.bteuk.network.lib.socket.InputSocket;
 import net.bteuk.network.lib.socket.OutputSocket;
 import net.bteuk.network.lib.socket.SocketHandler;
 import net.bteuk.network.lib.utils.ChatUtils;
+import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Role;
-import net.bteuk.network.utils.Roles;
-import net.bteuk.network.utils.Time;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -33,43 +36,56 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 
-import static net.bteuk.network.commands.Afk.updateAfkStatus;
 import static net.bteuk.network.lib.enums.ChatChannels.STAFF;
-import static net.bteuk.network.utils.Constants.LOGGER;
 import static net.bteuk.network.utils.NetworkConfig.CONFIG;
 import static net.bteuk.network.utils.staff.Moderation.getMutedComponent;
 import static net.bteuk.network.utils.staff.Moderation.isMuted;
 
+@Log
 public class CustomChat implements Listener, SocketHandler, ChatAPI {
 
     private static final String AFK = "%s is now afk";
     private static final String NOT_AFK = "%s is no longer afk";
     private final Network instance;
-    private final OutputSocket outputSocket;
+    private OutputSocket outputSocket;
 
-    public CustomChat(Network instance) {
+    private final Constants constants;
+
+    private final Afk afk;
+
+    private final GlobalSQL globalSQL;
+
+    private final Connect connect;
+
+    public CustomChat(Network instance, Constants constants, Afk afk, GlobalSQL globalSQL, Connect connect) {
 
         this.instance = instance;
+        this.constants = constants;
+        this.afk = afk;
+        this.globalSQL = globalSQL;
+        this.connect = connect;
 
         instance.getServer().getPluginManager().registerEvents(this, instance);
 
         // Set up the output socket.
-        outputSocket = new OutputSocket(
-                CONFIG.getString("chat.socket.output.IP"),
-                CONFIG.getInt("chat.socket.output.port")
-        );
+        if (!constants.standalone()) {
+            outputSocket = new OutputSocket(
+                    CONFIG.getString("chat.socket.output.IP"),
+                    CONFIG.getInt("chat.socket.output.port")
+            );
 
-        // Register input socket for receiving messages from the proxy.
-        int inputSocketPort = CONFIG.getInt("chat.socket.input.port");
-        if (inputSocketPort == 0) {
-            LOGGER.severe("Input socket port is not set in config or is set to 0. Please set a valid port!");
-        } else {
-            // Create the input socket.
-            InputSocket inputSocket = new InputSocket(inputSocketPort);
-            inputSocket.start(this);
+            // Register input socket for receiving messages from the proxy.
+            int inputSocketPort = CONFIG.getInt("chat.socket.input.port");
+            if (inputSocketPort == 0) {
+                log.severe("Input socket port is not set in config or is set to 0. Please set a valid port!");
+            } else {
+                // Create the input socket.
+                InputSocket inputSocket = new InputSocket(inputSocketPort);
+                inputSocket.start(this);
+            }
         }
 
-        LOGGER.info("Successfully enabled Chat!");
+        log.info("Successfully enabled Chat!");
     }
 
     public static ChatMessage getChatMessage(Component component, NetworkUser u) {
@@ -156,7 +172,7 @@ public class CustomChat implements Listener, SocketHandler, ChatAPI {
 
             // If u is null, cancel.
             if (user == null) {
-                LOGGER.severe("User " + e.getPlayer().getName() + " can not be found!");
+                log.severe("User " + e.getPlayer().getName() + " can not be found!");
                 e.getPlayer().sendMessage(ChatUtils.error("User can not be found, please relog!"));
                 return;
             }
@@ -166,7 +182,7 @@ public class CustomChat implements Listener, SocketHandler, ChatAPI {
 
             if (user.isAfk()) {
                 user.setAfk(false);
-                updateAfkStatus(user, false);
+                afk.updateAfkStatus(user, false);
             }
             ChatMessage chatMessage = getChatMessage(e.message(), user);
             sendSocketMessage(chatMessage);
@@ -174,31 +190,24 @@ public class CustomChat implements Listener, SocketHandler, ChatAPI {
     }
 
     public void sendSocketMessage(AbstractTransferObject chatMessage) {
-        outputSocket.sendSocketMessage(chatMessage);
+        if (!constants.standalone()) {
+            outputSocket.sendSocketMessage(chatMessage);
+        }
     }
 
     @Override
     public AbstractTransferObject handle(AbstractTransferObject abstractTransferObject) {
-        if (abstractTransferObject instanceof DirectMessage directMessage) {
-            handleDirectMessage(directMessage);
-        } else if (abstractTransferObject instanceof DiscordLinking discordLinking) {
-            handleDiscordLinking(discordLinking);
-        } else if (abstractTransferObject instanceof AddTeamEvent addTeamEvent) {
-            instance.getTab().handle(addTeamEvent);
-        } else if (abstractTransferObject instanceof UserConnectReply userConnectReply) {
-            Connect.handleUserConnectReply(userConnectReply);
-        } else if (abstractTransferObject instanceof UserRemove userRemove) {
-            Connect.handleUserRemove(userRemove);
-        } else if (abstractTransferObject instanceof UserUpdate userUpdate) {
-            handleUserUpdate(userUpdate);
-        } else if (abstractTransferObject instanceof OnlineUsersReply onlineUsersReply) {
-            instance.handleOnlineUsersReply(onlineUsersReply);
-        } else if (abstractTransferObject instanceof OnlineUserAdd onlineUserAdd) {
-            instance.handleOnlineUserAdd(onlineUserAdd);
-        } else if (abstractTransferObject instanceof OnlineUserRemove onlineUserRemove) {
-            instance.handleOnlineUserRemove(onlineUserRemove);
-        } else {
-            LOGGER.warning(String.format("Socket object has an unrecognised type %s",
+        switch (abstractTransferObject) {
+            case DirectMessage directMessage -> handleDirectMessage(directMessage);
+            case DiscordLinking discordLinking -> handleDiscordLinking(discordLinking);
+            case AddTeamEvent addTeamEvent -> instance.getTab().handle(addTeamEvent); // TODO: TAB
+            case UserConnectReply userConnectReply -> connect.handleUserConnectReply(userConnectReply);
+            case UserRemove userRemove -> connect.handleUserRemove(userRemove);
+            case UserUpdate userUpdate -> handleUserUpdate(userUpdate);
+            case OnlineUsersReply onlineUsersReply -> instance.handleOnlineUsersReply(onlineUsersReply);
+            case OnlineUserAdd onlineUserAdd -> instance.handleOnlineUserAdd(onlineUserAdd);
+            case OnlineUserRemove onlineUserRemove -> instance.handleOnlineUserRemove(onlineUserRemove);
+            default -> log.warning(String.format("Socket object has an unrecognised type %s",
                     abstractTransferObject.getClass().getTypeName()));
         }
         return null;
@@ -229,6 +238,7 @@ public class CustomChat implements Listener, SocketHandler, ChatAPI {
                 });
     }
 
+    // TODO: Remove from this class, as it has a cyclical with Roles.
     private void handleDiscordLinking(DiscordLinking discordLinking) {
 
         if (discordLinking.isUnlink() && discordLinking.getDiscordId() != -1) {
@@ -260,7 +270,7 @@ public class CustomChat implements Listener, SocketHandler, ChatAPI {
                     user.setDiscordId(discordLinking.getDiscordId());
 
                     // Get the highest role for syncing and sync it, except for guest.
-                    Role role = Roles.builderRole(user.player);
+                    Role role = roles.builderRole(user.player);
 
                     // Add the role in discord.
                     if (role == null) {
@@ -275,6 +285,7 @@ public class CustomChat implements Listener, SocketHandler, ChatAPI {
                 });
     }
 
+    // TODO: Remove from this class, as it has a cyclical with Roles.
     private void handleUserUpdate(UserUpdate userUpdate) {
         // If the user is online check if anything needs updating.
         instance.getUsers().stream().filter(user -> user.player.getUniqueId().toString().equals(userUpdate.getUuid()))
@@ -282,9 +293,9 @@ public class CustomChat implements Listener, SocketHandler, ChatAPI {
                     if (userUpdate.getTabPlayer() != null && !userUpdate.getTabPlayer().getPrimaryGroup()
                             .equals(user.getPrimaryRole().getId())) {
                         // Update the primary role.
-                        Role primaryRole = Roles.getRoleById(userUpdate.getTabPlayer().getPrimaryGroup());
+                        Role primaryRole = roles.getRoleById(userUpdate.getTabPlayer().getPrimaryGroup());
                         if (primaryRole != null) {
-                            LOGGER.info(String.format("Updated primary role for %s to %s", user.player.getName(),
+                            log.info(String.format("Updated primary role for %s to %s", user.player.getName(),
                                     primaryRole.getName()));
                             user.setPrimaryRole(primaryRole);
                         }
@@ -292,7 +303,7 @@ public class CustomChat implements Listener, SocketHandler, ChatAPI {
                 });
     }
 
-    // Send afk or no longer afk message to players ingame and discord.
+    // Send the afk or no longer afk message to all players.
     public void broadcastAFK(Player p, boolean afk) {
 
         ChatMessage chatMessage = new ChatMessage();
@@ -307,7 +318,26 @@ public class CustomChat implements Listener, SocketHandler, ChatAPI {
                     .decoration(TextDecoration.ITALIC, true));
         }
 
-        // Send message
-        sendSocketMessage(chatMessage);
+        // Send the message
+        sendChatMessage(chatMessage);
+    }
+
+    public void sendChatMessage(ChatMessage message) {
+        if (constants.standalone()) {
+            instance.getServer().broadcast(message.getComponent());
+        } else {
+            sendSocketMessage(message);
+        }
+    }
+
+    public void sendDirectMessage(DirectMessage message) {
+        if (constants.standalone()) {
+            // Try to send the message to the player if they're online.
+            // Else use the database to store it for when they next connect.
+            instance.getServer().getOnlinePlayers().stream().filter(player -> player.getUniqueId().toString().equals(message.getRecipient())).findFirst()
+                    .ifPresentOrElse(player -> player.sendMessage(message.getComponent()), () -> globalSQL.insertMessage(message));
+        } else {
+            sendSocketMessage(message);
+        }
     }
 }

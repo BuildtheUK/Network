@@ -43,7 +43,7 @@ public class RegionManager {
     private final WorldGuardAPI worldGuard;
     private final Constants constants;
 
-    private List<RegionUser> users = new ArrayList<>();
+    private final List<RegionUser> users = new ArrayList<>();
 
     public RegionManager(RegionSQL regionSQL, SQLAPI globalSQL, PlotAPI plotAPI, ChatAPI chat, CoordinateAPI coordinateAPI, EventAPI eventAPI, WorldGuardAPI worldGuard,
                          Constants constants, JavaPlugin plugin, ServerAPI serverAPI) {
@@ -226,7 +226,7 @@ public class RegionManager {
                     ChatUtils.error("You have been kicked from region %s, it has been moved to the plot system.",
                             getTag(region, uuid)),
                     true);
-            chat.sendSocketMessage(directMessage);
+            chat.sendDirectMessage(directMessage);
 
             // Leave region in database.
             regionSQL.update("DELETE FROM region_members WHERE region='" + region.regionName() + "' AND " +
@@ -477,7 +477,7 @@ public class RegionManager {
         DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), uuid, "server",
                 ChatUtils.success("Your request to join region %s has been denied.", region.regionName()),
                 true);
-        chat.sendSocketMessage(directMessage);
+        chat.sendDirectMessage(directMessage);
     }
 
     // Cancel a request for a specific player.
@@ -521,7 +521,7 @@ public class RegionManager {
             ChatMessage chatMessage = new ChatMessage(ChatChannels.REVIEWER.getChannelName(), "server",
                     ChatUtils.success("A region join request has been submitted by %s for region %s",
                             player.getName(), region.regionName()));
-            chat.sendSocketMessage(chatMessage);
+            chat.sendChatMessage(chatMessage);
         } else {
             // Owner request
 
@@ -539,7 +539,7 @@ public class RegionManager {
             DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), getOwner(region), "server",
                     ChatUtils.success("%s has requested to join region %s.", player.getName(), getTag(region, getOwner(region))),
                     false);
-            chat.sendSocketMessage(directMessage);
+            chat.sendDirectMessage(directMessage);
         }
     }
 
@@ -592,7 +592,7 @@ public class RegionManager {
                         ChatUtils.success("You have been demoted to a member in region %s due to inactivity.",
                                 getTag(region, owner)),
                         true);
-                chat.sendSocketMessage(directMessage);
+                chat.sendDirectMessage(directMessage);
 
                 // Set region to default, since it would've been set to inactive previously.
                 setDefault(region);
@@ -643,7 +643,7 @@ public class RegionManager {
             DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), uuid, "server",
                     ChatUtils.success("You have joined the region %s as a member.", region.regionName()),
                     true);
-            chat.sendSocketMessage(directMessage);
+            chat.sendDirectMessage(directMessage);
         } else {
 
             // If the region is inactive, demote the previous owner to a member.
@@ -668,7 +668,7 @@ public class RegionManager {
                         ChatUtils.success("You have been demoted to a member in region %s due to inactivity.",
                                 getTag(region, owner)),
                         true);
-                chat.sendSocketMessage(directMessage);
+                chat.sendDirectMessage(directMessage);
             }
 
             // Join region as owner.
@@ -687,7 +687,7 @@ public class RegionManager {
             DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), uuid, "server",
                     ChatUtils.success("You have joined the region %s as the owner.", region.regionName()),
                     true);
-            chat.sendSocketMessage(directMessage);
+            chat.sendDirectMessage(directMessage);
         }
     }
 
@@ -702,7 +702,7 @@ public class RegionManager {
             // Is sent before actual removal so we can read the region tag.
             DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), uuid, "server",
                     message, true);
-            chat.sendSocketMessage(directMessage);
+            chat.sendDirectMessage(directMessage);
 
             // Leave region in database.
             regionSQL.update("DELETE FROM region_members WHERE region='" + region.regionName() + "' AND " +

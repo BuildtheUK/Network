@@ -2,15 +2,18 @@ package net.bteuk.network.building_companion;
 
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
+import lombok.extern.java.Log;
 import net.bteuk.network.Network;
+import net.bteuk.network.core.Constants;
+import net.bteuk.network.core.ServerType;
 import net.bteuk.network.exceptions.NoBuildPermissionException;
 import net.bteuk.network.exceptions.RegionNotFoundException;
 import net.bteuk.network.lib.utils.ChatUtils;
+import net.bteuk.network.regions.Region;
+import net.bteuk.network.regions.RegionManager;
+import net.bteuk.network.regions.RegionUser;
 import net.bteuk.network.utils.Blocks;
 import net.bteuk.network.utils.NetworkUser;
-import net.bteuk.network.utils.enums.ServerType;
-import net.bteuk.network.utils.regions.Region;
-import net.bteuk.network.utils.regions.RegionManager;
 import net.bteuk.network.utils.worldguard.WorldguardMembers;
 import net.bteuk.network.utils.worldguard.WorldguardUtils;
 import net.kyori.adventure.text.Component;
@@ -32,20 +35,23 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import static net.bteuk.network.utils.Constants.LOGGER;
-import static net.bteuk.network.utils.Constants.REGIONS_ENABLED;
-import static net.bteuk.network.utils.Constants.SERVER_TYPE;
-
 /**
  * This class stored all the information about the building companion.
  * It is player-specific and will be enabled when a player activates it.
  * Listeners will be registered in here, along with any tool-related variables.
  */
+@Log
 public class BuildingCompanion {
 
     private static final int MAX_DISTANCE = 2;
 
     private static final long TIMEOUT = 20 * 15;
+
+    private final Network instance;
+
+    private final Constants constants;
+
+    private final RegionManager regionManager;
 
     // Set of inputs for each corner. No duplicates can exist in a set,
     // this prevents the player from teleporting to the same corner multiple times
@@ -60,16 +66,20 @@ public class BuildingCompanion {
     private World world;
     private boolean asyncActive = false;
 
-    public BuildingCompanion(NetworkUser user) {
+    public BuildingCompanion(NetworkUser user, Network instance, Constants constants, RegionManager regionManager) {
 
         this.user = user;
+        this.instance = instance;
+        this.constants = constants;
+        this.regionManager = regionManager;
+
         this.world = user.player.getWorld();
         input_corners = new HashSet<>();
         saved_outlines = new HashMap<>();
 
         // Enable the tpll listener.
         listeners = new HashSet<>();
-        listeners.add(new TpllListener(this));
+        listeners.add(new TpllListener(this, instance, constants, regionManager));
     }
 
     private static boolean contains(Set<double[]> list, double[] input) {
@@ -86,7 +96,7 @@ public class BuildingCompanion {
      */
     public void disable() {
         // Unregister the events.
-        LOGGER.info("Disabling the building companion for " + user.player.getName());
+        log.info("Disabling the building companion for " + user.player.getName());
         listeners.forEach(HandlerList::unregisterAll);
     }
 
@@ -195,7 +205,7 @@ public class BuildingCompanion {
             // Use an async task to not block the main thread.
             int taskId = drawOutlinesTask().getTaskId();
             // Run a task later to cancel the task if it has not yet been completed.
-            Bukkit.getScheduler().runTaskLater(Network.getInstance(), () -> {
+            Bukkit.getScheduler().runTaskLater(instance, () -> {
                 if (asyncActive && Bukkit.getScheduler().isCurrentlyRunning(taskId)) {
                     sendFeedback(ChatUtils.error("Drawing outlines task timed out, the selection was too difficult to" +
                             " process."));
@@ -212,7 +222,7 @@ public class BuildingCompanion {
     }
 
     private BukkitTask drawOutlinesTask() {
-        return Bukkit.getScheduler().runTaskAsynchronously(Network.getInstance(), () -> {
+        return Bukkit.getScheduler().runTaskAsynchronously(instance, () -> {
 
             double[][] corners = input_corners.stream().map(this::getAverage).toArray(double[][]::new);
 
@@ -241,7 +251,7 @@ public class BuildingCompanion {
 
     private void drawTempOutlinesTaskWithFeedback(int[][] corners) {
         // Draw the lines with fake blocks.
-        Bukkit.getScheduler().runTask(Network.getInstance(), () -> {
+        Bukkit.getScheduler().runTask(instance, () -> {
             SavedOutline outline = new SavedOutline(UUID.randomUUID(), corners, world);
             if (drawOutlines(outline, Material.ORANGE_CONCRETE.createBlockData(), false)) {
                 sendFeedback(ChatUtils.success("The outlines have been drawn."));
@@ -268,7 +278,7 @@ public class BuildingCompanion {
      */
     private boolean drawOutlines(SavedOutline outline, BlockData block, boolean permanent) {
         ProtectedRegion wgRegion = null;
-        if (SERVER_TYPE == ServerType.PLOT) {
+        if (constants.serverType() == ServerType.PLOT) {
             // Get region at first corner. If no region is found return false.
             try {
                 wgRegion = WorldguardUtils.getRegionAt(world, BlockVector3.at(outline.corners()[0][0], 1,
@@ -286,17 +296,18 @@ public class BuildingCompanion {
                         "cancelled drawing outlines."));
                 return false;
             }
-        } else if (REGIONS_ENABLED && SERVER_TYPE == ServerType.EARTH) {
-            RegionManager manager = Network.getInstance().getRegionManager();
+        } else if (constants.regionsEnabled() && constants.serverType() == ServerType.EARTH) {
             for (int[] point : outline.corners()) {
-                Region region = manager.getRegion(new Location(world, point[0], 1, point[1]), user.dx, user.dz);
-                if (!region.canBuild(user.player)) {
+                // TODO: Get dx, dz from regionUser.
+                RegionUser regionUser = regionManager.getUserByPlayer(user.player);
+                Region region = regionManager.getRegion(point[0], point[1], regionUser.getDeltaX(), regionUser.getDeltaZ());
+                if (!regionManager.canBuild(region, user.player)) {
                     sendFeedback(ChatUtils.error("All or part of your selection is not in a region you can build in, " +
                             "cancelled drawing outlines."));
                     return false;
                 }
             }
-        } else if (SERVER_TYPE != ServerType.EARTH) {
+        } else if (constants.serverType() != ServerType.EARTH) {
             sendFeedback(ChatUtils.error("You are not able to generate outlines on this server."));
             return false;
         }

@@ -26,6 +26,30 @@ public class RegionUser {
 
     public RegionUser(Player player) {
         this.player = player;
+
+        // TODO: Copied from NetworkUser, implement this.
+        // Check if the player is in a region.
+        if (constants.regionsEnabled()) {
+            if (SERVER_TYPE == EARTH) {
+                // Check if they are in the earth world.
+                if (player.getWorld().getName().equals(EARTH_WORLD)) {
+                    region = instance.getRegionManager().getRegion(player.getLocation());
+                    // Add region to database if not exists.
+                    region.addToDatabase();
+                    inRegion = true;
+                }
+            } else if (SERVER_TYPE == PLOT) {
+                // Check if the player is in a buildable plot world and apply coordinate transform if true.
+                if (instance.getPlotSQL()
+                        .hasRow("SELECT name FROM location_data WHERE name='" + player.getLocation().getWorld()
+                                .getName() + "';")) {
+                    updateCoordinateTransform(instance.getPlotSQL(), player.getLocation());
+
+                    region = instance.getRegionManager().getRegion(player.getLocation(), dx, dz);
+                    inRegion = true;
+                }
+            }
+        }
     }
 
     public boolean hasTrackedRegion() {

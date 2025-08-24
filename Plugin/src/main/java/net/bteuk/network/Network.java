@@ -9,6 +9,7 @@ import net.bteuk.network.api.ServerAPI;
 import net.bteuk.network.api.WorldGuardAPI;
 import net.bteuk.network.api.impl.CoordinateAPIImpl;
 import net.bteuk.network.api.impl.PlotAPIImpl;
+import net.bteuk.network.commands.Afk;
 import net.bteuk.network.commands.navigation.Tpll;
 import net.bteuk.network.commands.staff.Ban;
 import net.bteuk.network.commands.staff.Kick;
@@ -23,6 +24,8 @@ import net.bteuk.network.eventing.events.EventManager;
 import net.bteuk.network.eventing.listeners.CommandPreProcess;
 import net.bteuk.network.eventing.listeners.Connect;
 import net.bteuk.network.eventing.listeners.GuiListener;
+import net.bteuk.network.eventing.listeners.NetworkMoveListener;
+import net.bteuk.network.eventing.listeners.NetworkTeleportListener;
 import net.bteuk.network.eventing.listeners.PlayerInteract;
 import net.bteuk.network.eventing.listeners.PreJoinServer;
 import net.bteuk.network.gui.NavigatorGui;
@@ -34,14 +37,13 @@ import net.bteuk.network.lib.dto.ServerStartup;
 import net.bteuk.network.lobby.Lobby;
 import net.bteuk.network.logging.BukkitForwardingHandler;
 import net.bteuk.network.regions.RegionManager;
-import net.bteuk.network.regions.listener.RegionMoveListener;
-import net.bteuk.network.regions.listener.RegionTeleportListener;
 import net.bteuk.network.regions.sql.RegionSQL;
 import net.bteuk.network.services.NetworkPromotionService;
 import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.sql.PlotSQL;
 import net.bteuk.network.utils.NetworkConfig;
 import net.bteuk.network.utils.NetworkUser;
+import net.bteuk.network.utils.Roles;
 import net.bteuk.network.utils.SwitchServer;
 import net.bteuk.network.utils.Tips;
 import net.bteuk.network.utils.Utils;
@@ -72,7 +74,6 @@ import static net.bteuk.network.utils.NetworkConfig.CONFIG;
 public final class Network extends JavaPlugin implements NetworkAPI {
 
     // Returns an instance of the plugin.
-    @Getter
     private static Network instance;
 
     // If the server can shutdown.
@@ -82,8 +83,8 @@ public final class Network extends JavaPlugin implements NetworkAPI {
     public ItemStack navigator;
     public RegionSQL regionSQL;
     // Movement listeners.
-    public RegionMoveListener moveListener;
-    public RegionTeleportListener teleportListener;
+    public NetworkMoveListener moveListener;
+    public NetworkTeleportListener teleportListener;
     // Return an instance of the regionManager.
     // RegionManager
     @Getter
@@ -96,23 +97,20 @@ public final class Network extends JavaPlugin implements NetworkAPI {
     // SQL
     @Getter
     private PlotSQL plotSQL;
+
     @Getter
     private GlobalSQL globalSQL;
     // Chat
     @Getter
     private CustomChat chat;
     // Timers
-    @Getter
     private Timers timers;
     // Get lobby.
     // Lobby
-    @Getter
     private Lobby lobby;
     // Listener and manager of server connects.
-    @Getter
     private Connect connect;
     // Tab
-    @Getter
     private TabManager tab;
 
     // Kick Command
@@ -207,7 +205,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
             // Global Database
             String global_database = CONFIG.getString("database.global");
             DataSource global_dataSource = init.mysqlSetup(global_database, host, port, username, password);
-            globalSQL = new GlobalSQL(global_dataSource);
+            globalSQL = new GlobalSQL(global_dataSource, constants);
 
             // Region Database
             if (constants.regionsEnabled()) {
@@ -299,11 +297,15 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         // Enable tab.
         tab = new TabManager(this);
 
+        Afk afk = new Afk(this, chat);
+
+        Roles roles = new Roles(this, chat, plotSQL);
+
         // Enabled chat, both global and normal chat are handled through this.
-        chat = new CustomChat(this);
+        chat = new CustomChat(this, constants, afk, globalSQL, connect);
 
         // Setup connect, this handles all connections to the server.
-        connect = new Connect(this);
+        connect = new Connect(this, constants);
 
         // Create navigator.
         navigatorGui = new NavigatorGui();
@@ -321,12 +323,11 @@ public final class Network extends JavaPlugin implements NetworkAPI {
             regionManager = new RegionManager(regionSQL, globalSQL, plotAPI, chat, coordinateAPI, eventManager, worldGuardAPI, constants, this, serverAPI);
         }
 
-        // TODO: Implement network move and teleport listener.
-        //moveListener = new RegionMoveListener(this);
-        //teleportListener = new TeleportListener(this);
+        moveListener = new NetworkMoveListener(this, afk);
+        teleportListener = new NetworkTeleportListener(this);
 
         // Setup Timers
-        timers = new Timers(this, globalSQL, eventManager);
+        timers = new Timers(this, globalSQL, eventManager, constants, afk);
         timers.startTimers();
 
         // Set up the lobby, most features are only enabled in the lobby server.
@@ -361,7 +362,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         unmute = new Unmute();
         ban = new Ban();
         unban = new Unban();
-        CommandManager.registerCommands(this);
+        CommandManager.registerCommands(this, constants, eventManager, afk, regionManager);
 
         // Register commandpreprocess to make sure /network:region runs and not that of another plugin.
         new CommandPreProcess(this);

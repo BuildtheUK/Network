@@ -1,5 +1,8 @@
 package net.bteuk.network;
 
+import lombok.extern.java.Log;
+import net.bteuk.network.commands.Afk;
+import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.Time;
 import net.bteuk.network.eventing.events.EventManager;
 import net.bteuk.network.regions.Inactivity;
@@ -10,12 +13,9 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 
-import static net.bteuk.network.commands.Afk.updateAfkStatus;
-import static net.bteuk.network.utils.Constants.LOGGER;
-import static net.bteuk.network.utils.Constants.REGIONS_ENABLED;
-import static net.bteuk.network.utils.Constants.SERVER_NAME;
 import static net.bteuk.network.utils.NetworkConfig.CONFIG;
 
+@Log
 public class Timers {
 
     // Region Inactivity
@@ -28,10 +28,16 @@ public class Timers {
     private final ArrayList<Integer> timers;
     // SQL
     private final GlobalSQL globalSQL;
+
+    private final Afk afk;
+
     // Afk time
-    private final long afk;
+    private final long afkTime;
     // Event manager
     private final EventManager eventManager;
+
+    private final Constants constants;
+
     // Server events
     private ArrayList<String[]> events;
     private boolean isBusy;
@@ -40,7 +46,7 @@ public class Timers {
     private ArrayList<Inactivity> inactive_owners;
     private String uuid;
 
-    public Timers(Network instance, GlobalSQL globalSQL, EventManager eventManager) {
+    public Timers(Network instance, GlobalSQL globalSQL, EventManager eventManager, Constants constants, Afk afk) {
 
         this.instance = instance;
         this.users = instance.getUsers();
@@ -52,12 +58,16 @@ public class Timers {
         this.eventManager = eventManager;
         events = new ArrayList<>();
 
+        this.constants = constants;
+
         // days * 24 hours * 60 minutes * 60 seconds * 1000 milliseconds
         inactivity = CONFIG.getInt("region_inactivity") * 24L * 60L * 60L * 1000L;
         inactive_owners = new ArrayList<>();
 
+        this.afk = afk;
+
         // Minutes * 60 seconds * 1000 milliseconds
-        afk = CONFIG.getInt("afk") * 60L * 1000L;
+        afkTime = CONFIG.getInt("afk") * 60L * 1000L;
     }
 
     public void startTimers() {
@@ -66,7 +76,7 @@ public class Timers {
         timers.add(instance.getServer().getScheduler().scheduleSyncRepeatingTask(instance, () -> {
 
             // Check for new server_events.
-            if (globalSQL.hasRow("SELECT uuid FROM server_events WHERE server='" + SERVER_NAME + "' AND type='network" +
+            if (globalSQL.hasRow("SELECT uuid FROM server_events WHERE server='" + constants.serverName() + "' AND type='network" +
                     "';")) {
 
                 // If events is not empty, skip this iteration.
@@ -77,12 +87,12 @@ public class Timers {
                     isBusy = true;
 
                     // Get events for this server.
-                    events = globalSQL.getEvents(SERVER_NAME, "network", events);
+                    events = globalSQL.getEvents(constants.serverName(), "network", events);
 
                     for (String[] event : events) {
 
                         // Deal with events here.
-                        LOGGER.info("Event: " + event[1]);
+                        log.info("Event: " + event[1]);
 
                         // Split the event by word.
                         String[] aEvent = event[1].split(" ");
@@ -118,24 +128,26 @@ public class Timers {
                 }
 
                 // Check if the player is afk.
-                if (user.last_movement < (time - afk) && !user.isAfk()) {
+                if (user.last_movement < (time - afkTime) && !user.isAfk()) {
 
                     // Set player as AFK
                     user.setAfk(true);
 
                     // Send message to chat and discord.
-                    updateAfkStatus(user, true);
+                    afk.updateAfkStatus(user, true);
                 }
             }
         }, 0L, 20L));
 
         // 1-minute timer.
-        timers.add(instance.getServer().getScheduler().scheduleSyncRepeatingTask(instance, () -> {
+        // TODO: Move to region code.
+        if (constants.regionsEnabled()) {
+            timers.add(instance.getServer().getScheduler().scheduleSyncRepeatingTask(instance, () -> {
 
-            // Check for inactive owners.
-            // If the region has members then make another member the new owner,
-            // If the region has no members then set it inactive.
-            if (REGIONS_ENABLED) {
+                // Check for inactive owners.
+                // If the region has members then make another member the new owner,
+                // If the region has no members then set it inactive.
+
                 inactive_owners.clear();
                 inactive_owners = instance.regionSQL.getInactives("SELECT rm.region,rm.uuid FROM region_members AS rm" +
                         " INNER JOIN regions AS r ON rm.region=r.region WHERE rm.is_owner=1 AND rm.last_enter<" + (Time.currentTime() - inactivity) + " AND r.status <> " +
@@ -162,8 +174,9 @@ public class Timers {
                         inactive.region.setInactive();
                     }
                 }
-            }
-        }, 0L, 1200L));
+
+            }, 0L, 1200L));
+        }
     }
 
     public void close() {

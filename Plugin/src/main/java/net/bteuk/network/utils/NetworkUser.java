@@ -5,15 +5,13 @@ import lombok.Setter;
 import net.bteuk.network.Network;
 import net.bteuk.network.building_companion.BuildingCompanion;
 import net.bteuk.network.commands.Nightvision;
+import net.bteuk.network.core.Constants;
+import net.bteuk.network.core.Time;
 import net.bteuk.network.gui.Gui;
-import net.bteuk.network.lib.dto.DirectMessage;
 import net.bteuk.network.lib.dto.FocusEvent;
 import net.bteuk.network.lib.dto.UserConnectReply;
 import net.bteuk.network.lib.dto.UserDisconnect;
-import net.bteuk.network.lib.enums.ChatChannels;
 import net.bteuk.network.lib.utils.ChatUtils;
-import net.bteuk.network.sql.PlotSQL;
-import net.bteuk.network.utils.regions.Region;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -26,12 +24,6 @@ import java.util.Set;
 import static net.bteuk.network.lib.enums.ChatChannels.GLOBAL;
 import static net.bteuk.network.lib.enums.ChatChannels.REVIEWER;
 import static net.bteuk.network.lib.enums.ChatChannels.STAFF;
-import static net.bteuk.network.utils.Constants.EARTH_WORLD;
-import static net.bteuk.network.utils.Constants.REGIONS_ENABLED;
-import static net.bteuk.network.utils.Constants.SERVER_NAME;
-import static net.bteuk.network.utils.Constants.SERVER_TYPE;
-import static net.bteuk.network.utils.enums.ServerType.EARTH;
-import static net.bteuk.network.utils.enums.ServerType.PLOT;
 
 public class NetworkUser {
 
@@ -39,6 +31,8 @@ public class NetworkUser {
     public final Player player;
     // Network instance.
     private final Network instance;
+
+    private final Constants constants;
     // Main gui, includes everything that is part of the navigator.
     public Gui mainGui;
 
@@ -47,11 +41,7 @@ public class NetworkUser {
 
     // Staff gui.
     public Gui staffGui;
-    // Region information.
-    public boolean inRegion;
-    public Region region;
-    public int dx;
-    public int dz;
+
     // If the player is switching server.
     @Getter
     @Setter
@@ -107,9 +97,10 @@ public class NetworkUser {
     @Getter
     private boolean focusEnabled;
 
-    public NetworkUser(Player player, UserConnectReply reply) {
+    public NetworkUser(Player player, UserConnectReply reply, Network instance, Constants constants, Roles roles) {
 
-        this.instance = Network.getInstance();
+        this.instance = instance;
+        this.constants = constants;
 
         this.player = player;
 
@@ -126,7 +117,7 @@ public class NetworkUser {
         setAfk(false);
         last_movement = Time.currentTime();
 
-        primaryRole = Roles.getPrimaryRole(player);
+        primaryRole = roles.getPrimaryRole(player);
 
         // Get discord linked status.
         // If they're linked get discord id.
@@ -150,29 +141,6 @@ public class NetworkUser {
             }
         }
 
-        // Check if the player is in a region.
-        if (REGIONS_ENABLED) {
-            if (SERVER_TYPE == EARTH) {
-                // Check if they are in the earth world.
-                if (player.getWorld().getName().equals(EARTH_WORLD)) {
-                    region = instance.getRegionManager().getRegion(player.getLocation());
-                    // Add region to database if not exists.
-                    region.addToDatabase();
-                    inRegion = true;
-                }
-            } else if (SERVER_TYPE == PLOT) {
-                // Check if the player is in a buildable plot world and apply coordinate transform if true.
-                if (instance.getPlotSQL()
-                        .hasRow("SELECT name FROM location_data WHERE name='" + player.getLocation().getWorld()
-                                .getName() + "';")) {
-                    updateCoordinateTransform(instance.getPlotSQL(), player.getLocation());
-
-                    region = instance.getRegionManager().getRegion(player.getLocation(), dx, dz);
-                    inRegion = true;
-                }
-            }
-        }
-
         runEvents();
 
         // Give the player nightvision if enabled or remove it if disabled.
@@ -188,17 +156,6 @@ public class NetworkUser {
         if (focusEnabled) {
             hidePlayers();
         }
-    }
-
-    /**
-     * Get the name of a user.
-     *
-     * @param uuid uuid of the user
-     * @return {@link String} name of the user
-     */
-    public static String getName(String uuid) {
-        return Network.getInstance().getGlobalSQL().getString("SELECT name FROM player_data WHERE uuid='" + uuid +
-                "';");
     }
 
     /**
@@ -223,22 +180,10 @@ public class NetworkUser {
         return channels;
     }
 
-    /**
-     * Send the user an offline message. This also works for online players.
-     *
-     * @param uuid    uuid of the user
-     * @param message the message to send
-     */
-    public static void sendOfflineMessage(String uuid, Component message) {
-        DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), uuid, "server", message
-                , true);
-        Network.getInstance().getChat().sendSocketMessage(directMessage);
-    }
-
     public UserDisconnect createDisconnectEvent() {
         return new UserDisconnect(
                 player.getUniqueId().toString(),
-                SERVER_NAME,
+                constants.serverName(),
                 isNavigatorEnabled(),
                 isTeleportEnabled(),
                 isNightvisionEnabled(),
@@ -275,6 +220,7 @@ public class NetworkUser {
                         " type='network';");
 
                 // Send the event to the event handler.
+                // TODO: Timers
                 instance.getTimers().getEventManager().event(player.getUniqueId().toString(), aEvent, message);
             }
         }, 20L);
@@ -316,11 +262,7 @@ public class NetworkUser {
         player.sendMessage(message);
     }
 
-    public void updateCoordinateTransform(PlotSQL plotSQL, Location l) {
-        dx = -plotSQL.getInt("SELECT xTransform FROM location_data WHERE name='" + l.getWorld().getName() + "';");
-        dz = -plotSQL.getInt("SELECT zTransform FROM location_data WHERE name='" + l.getWorld().getName() + "';");
-    }
-
+    // TODO: Use regionUser instance to determine coordinate transformation.
     public Location getLocationWithCoordinateTransform() {
         return new Location(
                 player.getWorld(),

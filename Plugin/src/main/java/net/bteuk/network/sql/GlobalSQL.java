@@ -1,9 +1,13 @@
 package net.bteuk.network.sql;
 
+import lombok.extern.java.Log;
 import net.bteuk.network.api.entity.NetworkLocation;
 import net.bteuk.network.building_counter.Building;
+import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.sql.AbstractSQL;
+import net.bteuk.network.lib.dto.DirectMessage;
 import net.bteuk.network.utils.Coordinate;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
@@ -15,11 +19,14 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
-import static net.bteuk.network.utils.Constants.SERVER_NAME;
-
+@Log
 public class GlobalSQL extends AbstractSQL {
-    public GlobalSQL(DataSource datasource) {
+
+    private final Constants constants;
+
+    public GlobalSQL(DataSource datasource, Constants constants) {
         super(datasource);
+        this.constants = constants;
     }
 
     // Get a hashmap of all events for this server for the Network plugin.
@@ -60,12 +67,12 @@ public class GlobalSQL extends AbstractSQL {
     // Add new coordinate to database and return the id.
     public int addCoordinate(Location l) {
 
-        return (addCoordinate(SERVER_NAME, l.getWorld().getName(), l.getX(), l.getY(), l.getZ(), l.getYaw(), l.getPitch()));
+        return (addCoordinate(constants.serverName(), l.getWorld().getName(), l.getX(), l.getY(), l.getZ(), l.getYaw(), l.getPitch()));
     }
 
     // Add new coordinate to database and return the id.
     public int addCoordinate(NetworkLocation l) {
-        return (addCoordinate(SERVER_NAME, l.world(), l.x(), l.y(), l.z(), l.yaw(), l.pitch()));
+        return (addCoordinate(constants.serverName(), l.world(), l.x(), l.y(), l.z(), l.yaw(), l.pitch()));
     }
 
     // Add new coordinate to database and return the id.
@@ -151,12 +158,12 @@ public class GlobalSQL extends AbstractSQL {
 
     // Update an existing coordinate.
     public void updateCoordinate(int coordinateID, Location l) {
-        updateCoordinate(coordinateID, SERVER_NAME, l);
+        updateCoordinate(coordinateID, constants.serverName(), l);
     }
 
     // Update an existing coordinate.
     public void updateCoordinate(int coordinateID, NetworkLocation location) {
-        updateCoordinate(coordinateID, SERVER_NAME, location);
+        updateCoordinate(coordinateID, constants.serverName(), location);
     }
 
     public ArrayList<Building> getBuildings(String condition) {
@@ -236,6 +243,25 @@ public class GlobalSQL extends AbstractSQL {
 
         } catch (SQLException sql) {
             sql.printStackTrace();
+        }
+    }
+
+    public boolean insertMessage(DirectMessage directMessage) {
+        try (
+                Connection conn = conn();
+                PreparedStatement statement = conn.prepareStatement(
+                        "INSERT INTO messages(recipient,message) VALUES(?,?);"
+                )
+        ) {
+            statement.setString(1, directMessage.getRecipient());
+            statement.setString(2, GsonComponentSerializer.gson().serialize(directMessage.getComponent()));
+
+            statement.executeUpdate();
+            return true;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
         }
     }
 }

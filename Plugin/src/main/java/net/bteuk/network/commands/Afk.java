@@ -2,6 +2,7 @@ package net.bteuk.network.commands;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import lombok.extern.java.Log;
+import net.bteuk.network.CustomChat;
 import net.bteuk.network.Network;
 import net.bteuk.network.core.Time;
 import net.bteuk.network.lib.dto.UserUpdate;
@@ -13,15 +14,24 @@ import org.jetbrains.annotations.NotNull;
 @Log
 public class Afk extends AbstractCommand {
 
+    private final Network instance;
+
+    private final CustomChat chat;
+
+    public Afk(Network instance, CustomChat chat) {
+        this.instance = instance;
+        this.chat = chat;
+    }
+
     public void updateAfkStatus(NetworkUser user, boolean afk) {
 
         // Broadcast the afk message and send a user update event.
-        Network.getInstance().getChat().broadcastAFK(user.player, afk);
+        chat.broadcastAFK(user.player, afk);
 
         UserUpdate userUpdateEvent = new UserUpdate();
         userUpdateEvent.setUuid(user.player.getUniqueId().toString());
         userUpdateEvent.setAfk(afk);
-        Network.getInstance().getChat().sendSocketMessage(userUpdateEvent);
+        chat.sendSocketMessage(userUpdateEvent);
     }
 
     @Override
@@ -33,7 +43,7 @@ public class Afk extends AbstractCommand {
             return;
         }
 
-        NetworkUser user = Network.getInstance().getUser(player);
+        NetworkUser user = instance.getUser(player);
 
         // If u is null, cancel.
         if (user == null) {

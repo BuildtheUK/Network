@@ -1,9 +1,12 @@
 package net.bteuk.network.api;
 
-import net.bteuk.network.lib.dto.AbstractTransferObject;
+import net.bteuk.network.lib.dto.ChatMessage;
+import net.bteuk.network.lib.dto.DirectMessage;
 
 public interface ChatAPI {
 
-    void sendSocketMessage(AbstractTransferObject chatMessage);
+    void sendChatMessage(ChatMessage chatMessage);
+
+    void sendDirectMessage(DirectMessage directMessage);
 
 }

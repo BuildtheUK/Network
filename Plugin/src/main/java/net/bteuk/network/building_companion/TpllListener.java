@@ -1,7 +1,11 @@
 package net.bteuk.network.building_companion;
 
+import lombok.extern.java.Log;
 import net.bteuk.network.Network;
 import net.bteuk.network.commands.navigation.Tpll;
+import net.bteuk.network.core.Constants;
+import net.bteuk.network.regions.RegionManager;
+import net.bteuk.network.regions.RegionUser;
 import net.bteuk.network.utils.TpllFormat;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -11,15 +15,20 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 
 import java.util.Arrays;
 
-import static net.bteuk.network.utils.Constants.LOGGER;
-
+@Log
 public class TpllListener implements Listener {
 
     private final BuildingCompanion companion;
 
-    public TpllListener(BuildingCompanion companion) {
+    private final Constants constants;
+
+    private final RegionManager regionManager;
+
+    public TpllListener(BuildingCompanion companion, Network instance, Constants constants, RegionManager regionManager) {
         this.companion = companion;
-        Bukkit.getServer().getPluginManager().registerEvents(this, Network.getInstance());
+        this.constants = constants;
+        this.regionManager = regionManager;
+        Bukkit.getServer().getPluginManager().registerEvents(this, instance);
     }
 
     @EventHandler
@@ -28,7 +37,7 @@ public class TpllListener implements Listener {
             return;
         }
 
-        LOGGER.info(e.getMessage());
+        log.info(e.getMessage());
 
         if (e.getMessage().startsWith("/network:tpll")) {
 
@@ -52,10 +61,14 @@ public class TpllListener implements Listener {
                 return;
             }
 
-            // Apply coordinate transform if in the plotsystem.
+            // Apply coordinate transform if regions are enabled.
             Location l = new Location(e.getPlayer().getWorld(), proj[0], 1, proj[1]);
-            if (Constants.REGIONS_ENABLED) {
-                l = Tpll.applyCoordinateTransformIfPlotSystem(Network.getInstance().getRegionManager().getRegion(l), l);
+            if (constants.regionsEnabled()) {
+                RegionUser regionUser = regionManager.getUserByPlayer(e.getPlayer());
+                Location newLocation = l.clone();
+                newLocation.setX(l.getX() + regionUser.getDeltaX());
+                newLocation.setZ(l.getZ() + regionUser.getDeltaZ());
+                l = newLocation;
             }
 
             // Add a new corner, or update an existing one.

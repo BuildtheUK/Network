@@ -1,5 +1,7 @@
 package net.bteuk.network.utils;
 
+import lombok.extern.java.Log;
+import net.bteuk.network.CustomChat;
 import net.bteuk.network.Network;
 import net.bteuk.network.lib.dto.ChatMessage;
 import net.bteuk.network.lib.dto.DirectMessage;
@@ -8,6 +10,7 @@ import net.bteuk.network.lib.dto.TabPlayer;
 import net.bteuk.network.lib.dto.UserUpdate;
 import net.bteuk.network.lib.enums.ChatChannels;
 import net.bteuk.network.lib.utils.ChatUtils;
+import net.bteuk.network.sql.PlotSQL;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -29,9 +32,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static net.bteuk.network.lib.enums.ChatChannels.GLOBAL;
-import static net.bteuk.network.utils.Constants.LOGGER;
 import static net.bteuk.network.utils.NetworkConfig.CONFIG;
 
+@Log
 public final class Roles {
 
     private static final Component PROMOTION_TEMPLATE = Component.text(" has been promoted to ");
@@ -41,14 +44,26 @@ public final class Roles {
             .collect(Collectors.toCollection(LinkedHashSet::new));
     private static Set<Role> ROLES;
 
-    public static Set<Role> getRoles() {
+    private final Network instance;
+
+    private final CustomChat customChat;
+
+    private final PlotSQL plotSQL;
+
+    public Roles(Network instance, CustomChat customChat, PlotSQL plotSQL) {
+        this.instance = instance;
+        this.customChat = customChat;
+        this.plotSQL = plotSQL;
+    }
+
+    public Set<Role> getRoles() {
         if (ROLES == null) {
             loadRoles();
         }
         return ROLES;
     }
 
-    public static Role getRoleById(String roleId) {
+    public Role getRoleById(String roleId) {
         // Get the configuration if not yet fetches.
         if (ROLES == null) {
             loadRoles();
@@ -69,7 +84,7 @@ public final class Roles {
             Architect
 
      */
-    public static Role builderRole(Player p) {
+    public Role builderRole(Player p) {
         String roleToGet = "default";
         for (String roleName : BUILDER_ROLE_NAMES) {
             if (p.hasPermission("group." + roleName)) {
@@ -112,7 +127,7 @@ public final class Roles {
         });
     }
 
-    public static Role getPrimaryRole(Player p) {
+    public Role getPrimaryRole(Player p) {
         // Get the configuration if not yet fetches.
         if (ROLES == null) {
             loadRoles();
@@ -125,12 +140,12 @@ public final class Roles {
         return null;
     }
 
-    private static void loadRoles() {
+    private void loadRoles() {
         // Create roles.yml if not exists.
         // The data folder should already exist since the plugin will always create config.yml first.
-        File rolesFile = new File(Network.getInstance().getDataFolder(), "roles.yml");
+        File rolesFile = new File(instance.getDataFolder(), "roles.yml");
         if (!rolesFile.exists()) {
-            Network.getInstance().saveResource("roles.yml", false);
+            instance.saveResource("roles.yml", false);
         }
 
         FileConfiguration rolesConfig = YamlConfiguration.loadConfiguration(rolesFile);
@@ -159,10 +174,10 @@ public final class Roles {
      * Discord syncing will not be applied with this method due to deprecation.
      */
     @Deprecated
-    public static void promoteBuilder(String uuid, String pRole, String nRole) {
+    public void promoteBuilder(String uuid, String pRole, String nRole) {
 
         // Get console sender.
-        ConsoleCommandSender console = Network.getInstance().getServer().getConsoleSender();
+        ConsoleCommandSender console = instance.getServer().getConsoleSender();
 
         // Add new builder role.
         Bukkit.getServer().dispatchCommand(console, "lp user " + uuid + " parent add " + nRole);
@@ -171,7 +186,7 @@ public final class Roles {
         Bukkit.getServer().dispatchCommand(console, "lp user " + uuid + " parent remove " + pRole);
 
         // Update database.
-        Network.getInstance().getGlobalSQL().update("UPDATE player_data SET builder_role='" + nRole + "' WHERE " +
+        instance.getGlobalSQL().update("UPDATE player_data SET builder_role='" + nRole + "' WHERE " +
                 "uuid='" + uuid + "';");
 
         // Announce the promotion in chat and discord.
@@ -180,8 +195,7 @@ public final class Roles {
         Component colouredRole = Component.text(Objects.requireNonNull(CONFIG.getString("roles." + nRole + ".name")),
                 TextColor.fromHexString(Objects.requireNonNull(CONFIG.getString("roles." + nRole + ".colour"))));
         if (CONFIG.getBoolean("chat.announce_promotions")) {
-            String name =
-                    Network.getInstance().getGlobalSQL()
+            String name = instance.getGlobalSQL()
                             .getString("SELECT name FROM player_data WHERE uuid='" + uuid + "';");
 
             Component promotation_message = Component.text(name)
@@ -190,17 +204,17 @@ public final class Roles {
             promotation_message = promotation_message.decorate(TextDecoration.BOLD);
 
             ChatMessage chatMessage = new ChatMessage(GLOBAL.getChannelName(), "server", promotation_message);
-            Network.getInstance().getChat().sendSocketMessage(chatMessage);
+            customChat.sendSocketMessage(chatMessage);
         }
 
         // Check if the player is online.
-        if (!Network.getInstance().isOnlineOnNetwork(uuid)) {
+        if (!instance.isOnlineOnNetwork(uuid)) {
 
             // Send a message that will show when they next log in.
             DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), uuid, "server",
                     PROMOTION_SELF.append(colouredRole),
                     true);
-            Network.getInstance().getChat().sendSocketMessage(directMessage);
+            customChat.sendDirectMessage(directMessage);
         }
     }
 
@@ -213,7 +227,7 @@ public final class Roles {
      * @param announce whether to announce the promotion (demotion is never announced)
      * @return {@link CompletableFuture} completableFuture with {@link Component} message.
      */
-    public static CompletableFuture<Component> alterRole(String uuid, String name, String roleId, boolean remove,
+    public CompletableFuture<Component> alterRole(String uuid, String name, String roleId, boolean remove,
                                                          boolean announce) {
 
         // Get the configured group.
@@ -240,7 +254,7 @@ public final class Roles {
                 return ChatUtils.error("Modifying the permissions failed!");
             }
 
-            LOGGER.info(String.format("Group before %s, group after %s", groupBefore, groupAfter));
+            log.info(String.format("Group before %s, group after %s", groupBefore, groupAfter));
             if (!groupBefore.equals(groupAfter)) {
                 // Update primary role in TAB.
                 Role primaryRole = getRoleById(groupAfter);
@@ -252,17 +266,17 @@ public final class Roles {
                 UserUpdate userUpdate = new UserUpdate();
                 userUpdate.setUuid(uuid);
                 userUpdate.setTabPlayer(tabPlayer);
-                Network.getInstance().getChat().sendSocketMessage(userUpdate);
+                customChat.sendSocketMessage(userUpdate);
 
                 // If the new primary role is architect or reviewer, and they were promoted add them to the reviewers
                 // database table.
                 if (!remove && (primaryRole.getId().equals("architect") || primaryRole.getId().equals("reviewer"))) {
-                    Network.getInstance().getPlotSQL().addOrUpdateReviewer(uuid, primaryRole.getId());
+                    plotSQL.addOrUpdateReviewer(uuid, primaryRole.getId());
                 }
             }
 
             DiscordRole discordRole = new DiscordRole(uuid, roleId, !remove);
-            Network.getInstance().getChat().sendSocketMessage(discordRole);
+            customChat.sendSocketMessage(discordRole);
 
             if (announce && !remove) {
                 sendPromotionChatMessage(name, role);
@@ -280,19 +294,19 @@ public final class Roles {
         });
     }
 
-    private static void sendPromotionChatMessage(String name, Role role) {
+    private void sendPromotionChatMessage(String name, Role role) {
         Component message = Component.text(name)
                 .append(PROMOTION_TEMPLATE)
                 .append(role.getColouredRoleName())
                 .decorate(TextDecoration.BOLD);
-        Network.getInstance().getChat().sendSocketMessage(new ChatMessage(GLOBAL.getChannelName(), "server", message));
+        customChat.sendChatMessage(new ChatMessage(GLOBAL.getChannelName(), "server", message));
     }
 
-    private static void sendPromotionDirectMessage(String uuid, Role role) {
+    private void sendPromotionDirectMessage(String uuid, Role role) {
         Component message = PROMOTION_SELF
                 .append(role.getColouredRoleName())
                 .decorate(TextDecoration.BOLD);
-        Network.getInstance().getChat().sendSocketMessage(new DirectMessage(ChatChannels.GLOBAL.getChannelName(), uuid
+        customChat.sendDirectMessage(new DirectMessage(ChatChannels.GLOBAL.getChannelName(), uuid
                 , "server", message, true));
     }
 }
