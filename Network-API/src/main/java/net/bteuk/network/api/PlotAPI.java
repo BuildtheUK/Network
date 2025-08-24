@@ -88,4 +88,6 @@ public interface PlotAPI {
     int getXTransform(String location);
 
     int getZTransform(String location);
+
+    boolean hasLocation(String location);
 }

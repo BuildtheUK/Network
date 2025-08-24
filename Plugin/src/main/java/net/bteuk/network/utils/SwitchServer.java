@@ -66,7 +66,7 @@ public class SwitchServer implements ServerAPI {
         }
 
         // Set switching to true in user.
-        user.get().switching = true;
+        user.get().setSwitching(true);
 
         // Send switch server event to the proxy.
         UserDisconnect userDisconnect = user.get().createDisconnectEvent();

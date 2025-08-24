@@ -17,6 +17,7 @@ import net.bteuk.network.lib.enums.ChatChannels;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.papercore.LocationAdapter;
 import net.bteuk.network.regions.listener.RegionMoveListener;
+import net.bteuk.network.regions.listener.RegionTeleportListener;
 import net.bteuk.network.regions.sql.RegionSQL;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -58,6 +59,7 @@ public class RegionManager {
         this.constants = constants;
 
         new RegionMoveListener(plugin, this, plotAPI, constants, globalSQL, eventAPI, serverAPI);
+        new RegionTeleportListener(plugin, this, constants, plotAPI);
     }
 
     public RegionUser getUserByPlayer(Player player) {

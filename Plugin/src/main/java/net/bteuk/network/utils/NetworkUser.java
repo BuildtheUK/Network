@@ -53,9 +53,13 @@ public class NetworkUser {
     public int dx;
     public int dz;
     // If the player is switching server.
-    public boolean switching;
+    @Getter
+    @Setter
+    private boolean switching;
     // If the player is afk.
-    public boolean afk;
+    @Setter
+    @Getter
+    private boolean afk;
     public long last_movement;
     // If linked to discord.
     public boolean isLinked;
@@ -119,7 +123,7 @@ public class NetworkUser {
         switching = false;
         inPortal = false;
         wasInPortal = false;
-        afk = false;
+        setAfk(false);
         last_movement = Time.currentTime();
 
         primaryRole = Roles.getPrimaryRole(player);
@@ -371,4 +375,5 @@ public class NetworkUser {
             }
         });
     }
+
 }

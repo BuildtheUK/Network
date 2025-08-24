@@ -51,8 +51,8 @@ public class CommandPreProcess implements Listener {
             }
 
             user.last_movement = Time.currentTime();
-            if (user.afk) {
-                user.afk = false;
+            if (user.isAfk()) {
+                user.setAfk(false);
                 updateAfkStatus(user, false);
             }
         }

@@ -160,9 +160,9 @@ public class Connect implements Listener {
         }
 
         // Reset last logged time.
-        if (user.afk) {
+        if (user.isAfk()) {
             user.last_movement = Time.currentTime();
-            user.afk = false;
+            user.setAfk(false);
         }
 
         // If the companion is enabled, disable it.

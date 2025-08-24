@@ -118,10 +118,10 @@ public class Timers {
                 }
 
                 // Check if the player is afk.
-                if (user.last_movement < (time - afk) && !user.afk) {
+                if (user.last_movement < (time - afk) && !user.isAfk()) {
 
                     // Set player as AFK
-                    user.afk = true;
+                    user.setAfk(true);
 
                     // Send message to chat and discord.
                     updateAfkStatus(user, true);

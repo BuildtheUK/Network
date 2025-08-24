@@ -201,4 +201,9 @@ public class PlotAPIImpl implements PlotAPI {
     public int getZTransform(String location) {
         return plotSQL.getInt("SELECT zTransform FROM location_data WHERE name='" + location + "';");
     }
+
+    @Override
+    public boolean hasLocation(String location) {
+        return plotSQL.hasRow("SELECT name FROM location_data WHERE name='" + location + "';");
+    }
 }

@@ -164,8 +164,8 @@ public class CustomChat implements Listener, SocketHandler, ChatAPI {
             // Reset last movement of player, if they're afk unset that.
             user.last_movement = Time.currentTime();
 
-            if (user.afk) {
-                user.afk = false;
+            if (user.isAfk()) {
+                user.setAfk(false);
                 updateAfkStatus(user, false);
             }
             ChatMessage chatMessage = getChatMessage(e.message(), user);

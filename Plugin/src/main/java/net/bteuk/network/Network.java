@@ -35,7 +35,7 @@ import net.bteuk.network.lobby.Lobby;
 import net.bteuk.network.logging.BukkitForwardingHandler;
 import net.bteuk.network.regions.RegionManager;
 import net.bteuk.network.regions.listener.RegionMoveListener;
-import net.bteuk.network.regions.listener.TeleportListener;
+import net.bteuk.network.regions.listener.RegionTeleportListener;
 import net.bteuk.network.regions.sql.RegionSQL;
 import net.bteuk.network.services.NetworkPromotionService;
 import net.bteuk.network.sql.GlobalSQL;
@@ -83,7 +83,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
     public RegionSQL regionSQL;
     // Movement listeners.
     public RegionMoveListener moveListener;
-    public TeleportListener teleportListener;
+    public RegionTeleportListener teleportListener;
     // Return an instance of the regionManager.
     // RegionManager
     @Getter
@@ -329,30 +329,33 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         timers = new Timers(this, globalSQL, eventManager);
         timers.startTimers();
 
-        // Setup the lobby, most features are only enabled in the lobby server.
-        lobby = new Lobby(this);
-        // Create the rules book.
-        lobby.loadRules();
-        if (constants.serverType() == ServerType.LOBBY) {
+        // Set up the lobby, most features are only enabled in the lobby server.
+        if (!constants.standalone()) {
+            lobby = new Lobby(this);
+            // Create the rules book.
+            lobby.loadRules();
+            if (constants.serverType() == ServerType.LOBBY) {
 
-            // Set spawn location and enable auto-spawn teleport when falling in the void.
-            lobby.setSpawn();
-            lobby.enableVoidTeleport();
+                // Set spawn location and enable auto-spawn teleport when falling in the void.
+                lobby.setSpawn();
+                lobby.enableVoidTeleport();
 
-            lobby.reloadPortals();
+                lobby.reloadPortals();
 
-            // Set the rules lectern.
-            lobby.setLectern();
+                // Set the rules lectern.
+                lobby.setLectern();
+            }
+
+            // Set up the map.
+            lobby.reloadMap();
         }
-
-        // Set up the map.
-        lobby.reloadMap();
 
         // Enable commands
         if (constants.tpllEnabled()) {
             TerraConfig.reducedConsoleMessages = true;
             tpll = new Tpll(instance, CONFIG.getBoolean("requires_permission"));
         }
+
         kick = new Kick();
         mute = new Mute();
         unmute = new Unmute();
@@ -369,20 +372,22 @@ public final class Network extends JavaPlugin implements NetworkAPI {
             new Tips();
         }
 
-        // Create default season if not exists.
+        // Create a default season if not exists.
         if (!globalSQL.hasRow("SELECT id FROM seasons WHERE id='default';")) {
             globalSQL.update("INSERT INTO seasons(id,active) VALUES('default',1);");
         }
 
-        // Register Promotion Service.
-        try {
-            Class.forName("net.bteuk.teachingtutorials.services.PromotionService");
-            PromotionService promotionService = new NetworkPromotionService();
-            this.getServer().getServicesManager().register(PromotionService.class, promotionService, this,
-                    ServicePriority.High);
-            log.info("Registered Network Promotion Service");
-        } catch (ClassNotFoundException e) {
-            // Only load the PromotionService if the class exists.
+        // Register Promotion Service for tutorials.
+        if (constants.tutorials()) {
+            try {
+                Class.forName("net.bteuk.teachingtutorials.services.PromotionService");
+                PromotionService promotionService = new NetworkPromotionService();
+                this.getServer().getServicesManager().register(PromotionService.class, promotionService, this,
+                        ServicePriority.High);
+                log.info("Registered Network Promotion Service");
+            } catch (ClassNotFoundException e) {
+                // Only load the PromotionService if the class exists.
+            }
         }
 
         // Let the Proxy know that the server is enabled.
@@ -429,9 +434,9 @@ public final class Network extends JavaPlugin implements NetworkAPI {
                         "UUID='" + uuid + "';");
 
                 // Reset last logged time.
-                if (u.afk) {
+                if (u.isAfk()) {
                     u.last_movement = Time.currentTime();
-                    u.afk = false;
+                    u.setAfk(false);
                 }
             }
         }

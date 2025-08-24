@@ -16,10 +16,12 @@ public class RegionUser {
 
     // Coordinate transformation in the x direction, relevant in the plot system.
     @Getter
+    @Setter
     int deltaX;
 
     // Coordinate transformation in the z direction, relevant in the plot system.
     @Getter
+    @Setter
     int deltaZ;
 
     public RegionUser(Player player) {

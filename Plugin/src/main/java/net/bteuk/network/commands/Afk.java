@@ -1,19 +1,19 @@
 package net.bteuk.network.commands;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
+import lombok.extern.java.Log;
 import net.bteuk.network.Network;
+import net.bteuk.network.core.Time;
 import net.bteuk.network.lib.dto.UserUpdate;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.NetworkUser;
-import net.bteuk.network.utils.Time;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import static net.bteuk.network.utils.Constants.LOGGER;
-
+@Log
 public class Afk extends AbstractCommand {
 
-    public static void updateAfkStatus(NetworkUser user, boolean afk) {
+    public void updateAfkStatus(NetworkUser user, boolean afk) {
 
         // Broadcast the afk message and send a user update event.
         Network.getInstance().getChat().broadcastAFK(user.player, afk);
@@ -37,19 +37,19 @@ public class Afk extends AbstractCommand {
 
         // If u is null, cancel.
         if (user == null) {
-            LOGGER.severe("User " + player.getName() + " can not be found!");
+            log.severe("User " + player.getName() + " can not be found!");
             player.sendMessage(ChatUtils.error("User can not be found, please relog!"));
             return;
         }
 
         // Switch afk status.
-        if (user.afk) {
+        if (user.isAfk()) {
             // Reset last logged time.
             user.last_movement = Time.currentTime();
-            user.afk = false;
+            user.setAfk(false);
             updateAfkStatus(user, false);
         } else {
-            user.afk = true;
+            user.setAfk(true);
             updateAfkStatus(user, true);
         }
     }
