@@ -4,9 +4,11 @@ import lombok.extern.java.Log;
 import net.bteuk.network.api.ChatAPI;
 import net.bteuk.network.api.CoordinateAPI;
 import net.bteuk.network.api.EventAPI;
+import net.bteuk.network.api.NetworkAPI;
 import net.bteuk.network.api.PlotAPI;
 import net.bteuk.network.api.SQLAPI;
 import net.bteuk.network.api.ServerAPI;
+import net.bteuk.network.api.TimerAPI;
 import net.bteuk.network.api.WorldGuardAPI;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.ServerType;
@@ -18,6 +20,8 @@ import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.papercore.LocationAdapter;
 import net.bteuk.network.regions.listener.RegionMoveListener;
 import net.bteuk.network.regions.listener.RegionTeleportListener;
+import net.bteuk.network.regions.listener.ServerJoinListener;
+import net.bteuk.network.regions.listener.ServerQuitListener;
 import net.bteuk.network.regions.sql.RegionSQL;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -26,9 +30,12 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 @Log
 public class RegionManager {
@@ -42,28 +49,31 @@ public class RegionManager {
     private final EventAPI eventAPI;
     private final WorldGuardAPI worldGuard;
     private final Constants constants;
+    private final Set<RegionUser> users = new HashSet<>();
 
-    private final List<RegionUser> users = new ArrayList<>();
-
-    public RegionManager(RegionSQL regionSQL, SQLAPI globalSQL, PlotAPI plotAPI, ChatAPI chat, CoordinateAPI coordinateAPI, EventAPI eventAPI, WorldGuardAPI worldGuard,
+    public RegionManager(RegionSQL regionSQL, NetworkAPI networkAPI, CoordinateAPI coordinateAPI, EventAPI eventAPI, WorldGuardAPI worldGuard,
                          Constants constants, JavaPlugin plugin, ServerAPI serverAPI) {
         regions = new HashMap<>();
 
         this.regionSQL = regionSQL;
-        this.globalSQL = globalSQL;
-        this.plotAPI = plotAPI;
-        this.chat = chat;
+        this.globalSQL = networkAPI.getGlobalSQL();
+        this.plotAPI = networkAPI.getPlotAPI();
+        this.chat = networkAPI.getChat();
         this.coordinateAPI = coordinateAPI;
         this.eventAPI = eventAPI;
         this.worldGuard = worldGuard;
         this.constants = constants;
 
+        new ServerJoinListener(plugin, player -> users.add(new RegionUser(player)));
+        new ServerQuitListener(plugin, player -> getUserByPlayer(player).ifPresent(users::remove));
         new RegionMoveListener(plugin, this, plotAPI, constants, globalSQL, eventAPI, serverAPI);
         new RegionTeleportListener(plugin, this, constants, plotAPI);
+
+        registerInactivityTimer(networkAPI.getTimerAPI());
     }
 
-    public RegionUser getUserByPlayer(Player player) {
-        return users.stream().filter(user -> user.getPlayer().equals(player)).findFirst().orElse(null);
+    public Optional<RegionUser> getUserByPlayer(Player player) {
+        return users.stream().filter(user -> user.getPlayer().equals(player)).findFirst();
     }
 
     /**
@@ -810,5 +820,42 @@ public class RegionManager {
     public boolean canBuild(Region region, Player p) {
         return ((status(region) == RegionStatus.OPEN && p.hasPermission("group.jrbuilder")) || isOwner(region, p.getUniqueId().toString()) || isMember(region,
                 p.getUniqueId().toString()));
+    }
+
+    private void registerInactivityTimer(TimerAPI timerAPI) {
+        timerAPI.registerTimer(() -> {
+            // Check for inactive owners.
+            // If the region has members, then make the most recently active member the new owner,
+            // If the region has no members, then set it inactive.
+            List<Inactivity> inactive_owners = regionSQL.getInactives("SELECT rm.region,rm.uuid FROM region_members AS rm" +
+                    " INNER JOIN regions AS r ON rm.region=r.region WHERE rm.is_owner=1 AND rm.last_enter<" + (Time.currentTime() - constants.regionInactivity()) + " AND r" +
+                    ".status <> " +
+                    "'inactive';");
+            long currentTime = Time.currentTime();
+
+            for (Inactivity inactive : inactive_owners) {
+                Region region = getRegion(inactive.regionName());
+
+                // Check if there is another member in this region, they must be active.
+                if (hasActiveMember(region, currentTime)) {
+
+                    // Get the most recently active member.
+                    String uuid = getRecentMember(region);
+
+                    // Make the previous owner a member.
+                    makeMember(region);
+
+                    // Give the new player ownership.
+                    makeOwner(region, uuid);
+
+                    // Update any requests to take into account the new region owner.
+                    updateRequests(region);
+
+                } else {
+                    // Set the region as inactive.
+                    setInactive(region);
+                }
+            }
+        }, 60_000L);
     }
 }

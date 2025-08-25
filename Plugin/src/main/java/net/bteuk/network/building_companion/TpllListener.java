@@ -14,6 +14,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 @Log
 public class TpllListener implements Listener {
@@ -64,11 +65,14 @@ public class TpllListener implements Listener {
             // Apply coordinate transform if regions are enabled.
             Location l = new Location(e.getPlayer().getWorld(), proj[0], 1, proj[1]);
             if (constants.regionsEnabled()) {
-                RegionUser regionUser = regionManager.getUserByPlayer(e.getPlayer());
-                Location newLocation = l.clone();
-                newLocation.setX(l.getX() + regionUser.getDeltaX());
-                newLocation.setZ(l.getZ() + regionUser.getDeltaZ());
-                l = newLocation;
+                Optional<RegionUser> optionalRegionUser = regionManager.getUserByPlayer(e.getPlayer());
+                if (optionalRegionUser.isPresent()) {
+                    RegionUser regionUser = optionalRegionUser.get();
+                    Location newLocation = l.clone();
+                    newLocation.setX(l.getX() + regionUser.getDeltaX());
+                    newLocation.setZ(l.getZ() + regionUser.getDeltaZ());
+                    l = newLocation;
+                }
             }
 
             // Add a new corner, or update an existing one.

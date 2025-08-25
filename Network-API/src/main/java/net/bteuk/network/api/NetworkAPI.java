@@ -1,5 +1,7 @@
 package net.bteuk.network.api;
 
+import net.bteuk.network.api.entity.ShutdownHook;
+
 public interface NetworkAPI {
 
     ChatAPI getChat();
@@ -8,6 +10,12 @@ public interface NetworkAPI {
 
     SQLAPI getGlobalSQL();
 
-    SQLAPI getPlotSQL();
+    TimerAPI getTimerAPI();
 
+    /**
+     * Register a shutdown hook to run on server shutdown.
+     *
+     * @param hook the shutdown hook
+     */
+    void registerShutdownHook(ShutdownHook hook);
 }

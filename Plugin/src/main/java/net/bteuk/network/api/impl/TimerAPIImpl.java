@@ -1,0 +1,32 @@
+package net.bteuk.network.api.impl;
+
+import net.bteuk.network.Network;
+import net.bteuk.network.api.TimerAPI;
+import net.bteuk.network.api.entity.ShutdownHook;
+
+import java.util.HashMap;
+
+public class TimerAPIImpl implements TimerAPI, ShutdownHook {
+
+    private final HashMap<Integer, Runnable> timers = new HashMap<>();
+
+    private final Network instance;
+
+    public TimerAPIImpl(Network instance) {
+        this.instance = instance;
+        instance.registerShutdownHook(this);
+    }
+
+    @Override
+    public int registerTimer(Runnable runnable, long intervalMillis, long delay) {
+        long serverTickInterval = Math.round(intervalMillis / 50.0);
+        int id = instance.getServer().getScheduler().scheduleSyncRepeatingTask(instance, runnable, delay, serverTickInterval);
+        timers.put(id, runnable);
+        return id;
+    }
+
+    @Override
+    public void shutdown() {
+        timers.forEach((id, runnable) -> instance.getServer().getScheduler().cancelTask(id));
+    }
+}

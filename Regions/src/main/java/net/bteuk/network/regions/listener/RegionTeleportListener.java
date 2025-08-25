@@ -14,6 +14,7 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Objects;
+import java.util.Optional;
 
 import static net.bteuk.network.core.ServerType.EARTH;
 import static net.bteuk.network.core.ServerType.PLOT;
@@ -38,11 +39,12 @@ public class RegionTeleportListener extends AbstractMoveListener implements List
     @EventHandler
     public void onPlayerTeleport(PlayerTeleportEvent e) {
 
-        RegionUser regionUser = regionManager.getUserByPlayer(e.getPlayer());
-        if (regionUser == null) {
+        Optional<RegionUser> optionalRegionUser = regionManager.getUserByPlayer(e.getPlayer());
+        if (optionalRegionUser.isEmpty()) {
             log.severe("Region user is null for player " + e.getPlayer().getName());
             return;
         }
+        RegionUser regionUser = optionalRegionUser.get();
 
         Region newRegion = getRegion(regionUser, e.getTo());
 

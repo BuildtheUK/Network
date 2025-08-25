@@ -7,6 +7,7 @@ import net.bteuk.network.api.NetworkAPI;
 import net.bteuk.network.api.PlotAPI;
 import net.bteuk.network.api.ServerAPI;
 import net.bteuk.network.api.WorldGuardAPI;
+import net.bteuk.network.api.entity.ShutdownHook;
 import net.bteuk.network.api.impl.CoordinateAPIImpl;
 import net.bteuk.network.api.impl.PlotAPIImpl;
 import net.bteuk.network.commands.Afk;
@@ -63,6 +64,7 @@ import javax.sql.DataSource;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -152,6 +154,8 @@ public final class Network extends JavaPlugin implements NetworkAPI {
     private Constants constants;
 
     private ServerAPI serverAPI;
+
+    private final List<ShutdownHook> shutdownHooks = new ArrayList<>();
 
     @Override
     public void onEnable() {
@@ -402,6 +406,8 @@ public final class Network extends JavaPlugin implements NetworkAPI {
     @Override
     public void onDisable() {
 
+        shutdownHooks.forEach(ShutdownHook::shutdown);
+
         // Shut down chat.
         if (chat != null) {
             chat.onDisable();
@@ -515,5 +521,12 @@ public final class Network extends JavaPlugin implements NetworkAPI {
             throw new IllegalStateException("The plot system is not enabled");
         }
         return plotAPI;
+    }
+
+    @Override
+    public void registerShutdownHook(ShutdownHook hook) {
+        if (shutdownHooks != null) {
+            shutdownHooks.add(hook);
+        }
     }
 }

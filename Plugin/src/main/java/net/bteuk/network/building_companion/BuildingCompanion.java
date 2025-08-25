@@ -32,6 +32,7 @@ import org.bukkit.scheduler.BukkitTask;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -298,8 +299,12 @@ public class BuildingCompanion {
             }
         } else if (constants.regionsEnabled() && constants.serverType() == ServerType.EARTH) {
             for (int[] point : outline.corners()) {
-                // TODO: Get dx, dz from regionUser.
-                RegionUser regionUser = regionManager.getUserByPlayer(user.player);
+                Optional<RegionUser> optionalRegionUser = regionManager.getUserByPlayer(user.player);
+                if (optionalRegionUser.isEmpty()) {
+                    sendFeedback(ChatUtils.error("An error occurred, please relog and try again."));
+                    return false;
+                }
+                RegionUser regionUser = optionalRegionUser.get();
                 Region region = regionManager.getRegion(point[0], point[1], regionUser.getDeltaX(), regionUser.getDeltaZ());
                 if (!regionManager.canBuild(region, user.player)) {
                     sendFeedback(ChatUtils.error("All or part of your selection is not in a region you can build in, " +

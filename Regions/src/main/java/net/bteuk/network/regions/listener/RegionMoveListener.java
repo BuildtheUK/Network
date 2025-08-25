@@ -20,6 +20,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.Optional;
+
 @Log
 public class RegionMoveListener extends AbstractMoveListener implements Listener {
     private final PlotAPI plotAPI;
@@ -47,11 +49,12 @@ public class RegionMoveListener extends AbstractMoveListener implements Listener
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerMove(PlayerMoveEvent e) {
 
-        RegionUser regionUser = regionManager.getUserByPlayer(e.getPlayer());
-        if (regionUser == null) {
+        Optional<RegionUser> optionalRegionUser = regionManager.getUserByPlayer(e.getPlayer());
+        if (optionalRegionUser.isEmpty()) {
             log.severe("Region user is null for player " + e.getPlayer().getName());
             return;
         }
+        RegionUser regionUser = optionalRegionUser.get();
 
         // Check for movement between regions.
         // If the player is currently not in a region, then that implies they are in a world without regions, so
