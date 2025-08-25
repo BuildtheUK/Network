@@ -1,10 +1,11 @@
 package net.bteuk.network.commands;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
-import net.bteuk.network.Network;
+import lombok.extern.java.Log;
+import net.bteuk.network.core.Constants;
+import net.bteuk.network.core.ServerType;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.sql.PlotSQL;
-import net.bteuk.network.utils.NetworkUser;
 import net.buildtheearth.terraminusminus.generator.EarthGeneratorSettings;
 import net.buildtheearth.terraminusminus.projection.OutOfProjectionBoundsException;
 import net.kyori.adventure.text.Component;
@@ -14,25 +15,26 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.DecimalFormat;
+import java.util.List;
 
-import static net.bteuk.network.utils.Constants.LOGGER;
-import static net.bteuk.network.utils.Constants.REGIONS_ENABLED;
-import static net.bteuk.network.utils.Constants.SERVER_TYPE;
-import static net.bteuk.network.utils.enums.ServerType.PLOT;
+import static net.bteuk.network.core.ServerType.PLOT;
 
+@Log
 public class Where extends AbstractCommand {
 
     private static final DecimalFormat DECIMAL_FORMATTER = new DecimalFormat("##.#####");
     private final EarthGeneratorSettings bteGeneratorSettings =
             EarthGeneratorSettings.parse(EarthGeneratorSettings.BTE_DEFAULT_SETTINGS);
     private final PlotSQL plotSQL;
+    private final Constants constants;
 
-    public Where(Network instance) {
-        plotSQL = instance.getPlotSQL();
+    public Where(PlotSQL plotSQL, Constants constants) {
+        this.plotSQL = plotSQL;
+        this.constants = constants;
     }
 
     @Override
-    public void execute(@NotNull CommandSourceStack stack, @NotNull String[] args) {
+    public void execute(@NotNull CommandSourceStack stack, String @NotNull [] args) {
 
         // Check if the sender is a player.
         Player player = getPlayer(stack);
@@ -40,58 +42,49 @@ public class Where extends AbstractCommand {
             return;
         }
 
-        // Get coordinates at the location of the player if they're in a region.
-        NetworkUser user = Network.getInstance().getUser(player);
-
-        // If u is null, cancel.
-        if (user == null) {
-            LOGGER.severe("User " + player.getName() + " can not be found!");
-            player.sendMessage(ChatUtils.error("User can not be found, please relog!"));
+        if (constants.serverType() != PLOT && !(constants.serverType() == ServerType.EARTH && player.getLocation().getWorld().getName().equals(constants.earthWorld()))) {
+            player.sendMessage(ChatUtils.error("This world does not support coordinates."));
             return;
-        }
-
-        // Check is regions are enabled
-        if (REGIONS_ENABLED) {
-            // Check if in a valid region.
-            if (!user.inRegion) {
-
-                player.sendMessage(ChatUtils.error("You must be standing in a region to get the coordinates."));
-                return;
-            }
         }
 
         // Send coordinates with a link to Google Maps to the player.
         try {
-
-            // TEMP: The following if statement is only necessary because the server does not update the dx,dz
-            // on teleport when regions are disabled, this will be fixed in BTEUK-315!
-            // If the player is in the plotsystem update their dx,dz.
-            if (SERVER_TYPE == PLOT && plotSQL.hasRow(
-                    "SELECT name FROM location_data WHERE name='" + player.getWorld().getName() + "';")) {
-
+            int deltaX = 0;
+            int deltaZ = 0;
+            if (constants.serverType() == PLOT && plotSQL.hasRow("SELECT name FROM location_data WHERE name='" + player.getWorld().getName() + "';")) {
                 // Get negative coordinate transform of new location.
-                user.dx =
-                        -plotSQL.getInt("SELECT xTransform FROM location_data WHERE name='" + player.getWorld()
-                                .getName() + "';");
-                user.dz =
-                        -plotSQL.getInt("SELECT zTransform FROM location_data WHERE name='" + player.getWorld()
-                                .getName() + "';");
+                deltaX = -plotSQL.getInt("SELECT xTransform FROM location_data WHERE name='" + player.getWorld().getName() + "';");
+                deltaZ = -plotSQL.getInt("SELECT zTransform FROM location_data WHERE name='" + player.getWorld().getName() + "';");
             }
 
-            double[] coords = bteGeneratorSettings.projection().toGeo(player.getLocation().getX() + user.dx,
-                    player.getLocation().getZ() + user.dz);
+            double[] coords = bteGeneratorSettings.projection().toGeo(player.getLocation().getX() + deltaX,
+                    player.getLocation().getZ() + deltaZ);
 
             player.sendMessage(ChatUtils.success("Your coordinates are ")
                     .append(Component.text(DECIMAL_FORMATTER.format(coords[1]), NamedTextColor.DARK_AQUA))
                     .append(ChatUtils.success(","))
                     .append(Component.text(DECIMAL_FORMATTER.format(coords[0]), NamedTextColor.DARK_AQUA)));
             Component message = ChatUtils.success("Click here to view the coordinates in Google Maps.");
-            message = message.clickEvent(ClickEvent.clickEvent(ClickEvent.Action.OPEN_URL, "https://www.google" +
-                    ".com/maps/@?api=1&map_action=map&basemap=satellite&zoom=21&center=" + coords[1] + "," + coords[0]));
+            message = message.clickEvent(ClickEvent.openUrl("https://www.google.com/maps/@?api=1&map_action=map&basemap=satellite&zoom=21&center=" + coords[1] + "," + coords[0]));
             player.sendMessage(message);
         } catch (OutOfProjectionBoundsException e) {
             player.sendMessage(ChatUtils.error("You are not standing in a location where coordinates can be retrieved" +
                     "."));
         }
+    }
+
+    @Override
+    public String getLabel() {
+        return "where";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Returns the coordinates where the player is standing with a link to google maps.";
+    }
+
+    @Override
+    public List<String> getAliases() {
+        return List.of("location", "ll");
     }
 }

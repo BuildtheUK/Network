@@ -63,4 +63,14 @@ public class Afk extends AbstractCommand {
             updateAfkStatus(user, true);
         }
     }
+
+    @Override
+    public String getLabel() {
+        return "afk";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Toggles afk status.";
+    }
 }

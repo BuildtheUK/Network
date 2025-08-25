@@ -395,4 +395,14 @@ public class Tpll extends AbstractCommand {
                                     NamedTextColor.DARK_AQUA)));
         }));
     }
+
+    @Override
+    public String getLabel() {
+        return "tpll";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Teleport to coordinates";
+    }
 }

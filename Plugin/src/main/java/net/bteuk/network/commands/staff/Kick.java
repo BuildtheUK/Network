@@ -2,8 +2,10 @@ package net.bteuk.network.commands.staff;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.bteuk.network.Network;
+import net.bteuk.network.api.SQLAPI;
 import net.bteuk.network.commands.AbstractCommand;
 import net.bteuk.network.lib.utils.ChatUtils;
+import net.bteuk.network.utils.staff.Moderation;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.CommandSender;
@@ -12,12 +14,20 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 
-import static net.bteuk.network.utils.staff.Moderation.kick;
-
 public class Kick extends AbstractCommand {
 
+    private final Network instance;
+    private final Moderation moderation;
+    private final SQLAPI globalSQL;
+
+    public Kick(Network instance, Moderation moderation) {
+        this.instance = instance;
+        this.moderation = moderation;
+        this.globalSQL = instance.getGlobalSQL();
+    }
+
     @Override
-    public void execute(@NotNull CommandSourceStack stack, @NotNull String[] args) {
+    public void execute(@NotNull CommandSourceStack stack, String @NotNull [] args) {
 
         // Check if sender is player, then check permissions
         CommandSender sender = stack.getSender();
@@ -35,22 +45,17 @@ public class Kick extends AbstractCommand {
 
         // Check player.
         // If uuid exists for name.
-        if (!Network.getInstance().getGlobalSQL()
-                .hasRow("SELECT uuid FROM player_data WHERE name='" + args[0] + "';")) {
+        if (!globalSQL.hasRow("SELECT uuid FROM player_data WHERE name='" + args[0] + "';")) {
             sender.sendMessage(Component.text(args[0], NamedTextColor.DARK_RED)
                     .append(ChatUtils.error(" is not a valid player.")));
             return;
         }
 
-        String uuid =
-                Network.getInstance().getGlobalSQL()
-                        .getString("SELECT uuid FROM player_data WHERE name='" + args[0] + "';");
-        String name =
-                Network.getInstance().getGlobalSQL()
-                        .getString("SELECT name FROM player_data WHERE name='" + args[0] + "';");
+        String uuid = globalSQL.getString("SELECT uuid FROM player_data WHERE name='" + args[0] + "';");
+        String name = globalSQL.getString("SELECT name FROM player_data WHERE name='" + args[0] + "';");
 
         // Check if player is online.
-        if (!Network.getInstance().isOnlineOnNetwork(uuid)) {
+        if (!instance.isOnlineOnNetwork(uuid)) {
             sender.sendMessage(Component.text(name, NamedTextColor.DARK_RED)
                     .append(ChatUtils.error(" is not online.")));
             return;
@@ -64,11 +69,21 @@ public class Kick extends AbstractCommand {
 
     public Component kickPlayer(String name, String uuid, String reason) {
 
-        kick(uuid, reason);
+        moderation.kick(uuid, reason);
 
         return (ChatUtils.success("Kicked ")
                 .append(Component.text(name, NamedTextColor.DARK_AQUA))
                 .append(ChatUtils.success(" for reason: "))
                 .append(Component.text(reason, NamedTextColor.DARK_AQUA)));
+    }
+
+    @Override
+    public String getLabel() {
+        return "kick";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Kick a player for the server.";
     }
 }

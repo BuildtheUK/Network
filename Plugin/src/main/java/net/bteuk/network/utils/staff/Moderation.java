@@ -1,7 +1,8 @@
 package net.bteuk.network.utils.staff;
 
 import net.bteuk.network.Network;
-import net.bteuk.network.eventing.events.EventManager;
+import net.bteuk.network.api.EventAPI;
+import net.bteuk.network.core.Time;
 import net.bteuk.network.exceptions.DurationFormatException;
 import net.bteuk.network.exceptions.NotBannedException;
 import net.bteuk.network.exceptions.NotMutedException;
@@ -10,7 +11,6 @@ import net.bteuk.network.lib.dto.ModerationEvent;
 import net.bteuk.network.lib.enums.ChatChannels;
 import net.bteuk.network.lib.enums.ModerationAction;
 import net.bteuk.network.lib.utils.ChatUtils;
-import net.bteuk.network.utils.Time;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
@@ -20,18 +20,27 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
  */
 public class Moderation {
 
+    private final Network instance;
+
+    private final EventAPI eventAPI;
+
+    public Moderation(Network instance, EventAPI eventAPI) {
+        this.instance = instance;
+        this.eventAPI = eventAPI;
+    }
+
     // Ban the player.
-    public static void ban(String uuid, long end_time, String reason) throws NotBannedException {
+    public void ban(String uuid, long end_time, String reason) throws NotBannedException {
 
         // Get time.
         long time = Time.currentTime();
 
         // If the player is already banned, end the old ban.
         if (isBanned(uuid)) {
-            Network.getInstance().getGlobalSQL()
+            instance.getGlobalSQL()
                     .update("UPDATE moderation SET end_time=" + time + " WHERE uuid='" + uuid + "' AND end_time>" + time + " AND type='ban';");
         }
-        Network.getInstance().getGlobalSQL().update("INSERT INTO moderation(uuid,start_time,end_time,reason,type) " +
+        instance.getGlobalSQL().update("INSERT INTO moderation(uuid,start_time,end_time,reason,type) " +
                 "VALUES('" + uuid + "'," + time + "," + end_time + ",'" + reason + "','ban');");
 
         // If the player is currently online, ban them.
@@ -39,59 +48,55 @@ public class Moderation {
     }
 
     // Mute the player.
-    public static void mute(String uuid, long end_time, String reason) throws NotMutedException {
+    public void mute(String uuid, long end_time, String reason) throws NotMutedException {
 
         // Get time.
         long time = Time.currentTime();
 
         // If the player is already muted, end the old mute.
         if (isMuted(uuid)) {
-            Network.getInstance().getGlobalSQL()
+            instance.getGlobalSQL()
                     .update("UPDATE moderation SET end_time=" + time + " WHERE uuid='" + uuid + "' AND end_time>" + time + " AND type='mute';");
         }
-        Network.getInstance().getGlobalSQL().update("INSERT INTO moderation(uuid,start_time,end_time,reason,type) " +
+        instance.getGlobalSQL().update("INSERT INTO moderation(uuid,start_time,end_time,reason,type) " +
                 "VALUES('" + uuid + "'," + time + "," + end_time + ",'" + reason + "','mute');");
 
         // Update Tab by sending a moderation event.
         Component mutedComponent = getMutedComponent(uuid);
         ModerationEvent moderationEvent = new ModerationEvent(ModerationAction.MUTE, null, uuid, end_time,
                 mutedComponent);
-        Network.getInstance().getChat().sendSocketMessage(moderationEvent);
+        instance.getChat().sendSocketMessage(moderationEvent);
 
         // Notify the user.
         DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), uuid, "server",
                 mutedComponent, true);
-        Network.getInstance().getChat().sendSocketMessage(directMessage);
+        instance.getChat().sendSocketMessage(directMessage);
     }
 
     // Unban the player.
-    public static void unban(String uuid) {
+    public void unban(String uuid) {
         // Get time.
         long time = Time.currentTime();
-        Network.getInstance().getGlobalSQL()
+        instance.getGlobalSQL()
                 .update("UPDATE moderation SET end_time=" + time + " WHERE uuid='" + uuid + "' AND end_time>" + time + " AND type='ban';");
     }
 
     // Unmute the player.
-    public static void unmute(String uuid) {
+    public void unmute(String uuid) {
         // Get time.
         long time = Time.currentTime();
-        Network.getInstance().getGlobalSQL()
+        instance.getGlobalSQL()
                 .update("UPDATE moderation SET end_time=" + time + " WHERE uuid='" + uuid + "' AND end_time>" + time + " AND type='mute';");
 
         // Update Tab by sending a moderation event.
         ModerationEvent moderationEvent = new ModerationEvent(ModerationAction.UNMUTE, null, uuid, 0L, null);
-        Network.getInstance().getChat().sendSocketMessage(moderationEvent);
+        instance.getChat().sendSocketMessage(moderationEvent);
     }
 
     // Kick the player.
-    public static void kick(String uuid, String reason) {
-
+    public void kick(String uuid, String reason) {
         // Kick them with the reason, if online.
-        Network.getInstance().getOnlineUserByUuid(uuid).ifPresent(onlineUser -> EventManager.createEvent(uuid,
-                "network",
-                onlineUser.getServer(),
-                "kick", reason));
+        instance.getOnlineUserByUuid(uuid).ifPresent(onlineUser -> eventAPI.createEvent(uuid, "network", onlineUser.getServer(), "kick", reason));
     }
 
     /**
@@ -100,41 +105,41 @@ public class Moderation {
      * @param uuid the uuid of the player
      * @return true if the player is currently banned, false if not
      */
-    public static boolean isBanned(String uuid) {
-        return (Network.getInstance().getGlobalSQL().hasRow("SELECT uuid FROM moderation WHERE uuid='" + uuid + "' " +
+    public boolean isBanned(String uuid) {
+        return (instance.getGlobalSQL().hasRow("SELECT uuid FROM moderation WHERE uuid='" + uuid + "' " +
                 "AND end_time>" + Time.currentTime() + " AND type='ban';"));
     }
 
     // If the player is currently muted, return true.
-    public static boolean isMuted(String uuid) {
-        return (Network.getInstance().getGlobalSQL().hasRow("SELECT uuid FROM moderation WHERE uuid='" + uuid + "' " +
+    public boolean isMuted(String uuid) {
+        return (instance.getGlobalSQL().hasRow("SELECT uuid FROM moderation WHERE uuid='" + uuid + "' " +
                 "AND end_time>" + Time.currentTime() + " AND type='mute';"));
     }
 
     // Get reason why player is banned.
-    public static String getBannedReason(String uuid) {
-        return (Network.getInstance().getGlobalSQL().getString("SELECT reason FROM moderation WHERE uuid='" + uuid +
+    public String getBannedReason(String uuid) {
+        return (instance.getGlobalSQL().getString("SELECT reason FROM moderation WHERE uuid='" + uuid +
                 "' AND end_time>" + Time.currentTime() + " AND type='ban';"));
     }
 
     // Get reason why player is muted.
-    public static String getMutedReason(String uuid) {
-        return (Network.getInstance().getGlobalSQL().getString("SELECT reason FROM moderation WHERE uuid='" + uuid +
+    public String getMutedReason(String uuid) {
+        return (instance.getGlobalSQL().getString("SELECT reason FROM moderation WHERE uuid='" + uuid +
                 "' AND end_time>" + Time.currentTime() + " AND type='mute';"));
     }
 
     // Get duration of ban.
-    public static String getBanDuration(String uuid) {
+    public String getBanDuration(String uuid) {
         long time =
-                Network.getInstance().getGlobalSQL().getLong("SELECT end_time FROM moderation WHERE uuid='" + uuid +
+                instance.getGlobalSQL().getLong("SELECT end_time FROM moderation WHERE uuid='" + uuid +
                         "' AND end_time>" + Time.currentTime() + " AND type='ban';");
         return Time.getDateTime(time);
     }
 
     // Get duration of mute.
-    public static String getMuteDuration(String uuid) {
+    public String getMuteDuration(String uuid) {
         long time =
-                Network.getInstance().getGlobalSQL().getLong("SELECT end_time FROM moderation WHERE uuid='" + uuid +
+                instance.getGlobalSQL().getLong("SELECT end_time FROM moderation WHERE uuid='" + uuid +
                         "' AND end_time>" + Time.currentTime() + " AND type='mute';");
         return Time.getDateTime(time);
     }
@@ -147,7 +152,7 @@ public class Moderation {
      * @return the component of the banned message with reason and duration
      * @throws NotBannedException if the player is not banned
      */
-    public static Component getBannedComponent(String uuid) throws NotBannedException {
+    public Component getBannedComponent(String uuid) throws NotBannedException {
         if (isBanned(uuid)) {
             return Component.text("You have been banned for ", NamedTextColor.RED)
                     .append(Component.text(getBannedReason(uuid), NamedTextColor.DARK_RED))
@@ -166,7 +171,7 @@ public class Moderation {
      * @return the component of the muted message with reason and duration
      * @throws NotMutedException if the player is not muted
      */
-    public static Component getMutedComponent(String uuid) throws NotMutedException {
+    public Component getMutedComponent(String uuid) throws NotMutedException {
         if (isMuted(uuid)) {
             return ChatUtils.error("You have been muted for ")
                     .append(Component.text(getMutedReason(uuid), NamedTextColor.DARK_RED))
@@ -184,7 +189,7 @@ public class Moderation {
      * @return duration in milliseconds after converting the input string
      * @throws DurationFormatException if the input string is not formatted correctly
      */
-    public static long getDuration(String formattedInput) throws DurationFormatException {
+    public long getDuration(String formattedInput) throws DurationFormatException {
 
         if (formattedInput == null) {
             throw new NullPointerException();

@@ -2,21 +2,28 @@ package net.bteuk.network.commands.staff;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.bteuk.network.Network;
+import net.bteuk.network.api.SQLAPI;
 import net.bteuk.network.commands.AbstractCommand;
 import net.bteuk.network.lib.utils.ChatUtils;
+import net.bteuk.network.utils.staff.Moderation;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import static net.bteuk.network.utils.staff.Moderation.isBanned;
-import static net.bteuk.network.utils.staff.Moderation.unban;
-
 public class Unban extends AbstractCommand {
 
+    private final Moderation moderation;
+    private final SQLAPI globalSQL;
+
+    public Unban(Network instance, Moderation moderation) {
+        this.moderation = moderation;
+        this.globalSQL = instance.getGlobalSQL();
+    }
+
     @Override
-    public void execute(@NotNull CommandSourceStack stack, @NotNull String[] args) {
+    public void execute(@NotNull CommandSourceStack stack, String @NotNull [] args) {
 
         // Check if sender is player, then check permissions
         CommandSender sender = stack.getSender();
@@ -34,19 +41,14 @@ public class Unban extends AbstractCommand {
 
         // Check player.
         // If uuid exists for name.
-        if (!Network.getInstance().getGlobalSQL()
-                .hasRow("SELECT uuid FROM player_data WHERE name='" + args[0] + "';")) {
+        if (!globalSQL.hasRow("SELECT uuid FROM player_data WHERE name='" + args[0] + "';")) {
             sender.sendMessage(Component.text(args[0], NamedTextColor.DARK_RED)
                     .append(ChatUtils.error(" is not a valid player.")));
             return;
         }
 
-        String uuid =
-                Network.getInstance().getGlobalSQL()
-                        .getString("SELECT uuid FROM player_data WHERE name='" + args[0] + "';");
-        String name =
-                Network.getInstance().getGlobalSQL()
-                        .getString("SELECT name FROM player_data WHERE name='" + args[0] + "';");
+        String uuid = globalSQL.getString("SELECT uuid FROM player_data WHERE name='" + args[0] + "';");
+        String name = globalSQL.getString("SELECT name FROM player_data WHERE name='" + args[0] + "';");
 
         sender.sendMessage(unbanPlayer(name, uuid));
     }
@@ -61,10 +63,10 @@ public class Unban extends AbstractCommand {
     public Component unbanPlayer(String name, String uuid) {
 
         // Check if the player is currently banned.
-        if (isBanned(uuid)) {
+        if (moderation.isBanned(uuid)) {
 
             // Unban the player.
-            unban(uuid);
+            moderation.unban(uuid);
 
             // Send feedback.
             return (ChatUtils.success("Unbanned ")
@@ -72,5 +74,15 @@ public class Unban extends AbstractCommand {
         } else {
             return (ChatUtils.error(name + " is not currently banned."));
         }
+    }
+
+    @Override
+    public String getLabel() {
+        return "unban";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Unban a previously banned player.";
     }
 }

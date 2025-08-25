@@ -9,6 +9,9 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.events.PacketListener;
 import com.comphenix.protocol.wrappers.PlayerInfoData;
+import lombok.extern.java.Log;
+import net.bteuk.network.api.entity.ShutdownHook;
+import net.bteuk.network.core.Constants;
 import net.bteuk.network.lib.dto.AddTeamEvent;
 import net.bteuk.network.lib.dto.TabPlayer;
 import net.bteuk.network.utils.Role;
@@ -30,37 +33,40 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.comphenix.protocol.wrappers.EnumWrappers.PlayerInfoAction.ADD_PLAYER;
-import static net.bteuk.network.utils.Constants.LOGGER;
-import static net.bteuk.network.utils.Constants.SIDEBAR_CONTENT;
-import static net.bteuk.network.utils.Constants.SIDEBAR_ENABLED;
-import static net.bteuk.network.utils.Constants.SIDEBAR_TITLE;
 
-public class TabManager {
+@Log
+public class TabManager implements ShutdownHook {
 
     private static final char[] ALPHABET = "abcdefghijklmnopqrstuvwxyz".toCharArray();
     private final Network instance;
+    private final Constants constants;
+    private final Roles roles;
     private final ProtocolManager pm;
     private final Map<String, Team> teams = new HashMap<>();
     private PacketListener pl;
     private Scoreboard scoreboard;
 
-    public TabManager(Network instance) {
+    public TabManager(Network instance, Constants constants, Roles roles) {
 
         this.instance = instance;
+        this.constants = constants;
+        this.roles = roles;
         pm = ProtocolLibrary.getProtocolManager();
 
         // Teams are used to sort the tab-list by role.
         initTeams();
 
+        instance.registerShutdownHook(this);
+
         startTab();
     }
 
-    public static TabPlayer createTabPlayerFromPlayer(Player player) {
+    public TabPlayer createTabPlayerFromPlayer(Player player) {
         TabPlayer tabPlayer = new TabPlayer();
         tabPlayer.setUuid(player.getUniqueId().toString());
         tabPlayer.setName(player.getName());
         tabPlayer.setPing(player.getPing());
-        Role primaryRole = Roles.getPrimaryRole(player);
+        Role primaryRole = roles.getPrimaryRole(player);
 
         if (primaryRole != null) {
             tabPlayer.setPrimaryGroup(primaryRole.getId());
@@ -68,11 +74,6 @@ public class TabManager {
         }
 
         return tabPlayer;
-    }
-
-    public void closeTab() {
-        pm.removePacketListener(pl);
-        LOGGER.info("Disabled Tab");
     }
 
     /**
@@ -85,8 +86,13 @@ public class TabManager {
     }
 
     public void onPlayerJoin(Player player) {
-        LOGGER.info(String.format("Scoreboard is null = %s", scoreboard == null));
         player.setScoreboard(scoreboard);
+    }
+
+    @Override
+    public void shutdown() {
+        pm.removePacketListener(pl);
+        log.info("Disabled Tab");
     }
 
     private void startTab() {
@@ -103,7 +109,7 @@ public class TabManager {
         scoreboard = manager.getNewScoreboard();
 
         // Get all the roles.
-        Set<Role> roles = Roles.getRoles();
+        Set<Role> roles = this.roles.getRoles();
 
         // Each role will get a 2 character name in order of the alphabet to ensure correct sorting.
         // This has the limitation of 26^2 number of possible roles, but if you go over that you're a bit crazy.
@@ -124,13 +130,12 @@ public class TabManager {
         }
 
         // Set sidebar if enabled.
-        if (SIDEBAR_ENABLED) {
-
+        if (constants.sidebarEnabled()) {
             Objective objective = scoreboard.registerNewObjective("sidebar", Criteria.DUMMY,
-                    Component.text(SIDEBAR_TITLE));
+                    Component.text(constants.sidebarTitle()));
             objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-            int score = SIDEBAR_CONTENT.size();
-            for (String sidebarText : SIDEBAR_CONTENT) {
+            int score = constants.sidebarContent().size();
+            for (String sidebarText : constants.sidebarContent()) {
                 score--;
                 objective.getScore(sidebarText).setScore(score);
             }
@@ -171,7 +176,7 @@ public class TabManager {
             if (team != null) {
                 team.addEntry(name);
             } else {
-                LOGGER.warning(String.format("Player %s with primary role %s does not have a team.", name,
+                log.warning(String.format("Player %s with primary role %s does not have a team.", name,
                         primaryRole));
             }
         });

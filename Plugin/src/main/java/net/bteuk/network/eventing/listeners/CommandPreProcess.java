@@ -28,7 +28,7 @@ public class CommandPreProcess implements Listener {
 
     public CommandPreProcess(Network instance) {
         this.instance = instance;
-        instance.allow_shutdown = false;
+        instance.allowShutdown = false;
         Bukkit.getServer().getPluginManager().registerEvents(this, instance);
     }
 
@@ -99,8 +99,8 @@ public class CommandPreProcess implements Listener {
     @EventHandler
     public void serverCommand(ServerCommandEvent s) {
         if (s.getCommand().equalsIgnoreCase("stop")) {
-            if (!instance.allow_shutdown) {
-                instance.allow_shutdown = true;
+            if (!instance.allowShutdown) {
+                instance.allowShutdown = true;
                 onServerClose(instance.getUsers());
 
                 // Delay shutdown by 3 seconds to make sure players have switched server.

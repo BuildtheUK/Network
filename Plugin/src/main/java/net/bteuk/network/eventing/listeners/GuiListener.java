@@ -1,5 +1,6 @@
 package net.bteuk.network.eventing.listeners;
 
+import lombok.extern.java.Log;
 import net.bteuk.network.Network;
 import net.bteuk.network.gui.Gui;
 import net.bteuk.network.lib.utils.ChatUtils;
@@ -13,8 +14,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 
 import java.util.UUID;
 
-import static net.bteuk.network.utils.Constants.LOGGER;
-
+@Log
 public class GuiListener implements Listener {
 
     private final Network instance;
@@ -42,7 +42,7 @@ public class GuiListener implements Listener {
 
             // If u is null, cancel.
             if (u == null) {
-                LOGGER.severe("User " + e.getWhoClicked().getName() + " can not be found!");
+                log.severe("User " + e.getWhoClicked().getName() + " can not be found!");
                 e.getWhoClicked().sendMessage(ChatUtils.error("User can not be found, please relog!"));
                 return;
             }

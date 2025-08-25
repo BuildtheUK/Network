@@ -14,12 +14,12 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 @Log
 public class NetworkTeleportListener implements Listener {
 
+    private final Network instance;
     private boolean blocked;
 
     public NetworkTeleportListener(Network instance) {
-
         Bukkit.getServer().getPluginManager().registerEvents(this, instance);
-
+        this.instance = instance;
         blocked = false;
     }
 
@@ -41,7 +41,7 @@ public class NetworkTeleportListener implements Listener {
         }
 
         Player p = e.getPlayer();
-        NetworkUser u = Network.getInstance().getUser(p);
+        NetworkUser u = instance.getUser(p);
 
         // If u is null, cancel.
         if (u == null) {

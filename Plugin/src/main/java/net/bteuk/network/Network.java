@@ -10,11 +10,58 @@ import net.bteuk.network.api.WorldGuardAPI;
 import net.bteuk.network.api.entity.ShutdownHook;
 import net.bteuk.network.api.impl.CoordinateAPIImpl;
 import net.bteuk.network.api.impl.PlotAPIImpl;
+import net.bteuk.network.api.impl.TimerAPIImpl;
 import net.bteuk.network.commands.Afk;
+import net.bteuk.network.commands.BuildingCompanionCommand;
+import net.bteuk.network.commands.Buildings;
+import net.bteuk.network.commands.Clear;
+import net.bteuk.network.commands.Demote;
+import net.bteuk.network.commands.Discord;
+import net.bteuk.network.commands.Focus;
+import net.bteuk.network.commands.Gamemode;
+import net.bteuk.network.commands.Hdb;
+import net.bteuk.network.commands.Help;
+import net.bteuk.network.commands.Me;
+import net.bteuk.network.commands.Msg;
+import net.bteuk.network.commands.Navigator;
+import net.bteuk.network.commands.Nightvision;
+import net.bteuk.network.commands.Phead;
+import net.bteuk.network.commands.Plot;
+import net.bteuk.network.commands.Pmute;
+import net.bteuk.network.commands.ProgressMap;
+import net.bteuk.network.commands.Promote;
+import net.bteuk.network.commands.Ptime;
+import net.bteuk.network.commands.Punmute;
+import net.bteuk.network.commands.Pweather;
+import net.bteuk.network.commands.RegionCommand;
+import net.bteuk.network.commands.Reply;
+import net.bteuk.network.commands.Rules;
+import net.bteuk.network.commands.Season;
+import net.bteuk.network.commands.Speed;
+import net.bteuk.network.commands.TipsToggle;
+import net.bteuk.network.commands.Where;
+import net.bteuk.network.commands.Zone;
+import net.bteuk.network.commands.give.GiveBarrier;
+import net.bteuk.network.commands.give.GiveDebugStick;
+import net.bteuk.network.commands.give.GiveLight;
+import net.bteuk.network.commands.navigation.Back;
+import net.bteuk.network.commands.navigation.Delhome;
+import net.bteuk.network.commands.navigation.Home;
+import net.bteuk.network.commands.navigation.Homes;
+import net.bteuk.network.commands.navigation.Navigation;
+import net.bteuk.network.commands.navigation.Server;
+import net.bteuk.network.commands.navigation.Sethome;
+import net.bteuk.network.commands.navigation.Spawn;
+import net.bteuk.network.commands.navigation.Tp;
+import net.bteuk.network.commands.navigation.TpToggle;
 import net.bteuk.network.commands.navigation.Tpll;
+import net.bteuk.network.commands.navigation.Warp;
+import net.bteuk.network.commands.navigation.Warps;
 import net.bteuk.network.commands.staff.Ban;
+import net.bteuk.network.commands.staff.Exp;
 import net.bteuk.network.commands.staff.Kick;
 import net.bteuk.network.commands.staff.Mute;
+import net.bteuk.network.commands.staff.Staff;
 import net.bteuk.network.commands.staff.Unban;
 import net.bteuk.network.commands.staff.Unmute;
 import net.bteuk.network.core.Constants;
@@ -36,6 +83,7 @@ import net.bteuk.network.lib.dto.OnlineUserRemove;
 import net.bteuk.network.lib.dto.OnlineUsersReply;
 import net.bteuk.network.lib.dto.ServerStartup;
 import net.bteuk.network.lobby.Lobby;
+import net.bteuk.network.lobby.LobbyCommand;
 import net.bteuk.network.logging.BukkitForwardingHandler;
 import net.bteuk.network.regions.RegionManager;
 import net.bteuk.network.regions.sql.RegionSQL;
@@ -48,6 +96,7 @@ import net.bteuk.network.utils.Roles;
 import net.bteuk.network.utils.SwitchServer;
 import net.bteuk.network.utils.Tips;
 import net.bteuk.network.utils.Utils;
+import net.bteuk.network.utils.staff.Moderation;
 import net.bteuk.network.utils.worldguard.WorldGuard;
 import net.bteuk.teachingtutorials.services.PromotionService;
 import net.buildtheearth.terraminusminus.TerraConfig;
@@ -70,16 +119,11 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static net.bteuk.network.utils.NetworkConfig.CONFIG;
-
 @Log
 public final class Network extends JavaPlugin implements NetworkAPI {
 
-    // Returns an instance of the plugin.
-    private static Network instance;
-
-    // If the server can shutdown.
-    public boolean allow_shutdown;
+    // If the server can shut down.
+    public boolean allowShutdown;
     // Guis
     public NavigatorGui navigatorGui;
     public ItemStack navigator;
@@ -97,7 +141,6 @@ public final class Network extends JavaPlugin implements NetworkAPI {
     // Server User List
     private ArrayList<NetworkUser> networkUsers;
     // SQL
-    @Getter
     private PlotSQL plotSQL;
 
     @Getter
@@ -106,34 +149,10 @@ public final class Network extends JavaPlugin implements NetworkAPI {
     @Getter
     private CustomChat chat;
     // Timers
-    private Timers timers;
-    // Get lobby.
-    // Lobby
-    private Lobby lobby;
-    // Listener and manager of server connects.
-    private Connect connect;
+    @Getter
+    private TimerAPIImpl timerAPI;
     // Tab
     private TabManager tab;
-
-    // Kick Command
-    @Getter
-    private Kick kick;
-
-    // Mute Command
-    @Getter
-    private Mute mute;
-
-    // Unmute Command
-    @Getter
-    private Unmute unmute;
-
-    // Ban Command
-    @Getter
-    private Ban ban;
-
-    // Unban Command
-    @Getter
-    private Unban unban;
 
     // Tpll Command
     @Getter
@@ -144,12 +163,6 @@ public final class Network extends JavaPlugin implements NetworkAPI {
     private DBConnection tutorialsDBConnection;
 
     private PlotAPI plotAPI;
-
-    private CoordinateAPI coordinateAPI;
-
-    private EventManager eventManager;
-
-    private WorldGuardAPI worldGuardAPI;
 
     private Constants constants;
 
@@ -172,10 +185,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
         base.addHandler(new BukkitForwardingHandler(getLogger()));
 
-        // Config Setup
-        Network.instance = this;
-
-        allow_shutdown = true;
+        allowShutdown = true;
 
         // Sets the config if the file has not yet been created.
         ConfigurationSerialization.registerClass(ConfigurationSerializable.class);
@@ -184,10 +194,10 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         // Update the config to the latest version if it's outdated.
         // It will copy over any keys that remain the same.
         // This will also set the status variable to access the config project-wide.
-        NetworkConfig networkConfig = new NetworkConfig();
+        NetworkConfig networkConfig = new NetworkConfig(this);
         networkConfig.updateConfig();
 
-        if (!CONFIG.getBoolean("enabled")) {
+        if (!networkConfig.getConfig().getBoolean("enabled")) {
 
             getLogger().warning("The config must be configured before the plugin can be enabled!");
             getLogger().warning("Please edit the database values in the config, give the server a unique name and " +
@@ -201,26 +211,26 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         // Setup MySQL
         try {
             DatabaseInit init = new DatabaseInit();
-            String host = CONFIG.getString("host");
-            int port = CONFIG.getInt("port");
-            String username = CONFIG.getString("username");
-            String password = CONFIG.getString("password");
+            String host = networkConfig.getConfig().getString("host");
+            int port = networkConfig.getConfig().getInt("port");
+            String username = networkConfig.getConfig().getString("username");
+            String password = networkConfig.getConfig().getString("password");
 
             // Global Database
-            String global_database = CONFIG.getString("database.global");
+            String global_database = networkConfig.getConfig().getString("database.global");
             DataSource global_dataSource = init.mysqlSetup(global_database, host, port, username, password);
             globalSQL = new GlobalSQL(global_dataSource, constants);
 
             // Region Database
             if (constants.regionsEnabled()) {
-                String region_database = CONFIG.getString("database.region");
+                String region_database = networkConfig.getConfig().getString("database.region");
                 DataSource region_dataSource = init.mysqlSetup(region_database, host, port, username, password);
                 regionSQL = new RegionSQL(region_dataSource);
             }
 
             // Plot Database
             if (constants.plotSystemEnabled()) {
-                String plot_database = CONFIG.getString("database.plot");
+                String plot_database = networkConfig.getConfig().getString("database.plot");
                 DataSource plot_dataSource = init.mysqlSetup(plot_database, host, port, username, password);
                 plotSQL = new PlotSQL(plot_dataSource);
             }
@@ -237,11 +247,11 @@ public final class Network extends JavaPlugin implements NetworkAPI {
             tutorialsDBConnection = new DBConnection();
 
             // Extract database details from the config
-            String szHost = CONFIG.getString("tutorials.database.host");
-            int iPort = CONFIG.getInt("tutorials.database.port");
-            String szDBName = CONFIG.getString("tutorials.database.name");
-            String szUsername = CONFIG.getString("tutorials.database.username");
-            String szPassword = CONFIG.getString("tutorials.database.password");
+            String szHost = networkConfig.getConfig().getString("tutorials.database.host");
+            int iPort = networkConfig.getConfig().getInt("tutorials.database.port");
+            String szDBName = networkConfig.getConfig().getString("tutorials.database.name");
+            String szUsername = networkConfig.getConfig().getString("tutorials.database.username");
+            String szPassword = networkConfig.getConfig().getString("tutorials.database.password");
 
             // Set up the DBConnection object with details
             tutorialsDBConnection.externalMySQLSetup(szHost, iPort, szDBName, szUsername, szPassword);
@@ -286,9 +296,13 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         networkUsers = new ArrayList<>();
         onlineUsers = new HashSet<>();
 
-        coordinateAPI = new CoordinateAPIImpl(globalSQL);
-        eventManager = new EventManager(globalSQL);
-        worldGuardAPI = new WorldGuard();
+        CommandManager commandManager = new CommandManager(this);
+
+        CoordinateAPI coordinateAPI = new CoordinateAPIImpl(globalSQL);
+        EventManager eventManager = new EventManager(globalSQL);
+        WorldGuardAPI worldGuardAPI = new WorldGuard();
+
+        Roles roles = new Roles(this, chat, plotSQL);
 
         if (!constants.standalone()) {
             serverAPI = new SwitchServer(constants);
@@ -299,44 +313,49 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         }
 
         // Enable tab.
-        tab = new TabManager(this);
+        if (!constants.standalone()) {
+            tab = new TabManager(this, constants, roles);
+        }
 
         Afk afk = new Afk(this, chat);
-
-        Roles roles = new Roles(this, chat, plotSQL);
-
-        // Enabled chat, both global and normal chat are handled through this.
-        chat = new CustomChat(this, constants, afk, globalSQL, connect);
+        commandManager.registerCommand(afk);
 
         // Setup connect, this handles all connections to the server.
-        connect = new Connect(this, constants);
+        // Listener and manager of server connections.
+        Connect connect = new Connect(this, constants, tab, roles);
 
-        // Create navigator.
+        // Enables chat, both global chat and normal chat are handled through it.
+        chat = new CustomChat(this, constants, afk, globalSQL, connect);
+
+        // Create the navigator.
         navigatorGui = new NavigatorGui();
         navigator = Utils.createItem(Material.NETHER_STAR, 1, Utils.title("Navigator"), Utils.line("Click to open the" +
                 " navigator."));
+        
+        Moderation moderation = new Moderation(this, eventManager);
 
         // Register events.
-        new PreJoinServer(this);
+        new PreJoinServer(this, constants, moderation);
 
         new GuiListener(this);
         new PlayerInteract(this);
 
         // Create the region manager if enabled.
         if (constants.regionsEnabled()) {
-            regionManager = new RegionManager(regionSQL, globalSQL, plotAPI, chat, coordinateAPI, eventManager, worldGuardAPI, constants, this, serverAPI);
+            regionManager = new RegionManager(regionSQL, this, coordinateAPI, eventManager, worldGuardAPI, constants, this, serverAPI);
         }
 
         moveListener = new NetworkMoveListener(this, afk);
         teleportListener = new NetworkTeleportListener(this);
 
         // Setup Timers
-        timers = new Timers(this, globalSQL, eventManager, constants, afk);
-        timers.startTimers();
+        timerAPI = new TimerAPIImpl(this);
 
         // Set up the lobby, most features are only enabled in the lobby server.
         if (!constants.standalone()) {
-            lobby = new Lobby(this);
+            // Get lobby.
+            // Lobby
+            Lobby lobby = new Lobby(this);
             // Create the rules book.
             lobby.loadRules();
             if (constants.serverType() == ServerType.LOBBY) {
@@ -358,15 +377,97 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         // Enable commands
         if (constants.tpllEnabled()) {
             TerraConfig.reducedConsoleMessages = true;
-            tpll = new Tpll(instance, CONFIG.getBoolean("requires_permission"));
+            tpll = new Tpll(this, constants.tpllRequiresPermission());
+            commandManager.registerCommand(tpll);
         }
 
-        kick = new Kick();
-        mute = new Mute();
-        unmute = new Unmute();
-        ban = new Ban();
-        unban = new Unban();
-        CommandManager.registerCommands(this, constants, eventManager, afk, regionManager);
+        if (constants.ll()) {
+            commandManager.registerCommand(new Where(plotSQL, constants));
+        }
+
+        if (constants.moderationEnabled()) {
+            commandManager.registerCommand(new Kick(this, moderation));
+            commandManager.registerCommand(new Mute(this, moderation));
+            commandManager.registerCommand(new Unmute(this, moderation));
+            commandManager.registerCommand(new Ban(this, moderation));
+            commandManager.registerCommand(new Unban(this, moderation));
+        }
+
+        commands.register("teleport", "Teleport to any online player.", List.of("tp"), new Tp());
+        commands.register("back", "Teleports the player to the previous teleported location.", new Back(eventAPI));
+        commands.register("warp", "Warp to locations in the exploration menu.", new Warp());
+        commands.register("warps", "List all warps on the server, 16 per page.", new Warps());
+        commands.register("navigation", "Adds commands to do with navigation.", new Navigation());
+        if (!constants.standalone()) {
+            commands.register("lobby", "Command for all lobby management.", new LobbyCommand(instance));
+            commands.register("spawn", "Teleport to spawnpoint in lobby.", new Spawn());
+            commands.register("server", "Switch server by command.", new Server());
+        }
+        if (CONFIG.getBoolean("homes.enabled")) {
+            commands.register("sethome", "Set a home to your current location.", new Sethome(instance));
+            commands.register("home", "Teleport to your home.", new Home(instance));
+            commands.register("delhome", "Delete a home.", new Delhome(instance));
+            commands.register("homes", "Like warps, but for homes, shows all homes the player has set.", new Homes());
+        }
+
+        /*
+         * Gui commands.
+         */
+        commands.register("navigator", "Opens the main gui, will always return to the previous menu if possible.", List.of("nav", "gui", "menu", "claim"), new Navigator());
+        if (constants.plotSystemEnabled()) {
+            commands.register("plot", "Allows players to manipulate plots without using the gui.", List.of("plots"), new Plot(instance));
+            commands.register("zone", "Zone command.", new Zone());
+        }
+        if (constants.regionsEnabled()) {
+            commands.register("region", "Allows players to manipulate regions without using the gui.", new RegionCommand());
+        }
+
+        /*
+         * Staff commands.
+         */
+        commands.register("staff", "Opens the Staff Menu.", List.of("st"), new Staff());
+
+        /*
+         * Utility commands.
+         */
+        commands.register("building", "adds or shows completed buildings", new Buildings(instance));
+        commands.register("teleporttoggle", "Enables/Disables the ability for other players to teleport to you.", List.of("tptoggle", "toggleteleport", "toggletp"), new TpToggle());
+        if (!constants.standalone()) {
+            commands.register("discord", "Sends a link to our discord server.", new Discord());
+            commands.register("focus", "Toggle focus mode, hides chat and players.", List.of("focusmode", "fm"), new Focus());
+        }
+        commands.register("nightvision", "Toggle nightvision.", List.of("nv"), new Nightvision());
+        commands.register("speed", "Sets the players speed, value up to 10.", new Speed());
+        commands.register("help", "Help menu for information on commands and server features.", new Help());
+        commands.register("rules", "Get rules book.", new Rules());
+        commands.register("clear", "Clears your inventory.", new Clear());
+        commands.register("debugstick", "Get the debug stick.", new GiveDebugStick(instance));
+        commands.register("light", "Get a light block.", new GiveLight(instance));
+        commands.register("barrier", "Get a barrier block.", new GiveBarrier(instance));
+        commands.register("gamemode", "Switch gamemode.", List.of("gm"), new Gamemode());
+        commands.register("phead", "Get the player head of someone who has connected to the server.", new Phead());
+        commands.register("hdb", "Added so it can be routed to /skulls", new Hdb());
+        if (constants.progressMap()) {
+            commands.register("progressmap", "Sends a link of the progress map", List.of("progress"), new ProgressMap());
+        }
+        if (constants.tips()) {
+            commands.register("tips", "Toggles tips in chat.", List.of("toggletips", "tipstoggle"), new TipsToggle());
+        }
+        commands.register("ptime", "Sets the time of day for the player", new Ptime());
+        commands.register("pweather", "Sets the weather for the player", new Pweather());
+        commands.register("season", "Command for creating, starting and ending seasons.", List.of("seasons"), new Season());
+        commands.register("exp", "Test command for adding exp.", new Exp());
+        commands.register("buildingcompanion", "Toggle the building companion.", List.of("bc", "companion"), new BuildingCompanionCommand(instance, constants, regionManager));
+        commands.register("pmute", "Mute a player", new Pmute(instance));
+        commands.register("punmute", "Unmute a player", new Punmute(instance));
+        Msg msgCommand = new Msg(instance);
+        commands.register("msg", "Sends a direct message to a player.", msgCommand);
+        commands.register("w", "Sends a direct message to a player.", msgCommand);
+        commands.register("tell", "Sends a direct message to a player.", msgCommand);
+        commands.register("r","sends a direct message to the last player you messaged", List.of("reply"), new Reply(msgCommand));
+        commands.register("promote", "Add a role to a player.", new Promote(instance));
+        commands.register("demote", "Remove a role from a player.", new Demote(instance));
+        commands.register("me", "Disabled", new Me());
 
         // Register commandpreprocess to make sure /network:region runs and not that of another plugin.
         new CommandPreProcess(this);
@@ -396,7 +497,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         }
 
         // Let the Proxy know that the server is enabled.
-        instance.getChat().sendSocketMessage(new ServerStartup(constants.serverName()));
+        chat.sendSocketMessage(new ServerStartup(constants.serverName()));
 
         // Register the API as a service.
         getServer().getServicesManager().register(NetworkAPI.class, this, this, ServicePriority.Normal);
@@ -413,16 +514,6 @@ public final class Network extends JavaPlugin implements NetworkAPI {
             chat.onDisable();
         }
 
-        // Shut down tab.
-        if (tab != null) {
-            tab.closeTab();
-        }
-
-        // Close timers.
-        if (timers != null) {
-            timers.close();
-        }
-
         if (getUsers() != null) {
             for (NetworkUser u : getUsers()) {
 
@@ -437,7 +528,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
                 plotSQL.update("DELETE FROM zone_invites WHERE uuid='" + uuid + "';");
 
                 // Set last_online time in playerdata.
-                instance.globalSQL.update("UPDATE player_data SET last_online=" + Time.currentTime() + " WHERE " +
+                globalSQL.update("UPDATE player_data SET last_online=" + Time.currentTime() + " WHERE " +
                         "UUID='" + uuid + "';");
 
                 // Reset last logged time.
@@ -506,7 +597,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         return onlineUsers.stream().filter(onlineUser -> onlineUser.getName().equalsIgnoreCase(name)).findFirst();
     }
 
-    // Check if user is on this server.
+    // Check if a user is on this server.
     public boolean hasPlayer(String uuid) {
         for (NetworkUser u : getUsers()) {
             if (u.player.getUniqueId().toString().equals(uuid)) {

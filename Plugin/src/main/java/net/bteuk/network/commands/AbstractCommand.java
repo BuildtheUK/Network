@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * Abstract class for registering a command.
@@ -30,6 +31,14 @@ public abstract class AbstractCommand implements BasicCommand {
         if (tabCompleter != null) {
             return tabCompleter.onTabComplete(commandSourceStack.getSender(), args);
         }
+        return Collections.emptyList();
+    }
+
+    public abstract String getLabel();
+
+    public  abstract String getDescription();
+
+    public  List<String> getAliases() {
         return Collections.emptyList();
     }
 

@@ -14,6 +14,7 @@ import net.bteuk.network.lib.dto.UserConnectRequest;
 import net.bteuk.network.lib.dto.UserDisconnect;
 import net.bteuk.network.lib.dto.UserRemove;
 import net.bteuk.network.utils.NetworkUser;
+import net.bteuk.network.utils.Roles;
 import net.bteuk.network.utils.TextureUtils;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
@@ -35,16 +36,19 @@ import java.util.UUID;
 public class Connect implements Listener {
 
     private final Network instance;
-
     private final Constants constants;
+    private final TabManager tabManager;
+    private final Roles roles;
 
     @Setter
     private boolean blockLeaveEvent;
 
-    public Connect(Network instance, Constants constants) {
+    public Connect(Network instance, Constants constants, TabManager tabManager, Roles roles) {
 
         this.instance = instance;
         this.constants = constants;
+        this.tabManager = tabManager;
+        this.roles = roles;
 
         this.blockLeaveEvent = false;
 
@@ -75,7 +79,7 @@ public class Connect implements Listener {
 
             log.info(String.format("User connect reply received from the proxy, creating NetworkUser for %s",
                     player.getName()));
-            NetworkUser user = new NetworkUser(player, reply);
+            NetworkUser user = new NetworkUser(player, reply, instance, constants, roles);
             instance.addUser(user);
 
             // Hide this player for all players in focus mode.
@@ -100,8 +104,7 @@ public class Connect implements Listener {
             reply.getMessages().forEach(player::sendMessage);
 
             // Add the player to the scoreboard.
-            // TODO: TAB
-            instance.getTab().onPlayerJoin(player);
+            tabManager.onPlayerJoin(player);
             player.playSound(Sound.sound(Key.key("block.note_block.bell"), Sound.Source.PLAYER, 1f, 1f));
         });
     }
@@ -114,29 +117,12 @@ public class Connect implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void joinServerEvent(PlayerJoinEvent e) {
-
-        // Block the default connect message, this will be sent by the proxy.
-        e.joinMessage(null);
-
-        // Determine the chat channels to which this user has access.
-        Set<String> channels = NetworkUser.getChannels(e.getPlayer());
-
-        // Get the TabPlayer instance for this player.
-        TabPlayer tabPlayer = TabManager.createTabPlayerFromPlayer(e.getPlayer());
-
-        // Send a user connect request to the proxy, this will handle the rest.
-        // When the proxy has received the request it'll send a response which will then create the user object on
-        // the server.
-        UserConnectRequest userConnectRequest = new UserConnectRequest(
-                constants.serverName(), e.getPlayer().getUniqueId().toString(), e.getPlayer().getName(),
-                TextureUtils.getTexture(e.getPlayer().getPlayerProfile()), channels, tabPlayer,
-                e.getPlayer().hasPermission("group.architect"), e.getPlayer().hasPermission("group.reviewer")
-        );
-        Bukkit.getScheduler().runTaskAsynchronously(instance,
-                () -> instance.getChat().sendSocketMessage(userConnectRequest));
-        log.info(String.format("%s connected to the server, sent request to proxy to add player as NetworkUser",
-                e.getPlayer().getName()));
+    public void joinServerEvent(PlayerJoinEvent joinEvent) {
+        if (constants.standalone()) {
+            // TODO: Implement standalone connecting.
+        } else {
+            networkJoinEvent(joinEvent);
+        }
     }
 
     @EventHandler
@@ -201,5 +187,29 @@ public class Connect implements Listener {
             Bukkit.getScheduler().runTaskAsynchronously(instance,
                     () -> instance.getChat().sendSocketMessage(userDisconnect));
         }
+    }
+
+    private void networkJoinEvent(PlayerJoinEvent e) {
+        // Block the default connect message, this will be sent by the proxy.
+        e.joinMessage(null);
+
+        // Determine the chat channels to which this user has access.
+        Set<String> channels = NetworkUser.getChannels(e.getPlayer());
+
+        // Get the TabPlayer instance for this player.
+        TabPlayer tabPlayer = tabManager.createTabPlayerFromPlayer(e.getPlayer());
+
+        // Send a user connect request to the proxy, this will handle the rest.
+        // When the proxy has received the request it'll send a response which will then create the user object on
+        // the server.
+        UserConnectRequest userConnectRequest = new UserConnectRequest(
+                constants.serverName(), e.getPlayer().getUniqueId().toString(), e.getPlayer().getName(),
+                TextureUtils.getTexture(e.getPlayer().getPlayerProfile()), channels, tabPlayer,
+                e.getPlayer().hasPermission("group.architect"), e.getPlayer().hasPermission("group.reviewer")
+        );
+        Bukkit.getScheduler().runTaskAsynchronously(instance,
+                () -> instance.getChat().sendSocketMessage(userConnectRequest));
+        log.info(String.format("%s connected to the server, sent request to proxy to add player as NetworkUser",
+                e.getPlayer().getName()));
     }
 }
