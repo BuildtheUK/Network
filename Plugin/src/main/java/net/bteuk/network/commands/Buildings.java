@@ -112,7 +112,7 @@ public class Buildings extends AbstractCommand {
         double minDist = 100;
         Building minbuilding = null;
         for (Building i : nearbyBuildings) {
-            double currentDist = i.coordinate().distance(player.getLocation());
+            double currentDist = getXZDistance(i.coordinate(), player.getLocation());
             if (currentDist < minDist) {
                 minDist = currentDist;
                 minbuilding = i;
@@ -122,6 +122,12 @@ public class Buildings extends AbstractCommand {
             player.sendMessage(ChatUtils.error("No buildings within 5 blocks"));
         }
         return minbuilding;
+    }
+
+    public static double getXZDistance(Location l1, Location l2) {
+        double deltax = l1.getX() - l2.getX();
+        double deltaz = l1.getZ() - l2.getZ();
+        return Math.sqrt((deltax * deltax) + (deltaz * deltaz));
     }
 
     private void displayCount(Player player) {
