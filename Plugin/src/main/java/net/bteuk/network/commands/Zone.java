@@ -1,8 +1,7 @@
 package net.bteuk.network.commands;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
-import net.bteuk.network.Network;
-import net.bteuk.network.eventing.events.EventManager;
+import net.bteuk.network.api.EventAPI;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.sql.PlotSQL;
 import org.bukkit.entity.Player;
@@ -10,8 +9,16 @@ import org.jetbrains.annotations.NotNull;
 
 public class Zone extends AbstractCommand {
 
+    private final PlotSQL plotSQL;
+    private final EventAPI eventAPI;
+
+    public Zone(PlotSQL plotSQL, EventAPI eventAPI) {
+        this.plotSQL = plotSQL;
+        this.eventAPI = eventAPI;
+    }
+
     @Override
-    public void execute(@NotNull CommandSourceStack stack, @NotNull String[] args) {
+    public void execute(@NotNull CommandSourceStack stack, String @NotNull [] args) {
 
         // Check if the sender is a player.
         Player player = getPlayer(stack);
@@ -41,16 +48,12 @@ public class Zone extends AbstractCommand {
             return;
         }
 
-        PlotSQL plotSQL = Network.getInstance().getPlotSQL();
+        // Check if they have an invitation for this plot.
+        if (plotSQL.hasRow("SELECT id FROM zone_invites WHERE id=" + zoneID + " AND uuid='" + player.getUniqueId() + "';")) {
 
-        // Check if they have an invite for this plot.
-        if (plotSQL.hasRow("SELECT id FROM zone_invites WHERE id=" + zoneID + " AND uuid='" + player.getUniqueId() +
-                "';")) {
-
-            // Add server event to join plot.
-            EventManager.createEvent(player.getUniqueId().toString(), "plotsystem", plotSQL.getString("SELECT server " +
-                            "FROM location_data WHERE name='" +
-                            plotSQL.getString("SELECT location FROM zones WHERE id=" + zoneID + ";") + "';"),
+            // Add server event to join the plot.
+            eventAPI.createEvent(player.getUniqueId().toString(), "plotsystem",
+                    plotSQL.getString("SELECT server " + "FROM location_data WHERE name='" + plotSQL.getString("SELECT location FROM zones WHERE id=" + zoneID + ";") + "';"),
                     "join zone " + zoneID);
 
             // Remove invite.
@@ -58,5 +61,15 @@ public class Zone extends AbstractCommand {
         } else {
             player.sendMessage(ChatUtils.error("You have not been invited to join this Zone."));
         }
+    }
+
+    @Override
+    public String getLabel() {
+        return "zone";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Zone command.";
     }
 }

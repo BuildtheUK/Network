@@ -1,5 +1,6 @@
 package net.bteuk.network.eventing.listeners;
 
+import lombok.extern.java.Log;
 import net.bteuk.network.Network;
 import net.bteuk.network.commands.Navigator;
 import net.bteuk.network.lib.utils.ChatUtils;
@@ -15,15 +16,15 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 
-import static net.bteuk.network.utils.Constants.LOGGER;
-
+@Log
 public class PlayerInteract implements Listener {
 
     private final Network instance;
+    private final Navigator navigator;
 
-    public PlayerInteract(Network instance) {
-
+    public PlayerInteract(Network instance, Navigator navigator) {
         this.instance = instance;
+        this.navigator = navigator;
         Bukkit.getServer().getPluginManager().registerEvents(this, instance);
     }
 
@@ -34,16 +35,16 @@ public class PlayerInteract implements Listener {
 
         // If u is null, cancel.
         if (u == null) {
-            LOGGER.severe("User " + e.getPlayer().getName() + " can not be found!");
+            log.severe("User " + e.getPlayer().getName() + " can not be found!");
             e.getPlayer().sendMessage(ChatUtils.error("User can not be found, please relog!"));
             return;
         }
 
         if (e.getItem() != null) {
-            if (e.getItem().equals(instance.navigator)) {
+            if (e.getItem().equals(instance.navigatorItem)) {
                 e.setCancelled(true);
                 // Open navigator.
-                Navigator.openNavigator(u);
+                navigator.openNavigator(u);
             }
         }
     }
@@ -60,13 +61,13 @@ public class PlayerInteract implements Listener {
 
         // If u is null, cancel.
         if (u == null) {
-            LOGGER.severe("User " + e.getWhoClicked().getName() + " can not be found!");
+            log.severe("User " + e.getWhoClicked().getName() + " can not be found!");
             e.getWhoClicked().sendMessage(ChatUtils.error("User can not be found, please relog!"));
             return;
         }
 
         // If item is navigator then open it.
-        if (e.getCurrentItem().equals(instance.navigator)) {
+        if (e.getCurrentItem().equals(instance.navigatorItem)) {
             e.setCancelled(true);
 
             // If item is not in slot 8, delete it.
@@ -76,48 +77,39 @@ public class PlayerInteract implements Listener {
             }
 
             u.player.closeInventory();
-            Bukkit.getScheduler().runTaskLater(instance, () -> Navigator.openNavigator(u), 1);
+            Bukkit.getScheduler().runTaskLater(instance, () -> navigator.openNavigator(u), 1);
         }
     }
 
 
     /*
-
     The following events are to prevent the navigator being moved in the inventory,
     causing duplicate items which are difficult to remove.
-
      */
-
     @EventHandler
     public void swapHands(PlayerSwapHandItemsEvent e) {
-
-        if (e.getOffHandItem() == null) {
-            return;
-        }
-
-        if (e.getOffHandItem().equals(instance.navigator)) {
+        if (e.getOffHandItem().equals(instance.navigatorItem)) {
             e.setCancelled(true);
         }
     }
 
     @EventHandler
     public void dropItem(PlayerDropItemEvent e) {
-
-        if (e.getItemDrop().getItemStack().equals(instance.navigator)) {
+        if (e.getItemDrop().getItemStack().equals(instance.navigatorItem)) {
             e.setCancelled(true);
         }
     }
 
     @EventHandler
-    public void moveItem(InventoryMoveItemEvent e) {
-        if (e.getItem().equals(instance.navigator)) {
+    public void dragItem(InventoryMoveItemEvent e) {
+        if (e.getItem().equals(instance.navigatorItem)) {
             e.setCancelled(true);
         }
     }
 
     @EventHandler
-    public void moveItem(InventoryDragEvent e) {
-        if (e.getOldCursor().equals(instance.navigator)) {
+    public void dragItem(InventoryDragEvent e) {
+        if (e.getOldCursor().equals(instance.navigatorItem)) {
             e.setCancelled(true);
         }
 
@@ -125,7 +117,7 @@ public class PlayerInteract implements Listener {
             return;
         }
 
-        if (e.getCursor().equals(instance.navigator)) {
+        if (e.getCursor().equals(instance.navigatorItem)) {
             e.setCancelled(true);
         }
     }

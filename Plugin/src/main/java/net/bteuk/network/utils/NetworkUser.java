@@ -135,7 +135,7 @@ public class NetworkUser {
             ItemStack slot8 = player.getInventory().getItem(8);
 
             if (slot8 != null) {
-                if (slot8.equals(instance.navigator)) {
+                if (slot8.equals(instance.navigatorItem)) {
                     player.getInventory().setItem(8, null);
                 }
             }

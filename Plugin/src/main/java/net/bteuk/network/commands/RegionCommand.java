@@ -1,20 +1,27 @@
 package net.bteuk.network.commands;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
-import net.bteuk.network.Network;
+import net.bteuk.network.api.EventAPI;
 import net.bteuk.network.lib.utils.ChatUtils;
-import net.bteuk.network.utils.regions.Region;
+import net.bteuk.network.regions.Region;
+import net.bteuk.network.regions.RegionManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import static net.bteuk.network.utils.Constants.EARTH_WORLD;
-
 public class RegionCommand extends AbstractCommand {
 
+    private final RegionManager regionManager;
+    private final EventAPI eventAPI;
+
+    public RegionCommand(RegionManager regionManager, EventAPI eventAPI) {
+        this.regionManager = regionManager;
+        this.eventAPI = eventAPI;
+    }
+
     @Override
-    public void execute(@NotNull CommandSourceStack stack, @NotNull String[] args) {
+    public void execute(@NotNull CommandSourceStack stack, String @NotNull [] args) {
 
         // Check if the sender is a player.
         Player player = getPlayer(stack);
@@ -34,40 +41,42 @@ public class RegionCommand extends AbstractCommand {
         }
 
         // Check if the region exists.
-        if (Network.getInstance().getRegionManager().exists(args[1])) {
+        if (regionManager.exists(args[1])) {
 
             // Get the region.
-            Region region = Network.getInstance().getRegionManager().getRegion(args[1]);
+            Region region = regionManager.getRegion(args[1]);
 
-            // Check if they have an invite for this region.
-            if (region.hasInvite(player.getUniqueId().toString())) {
+            // Check if they have an invitation for this region.
+            if (regionManager.hasInvite(region, player.getUniqueId().toString())) {
 
                 // Check if the player has permission, else notify the player accordingly.
                 if (player.hasPermission("uknet.regions.join")) {
-
-                    // Add server event to join plot.
-                    Network.getInstance().getGlobalSQL().update("INSERT INTO server_events(uuid,type,server,event) " +
-                            "VALUES('" + player.getUniqueId() + "'," + "'network'" + ",'" +
-                            EARTH_WORLD +
-                            "','region join " + region.regionName() + "');");
+                    // Add server event to join the region.
+                    eventAPI.createEvent(player.getUniqueId().toString(), "network", regionManager.getServer(region), "region join " + region.regionName());
                 } else {
-
                     // Send error.
                     player.sendMessage(ChatUtils.error("You do not have permission to join regions."));
                     player.sendMessage(ChatUtils.error("To join regions you need at least Jr.Builder."));
-                    player.sendMessage(ChatUtils.error("For more information type ")
-                            .append(Component.text("/help building", NamedTextColor.DARK_RED)));
+                    player.sendMessage(ChatUtils.error("For more information type ").append(Component.text("/help building", NamedTextColor.DARK_RED)));
                 }
 
                 // Remove invite.
-                region.removeInvite(player.getUniqueId().toString());
+                regionManager.removeInvite(region, player.getUniqueId().toString());
             } else {
                 player.sendMessage(ChatUtils.error("You have not been invited to join this region."));
             }
         } else {
-            player.sendMessage(ChatUtils.error("The region ")
-                    .append(Component.text(args[1], NamedTextColor.DARK_RED))
-                    .append(ChatUtils.error(" does not exist.")));
+            player.sendMessage(ChatUtils.error("The region ").append(Component.text(args[1], NamedTextColor.DARK_RED)).append(ChatUtils.error(" does not exist.")));
         }
+    }
+
+    @Override
+    public String getLabel() {
+        return "region";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Allows players to manipulate regions without using the gui.";
     }
 }

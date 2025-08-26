@@ -19,7 +19,6 @@ public class Delhome extends AbstractCommand {
 
     // Constructor to enable the command.
     public Delhome(Network instance) {
-
         this.globalSQL = instance.getGlobalSQL();
 
         // Set tab completer.
@@ -27,7 +26,7 @@ public class Delhome extends AbstractCommand {
     }
 
     @Override
-    public void execute(@NotNull CommandSourceStack stack, @NotNull String[] args) {
+    public void execute(@NotNull CommandSourceStack stack, String @NotNull [] args) {
 
         // Check if the sender is a player.
         Player player = getPlayer(stack);
@@ -41,17 +40,13 @@ public class Delhome extends AbstractCommand {
         if (args.length == 0) {
 
             // Check if the default home exists.
-            if (!globalSQL.hasRow(
-                    "SELECT uuid FROM home WHERE uuid='" + player.getUniqueId() + "' AND name IS NULL;")) {
-                player.sendMessage(ChatUtils.error("You not have a default home set, set one with ")
-                        .append(Component.text("/sethome", NamedTextColor.DARK_RED)));
+            if (!globalSQL.hasRow("SELECT uuid FROM home WHERE uuid='" + player.getUniqueId() + "' AND name IS NULL;")) {
+                player.sendMessage(ChatUtils.error("You not have a default home set, set one with ").append(Component.text("/sethome", NamedTextColor.DARK_RED)));
                 return;
             }
 
             // Get coordinate ID.
-            int coordinate_id =
-                    globalSQL.getInt("SELECT coordinate_id FROM home WHERE uuid='" + player.getUniqueId() + "' AND " +
-                            "name IS NULL;");
+            int coordinate_id = globalSQL.getInt("SELECT coordinate_id FROM home WHERE uuid='" + player.getUniqueId() + "' AND " + "name IS NULL;");
 
             // Delete default home.
             globalSQL.update("DELETE FROM home WHERE uuid='" + player.getUniqueId() + "' AND name IS NULL;");
@@ -63,8 +58,7 @@ public class Delhome extends AbstractCommand {
 
             // Check for permission.
             if (!player.hasPermission("uknet.navigation.homes")) {
-                player.sendMessage(ChatUtils.error("You do not have permission to delete multiple homes, only to " +
-                                "delete a default home using ")
+                player.sendMessage(ChatUtils.error("You do not have permission to delete multiple homes, only to " + "delete a default home using ")
                         .append(Component.text("/delhome", NamedTextColor.DARK_RED)));
                 return;
             }
@@ -73,25 +67,30 @@ public class Delhome extends AbstractCommand {
             String name = String.join(" ", Arrays.copyOfRange(args, 0, args.length));
 
             // Get coordinate ID.
-            int coordinate_id =
-                    globalSQL.getInt("SELECT coordinate_id FROM home WHERE uuid='" + player.getUniqueId() + "' AND " +
-                            "name='" + name + "';");
+            int coordinate_id = globalSQL.getInt("SELECT coordinate_id FROM home WHERE uuid='" + player.getUniqueId() + "' AND " + "name='" + name + "';");
 
             // Check is home with this name exists.
-            if (!globalSQL.hasRow(
-                    "SELECT uuid FROM home WHERE uuid='" + player.getUniqueId() + "' AND name='" + name + "';")) {
-                player.sendMessage(ChatUtils.error("You do not have a home set with the name ")
-                        .append(Component.text(name, NamedTextColor.DARK_RED)));
+            if (!globalSQL.hasRow("SELECT uuid FROM home WHERE uuid='" + player.getUniqueId() + "' AND name='" + name + "';")) {
+                player.sendMessage(ChatUtils.error("You do not have a home set with the name ").append(Component.text(name, NamedTextColor.DARK_RED)));
                 return;
             }
 
             // Delete home
             globalSQL.update("DELETE FROM home WHERE uuid='" + player.getUniqueId() + "' AND name='" + name + "';");
-            player.sendMessage(Component.text(name, NamedTextColor.DARK_AQUA)
-                    .append(ChatUtils.success(" home removed.")));
+            player.sendMessage(Component.text(name, NamedTextColor.DARK_AQUA).append(ChatUtils.success(" home removed.")));
 
             // Delete coordinate id.
             globalSQL.update("DELETE FROM coordinates WHERE id=" + coordinate_id + ";");
         }
+    }
+
+    @Override
+    public String getLabel() {
+        return "delhome";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Delete a home.";
     }
 }

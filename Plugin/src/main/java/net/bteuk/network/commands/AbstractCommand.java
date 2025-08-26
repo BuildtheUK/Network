@@ -8,6 +8,7 @@ import net.bteuk.network.lib.utils.ChatUtils;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -27,7 +28,7 @@ public abstract class AbstractCommand implements BasicCommand {
     protected TabCompleter tabCompleter;
 
     @Override
-    public Collection<String> suggest(CommandSourceStack commandSourceStack, String[] args) {
+    public @NotNull Collection<String> suggest(@NotNull CommandSourceStack commandSourceStack, String @NotNull [] args) {
         if (tabCompleter != null) {
             return tabCompleter.onTabComplete(commandSourceStack.getSender(), args);
         }

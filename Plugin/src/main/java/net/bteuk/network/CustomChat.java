@@ -323,7 +323,7 @@ public class CustomChat implements Listener, SocketHandler, ChatAPI {
     }
 
     public void sendChatMessage(ChatMessage message) {
-        if (constants.standalone()) {
+        if (constants.standalone() && message.getChannel().equals(ChatChannels.GLOBAL.getChannelName())) {
             instance.getServer().broadcast(message.getComponent());
         } else {
             sendSocketMessage(message);

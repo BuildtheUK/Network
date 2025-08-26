@@ -2,6 +2,7 @@ package net.bteuk.network.commands.navigation;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.bteuk.network.Network;
+import net.bteuk.network.api.SQLAPI;
 import net.bteuk.network.commands.AbstractCommand;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.Utils;
@@ -13,12 +14,18 @@ import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public class Warps extends AbstractCommand {
 
+    private final SQLAPI globalSQL;
+
+    public Warps(Network instance) {
+        this.globalSQL = instance.getGlobalSQL();
+    }
+
     @Override
-    public void execute(@NotNull CommandSourceStack stack, @NotNull String[] args) {
+    public void execute(@NotNull CommandSourceStack stack, String @NotNull [] args) {
 
         // Check if the sender is a player.
         Player player = getPlayer(stack);
@@ -40,10 +47,9 @@ public class Warps extends AbstractCommand {
         }
 
         // Get all locations in alphabetical order.
-        ArrayList<String> locations = Network.getInstance().getGlobalSQL().getStringList("SELECT location FROM " +
-                "location_data ORDER BY location ASC;");
+        List<String> locations = globalSQL.getStringList("SELECT location FROM location_data ORDER BY location ASC;");
 
-        // If there are no locations notify the user.
+        // If there are no locations, notify the user.
         if (locations.isEmpty()) {
             player.sendMessage(ChatUtils.error("There are currently no warps available."));
             return;
@@ -79,8 +85,7 @@ public class Warps extends AbstractCommand {
             Component previousPage = Component.text("⏪⏪⏪", TextColor.color(212, 113, 15));
             previousPage = previousPage.hoverEvent(HoverEvent.hoverEvent(HoverEvent.Action.SHOW_TEXT, Utils.line(
                     "Click to view the previous page of warps.")));
-            previousPage = previousPage.clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND,
-                    "/warps " + (page - 1)));
+            previousPage = previousPage.clickEvent(ClickEvent.runCommand("/warps " + (page - 1)));
 
             // Add previousPage button at the start of the first line.
             message = message.append(previousPage);
@@ -99,8 +104,7 @@ public class Warps extends AbstractCommand {
             Component nextPage = Component.text("⏩⏩⏩\n", TextColor.color(212, 113, 15));
             nextPage = nextPage.hoverEvent(HoverEvent.hoverEvent(HoverEvent.Action.SHOW_TEXT, Utils.line("Click to " +
                     "view the next page of warps.")));
-            nextPage = nextPage.clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND,
-                    "/warps " + (page + 1)));
+            nextPage = nextPage.clickEvent(ClickEvent.runCommand("/warps " + (page + 1)));
 
             // Add previousPage button at the start of the first line.
             message = message.append(Component.text(" "));
@@ -120,7 +124,7 @@ public class Warps extends AbstractCommand {
             }
 
             // If it isn't the last entry, as a comma at the end.
-            // This is calculated by it either being the 16th entry, or the last in the list.
+            // This is calculated by it either being the 16th entry or the last in the list.
             if (((locations.indexOf(location) + 1) % 16) == 0 || (locations.indexOf(
                     location) + 1 == locations.size())) {
 
@@ -140,8 +144,18 @@ public class Warps extends AbstractCommand {
         Component warp = Component.text(name, TextColor.color(245, 221, 100));
         warp = warp.hoverEvent(HoverEvent.hoverEvent(HoverEvent.Action.SHOW_TEXT, Component.text("Click to teleport " +
                 "to " + name)));
-        warp = warp.clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/warp " + name));
+        warp = warp.clickEvent(ClickEvent.runCommand("/warp " + name));
 
         return warp;
+    }
+
+    @Override
+    public String getLabel() {
+        return "warps";
+    }
+
+    @Override
+    public String getDescription() {
+        return "List all warps on the server, 16 per page.";
     }
 }

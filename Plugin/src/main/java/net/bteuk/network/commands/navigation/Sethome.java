@@ -23,7 +23,7 @@ public class Sethome extends AbstractCommand {
     }
 
     @Override
-    public void execute(@NotNull CommandSourceStack stack, @NotNull String[] args) {
+    public void execute(@NotNull CommandSourceStack stack, String @NotNull [] args) {
 
         // Check if the sender is a player.
         Player player = getPlayer(stack);
@@ -43,7 +43,7 @@ public class Sethome extends AbstractCommand {
                 return;
             }
 
-            // Set home to current location.
+            // Set home to the current location.
             int coordinate_id = getCoordinateID(player.getLocation());
 
             globalSQL.update(
@@ -93,6 +93,16 @@ public class Sethome extends AbstractCommand {
 
     private int getCoordinateID(Location l) {
         // Create location coordinate.
-        return Network.getInstance().getGlobalSQL().addCoordinate(l);
+        return globalSQL.addCoordinate(l);
+    }
+
+    @Override
+    public String getLabel() {
+        return "sethome";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Set a home to your current location.";
     }
 }

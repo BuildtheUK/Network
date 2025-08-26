@@ -1,21 +1,40 @@
 package net.bteuk.network.commands.navigation;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
-import net.bteuk.network.Network;
+import net.bteuk.network.api.EventAPI;
+import net.bteuk.network.api.SQLAPI;
+import net.bteuk.network.api.ServerAPI;
+import net.bteuk.network.api.entity.NetworkLocation;
 import net.bteuk.network.commands.AbstractCommand;
-import net.bteuk.network.eventing.events.EventManager;
+import net.bteuk.network.core.Constants;
+import net.bteuk.network.core.ServerType;
 import net.bteuk.network.lib.utils.ChatUtils;
-import net.bteuk.network.utils.SwitchServer;
-import net.bteuk.network.utils.enums.ServerType;
+import net.bteuk.network.lobby.Lobby;
+import net.bteuk.network.papercore.LocationAdapter;
+import net.bteuk.network.papercore.PlayerAdapter;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import static net.bteuk.network.utils.Constants.SERVER_TYPE;
-
 public class Spawn extends AbstractCommand {
 
+    private final Constants constants;
+    private final Back back;
+    private final Lobby lobby;
+    private final EventAPI eventAPI;
+    private final ServerAPI serverAPI;
+    private final SQLAPI globalSQL;
+
+    public Spawn(Constants constants, Back back, Lobby lobby, EventAPI eventAPI, ServerAPI serverAPI, SQLAPI globalSQL) {
+        this.constants = constants;
+        this.back = back;
+        this.lobby = lobby;
+        this.eventAPI = eventAPI;
+        this.serverAPI = serverAPI;
+        this.globalSQL = globalSQL;
+    }
+
     @Override
-    public void execute(@NotNull CommandSourceStack stack, @NotNull String[] args) {
+    public void execute(@NotNull CommandSourceStack stack, String @NotNull [] args) {
 
         // Check if the sender is a player.
         Player player = getPlayer(stack);
@@ -29,18 +48,28 @@ public class Spawn extends AbstractCommand {
         }
 
         // If server is Lobby, teleport to spawn.
-        if (SERVER_TYPE == ServerType.LOBBY) {
+        NetworkLocation location = LocationAdapter.adapt(player.getLocation());
+        if (constants.serverType() == ServerType.LOBBY) {
 
-            Back.setPreviousCoordinate(player.getUniqueId().toString(), player.getLocation());
-            player.teleport(Network.getInstance().getLobby().spawn);
+            back.setPreviousCoordinate(player.getUniqueId().toString(), location);
+            player.teleport(lobby.getSpawn());
             player.sendMessage(ChatUtils.success("Teleported to spawn."));
         } else {
 
             // Set teleport event to go to spawn.
-            EventManager.createTeleportEvent(true, player.getUniqueId().toString(), "network", "teleport spawn",
-                    player.getLocation());
-            SwitchServer.switchServer(player, Network.getInstance().getGlobalSQL().getString("SELECT name FROM " +
+            eventAPI.createTeleportEvent(true, player.getUniqueId().toString(), "network", "teleport spawn", location);
+            serverAPI.switchServer(PlayerAdapter.adapt(player), globalSQL.getString("SELECT name FROM " +
                     "server_data WHERE type='LOBBY';"));
         }
+    }
+
+    @Override
+    public String getLabel() {
+        return "spawn";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Teleport to spawnpoint in lobby.";
     }
 }

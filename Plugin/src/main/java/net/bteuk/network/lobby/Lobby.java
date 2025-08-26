@@ -11,6 +11,7 @@ Features of the lobby include but are not limited to:
 The reason the lobby functions have been separated is to prevent unnecessary resource usage on the non-lobby server.
  */
 
+import lombok.Getter;
 import net.bteuk.network.Network;
 import net.bteuk.network.utils.NetworkUser;
 import net.kyori.adventure.inventory.Book;
@@ -37,7 +38,8 @@ public class Lobby {
     private final Network instance;
 
     private final ArrayList<Portal> portals;
-    public Location spawn;
+    @Getter
+    private Location spawn;
     private int portalTask;
     private Book rulesBook;
     private Map map;

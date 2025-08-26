@@ -113,9 +113,9 @@ public class Timers {
                     slot9 = user.player.getInventory().getItem(8);
 
                     if (slot9 == null) {
-                        user.player.getInventory().setItem(8, instance.navigator);
-                    } else if (!(slot9.equals(instance.navigator))) {
-                        user.player.getInventory().setItem(8, instance.navigator);
+                        user.player.getInventory().setItem(8, instance.navigatorItem);
+                    } else if (!(slot9.equals(instance.navigatorItem))) {
+                        user.player.getInventory().setItem(8, instance.navigatorItem);
                     }
                 }
 

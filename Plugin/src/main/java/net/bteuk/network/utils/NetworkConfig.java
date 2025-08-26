@@ -98,6 +98,8 @@ public class NetworkConfig {
     }
 
     public net.bteuk.network.core.Constants getConstants() {
+        log.info("Loading constants from config...");
+
         // Set the server name from config.
         String serverName = config.getString("server_name");
 
@@ -162,8 +164,17 @@ public class NetworkConfig {
 
         boolean moderationEnabled = config.getBoolean("staff.moderation.enabled");
 
+        boolean warpsEnabled = config.getBoolean("warps_enabled");
+
+        boolean homesEnabled = config.getBoolean("homes_enabled");
+
+        boolean announcePromotions = config.getBoolean("chat.announce_promotions");
+
+        String discordLink = config.getString("discord");
+
+        log.info("Loaded constants from config.");
         return new Constants(serverName, serverType, standalone, regionsEnabled, regionInactivity, tpllEnabled, tpllRequiredPermission, maxY, minY, earthWorld, staffChat, tips,
                 tutorials, llEnabled, progressMap, progression, announceOverallLevelUps, announceSeasonalLevelUps, sidebarEnabled, sidebarTitle, sidebarTextList, motdEnabled,
-                motdText, plotSystemEnabled, moderationEnabled);
+                motdText, plotSystemEnabled, moderationEnabled, warpsEnabled, homesEnabled, announcePromotions, discordLink);
     }
 }

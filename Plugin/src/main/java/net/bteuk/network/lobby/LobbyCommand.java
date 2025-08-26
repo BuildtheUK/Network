@@ -1,32 +1,33 @@
 package net.bteuk.network.lobby;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
-import net.bteuk.network.Network;
 import net.bteuk.network.commands.AbstractCommand;
+import net.bteuk.network.core.Constants;
+import net.bteuk.network.core.ServerType;
 import net.bteuk.network.lib.utils.ChatUtils;
-import net.bteuk.network.utils.enums.ServerType;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import static net.bteuk.network.utils.Constants.SERVER_TYPE;
-
 public class LobbyCommand extends AbstractCommand {
 
     private static final Component INVALID_FORMAT = ChatUtils.error("/lobby reload portals");
-    private final Lobby lobby;
 
-    public LobbyCommand(Network instance) {
-        this.lobby = instance.getLobby();
+    private final Lobby lobby;
+    private final Constants constants;
+
+    public LobbyCommand(Lobby lobby, Constants constants) {
+        this.lobby = lobby;
+        this.constants = constants;
     }
 
     @Override
-    public void execute(@NotNull CommandSourceStack stack, @NotNull String[] args) {
+    public void execute(@NotNull CommandSourceStack stack, String @NotNull [] args) {
 
         // Check permission if player, or if the server is the lobby.
         CommandSender sender = stack.getSender();
-        if (!sender.hasPermission("uknet.lobby.reload") || SERVER_TYPE != ServerType.LOBBY) {
+        if (!sender.hasPermission("uknet.lobby.reload") || constants.serverType() != ServerType.LOBBY) {
             if (sender instanceof Player p) {
                 p.performCommand("spawn");
             }
@@ -47,5 +48,15 @@ public class LobbyCommand extends AbstractCommand {
         } else {
             sender.sendMessage(INVALID_FORMAT);
         }
+    }
+
+    @Override
+    public String getLabel() {
+        return "lobby";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Command for all lobby management.";
     }
 }

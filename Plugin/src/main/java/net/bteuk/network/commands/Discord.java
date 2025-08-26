@@ -1,15 +1,18 @@
 package net.bteuk.network.commands;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
+import lombok.extern.java.Log;
+import net.bteuk.network.CustomChat;
 import net.bteuk.network.Network;
 import net.bteuk.network.commands.tabcompleters.FixedArgSelector;
+import net.bteuk.network.core.Constants;
+import net.bteuk.network.core.Time;
 import net.bteuk.network.lib.dto.DiscordLinking;
 import net.bteuk.network.lib.dto.DiscordRole;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Role;
 import net.bteuk.network.utils.Roles;
-import net.bteuk.network.utils.Time;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import org.bukkit.entity.Player;
@@ -18,12 +21,19 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 import java.util.Objects;
 
-import static net.bteuk.network.utils.Constants.LOGGER;
-import static net.bteuk.network.utils.NetworkConfig.CONFIG;
-
+@Log
 public class Discord extends AbstractCommand {
 
-    public Discord() {
+    private final Network instance;
+    private final CustomChat chat;
+    private final Roles roles;
+    private final Constants constants;
+
+    public Discord(Network instance, CustomChat chat, Roles roles, Constants constants) {
+        this.instance = instance;
+        this.chat = chat;
+        this.roles = roles;
+        this.constants = constants;
         setTabCompleter(new FixedArgSelector(Arrays.asList("link", "unlink"), 0));
     }
 
@@ -38,11 +48,11 @@ public class Discord extends AbstractCommand {
 
         if (args.length > 0) {
 
-            NetworkUser user = Network.getInstance().getUser(player);
+            NetworkUser user = instance.getUser(player);
 
             // If u is null, cancel.
             if (user == null) {
-                LOGGER.severe("User " + player.getName() + " can not be found!");
+                log.severe("User " + player.getName() + " can not be found!");
                 player.sendMessage(ChatUtils.error("User can not be found, please relog!"));
                 return;
             }
@@ -65,10 +75,9 @@ public class Discord extends AbstractCommand {
                 discordLinking.setUuid(player.getUniqueId().toString());
                 discordLinking.setToken(token);
 
-                Network.getInstance().getChat().sendSocketMessage(discordLinking);
+                chat.sendSocketMessage(discordLinking);
 
-                player.sendMessage(ChatUtils.success("To link your Discord please DM the code %s to the UK Bot within" +
-                        " the next 5 minutes.", token));
+                player.sendMessage(ChatUtils.success("To link your Discord please DM the code %s to the UK Bot within" + " the next 5 minutes.", token));
                 return;
             } else if (args[0].equalsIgnoreCase("unlink")) {
 
@@ -79,7 +88,7 @@ public class Discord extends AbstractCommand {
                 }
 
                 // Remove linked roles from discord, then unlink.
-                Role role = Roles.builderRole(user.player);
+                Role role = roles.builderRole(user.player);
 
                 // Remove the role in discord.
                 if (role == null) {
@@ -88,13 +97,13 @@ public class Discord extends AbstractCommand {
                 }
 
                 DiscordRole discordRole = new DiscordRole(user.player.getUniqueId().toString(), role.getId(), false);
-                Network.getInstance().getChat().sendSocketMessage(discordRole);
+                chat.sendSocketMessage(discordRole);
 
                 DiscordLinking discordLinking = new DiscordLinking();
                 discordLinking.setUuid(player.getUniqueId().toString());
                 discordLinking.setDiscordId(user.getDiscordId());
                 discordLinking.setUnlink(true);
-                Network.getInstance().getChat().sendSocketMessage(discordLinking);
+                chat.sendSocketMessage(discordLinking);
 
                 user.isLinked = false;
                 player.sendMessage(ChatUtils.success("Unlinked your Discord."));
@@ -102,9 +111,18 @@ public class Discord extends AbstractCommand {
             }
         }
 
-        Component discord = ChatUtils.success("Join our discord: " + CONFIG.getString("discord"));
-        discord = discord.clickEvent(ClickEvent.clickEvent(ClickEvent.Action.OPEN_URL,
-                Objects.requireNonNull(CONFIG.getString("discord"))));
+        Component discord = ChatUtils.success("Join our discord: " + constants.discordLink());
+        discord = discord.clickEvent(ClickEvent.openUrl(Objects.requireNonNull(constants.discordLink())));
         stack.getSender().sendMessage(discord);
+    }
+
+    @Override
+    public String getLabel() {
+        return "discord";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Sends a link to our discord server.";
     }
 }

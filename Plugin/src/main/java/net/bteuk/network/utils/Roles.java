@@ -12,11 +12,8 @@ import net.bteuk.network.lib.enums.ChatChannels;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.sql.PlotSQL;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.luckperms.api.model.group.Group;
-import org.bukkit.Bukkit;
-import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -32,7 +29,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static net.bteuk.network.lib.enums.ChatChannels.GLOBAL;
-import static net.bteuk.network.utils.NetworkConfig.CONFIG;
 
 @Log
 public final class Roles {
@@ -45,9 +41,7 @@ public final class Roles {
     private static Set<Role> ROLES;
 
     private final Network instance;
-
     private final CustomChat customChat;
-
     private final PlotSQL plotSQL;
 
     public Roles(Network instance, CustomChat customChat, PlotSQL plotSQL) {
@@ -168,54 +162,6 @@ public final class Roles {
                 roles.getString(key + ".colour", null),
                 roles.getInt(key + ".weight", 0)))
         );
-    }
-
-    /**
-     * Discord syncing will not be applied with this method due to deprecation.
-     */
-    @Deprecated
-    public void promoteBuilder(String uuid, String pRole, String nRole) {
-
-        // Get console sender.
-        ConsoleCommandSender console = instance.getServer().getConsoleSender();
-
-        // Add new builder role.
-        Bukkit.getServer().dispatchCommand(console, "lp user " + uuid + " parent add " + nRole);
-
-        // Remove current builder role. Remove after adding to make sure the player always has a role.
-        Bukkit.getServer().dispatchCommand(console, "lp user " + uuid + " parent remove " + pRole);
-
-        // Update database.
-        instance.getGlobalSQL().update("UPDATE player_data SET builder_role='" + nRole + "' WHERE " +
-                "uuid='" + uuid + "';");
-
-        // Announce the promotion in chat and discord.
-        // Send a message to the user if not online, so they'll be notified of their promotion next time they join
-        // the server.
-        Component colouredRole = Component.text(Objects.requireNonNull(CONFIG.getString("roles." + nRole + ".name")),
-                TextColor.fromHexString(Objects.requireNonNull(CONFIG.getString("roles." + nRole + ".colour"))));
-        if (CONFIG.getBoolean("chat.announce_promotions")) {
-            String name = instance.getGlobalSQL()
-                            .getString("SELECT name FROM player_data WHERE uuid='" + uuid + "';");
-
-            Component promotation_message = Component.text(name)
-                    .append(PROMOTION_TEMPLATE)
-                    .append(colouredRole);
-            promotation_message = promotation_message.decorate(TextDecoration.BOLD);
-
-            ChatMessage chatMessage = new ChatMessage(GLOBAL.getChannelName(), "server", promotation_message);
-            customChat.sendSocketMessage(chatMessage);
-        }
-
-        // Check if the player is online.
-        if (!instance.isOnlineOnNetwork(uuid)) {
-
-            // Send a message that will show when they next log in.
-            DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), uuid, "server",
-                    PROMOTION_SELF.append(colouredRole),
-                    true);
-            customChat.sendDirectMessage(directMessage);
-        }
     }
 
     /**

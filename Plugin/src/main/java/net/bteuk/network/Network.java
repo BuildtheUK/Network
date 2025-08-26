@@ -36,7 +36,6 @@ import net.bteuk.network.commands.Pweather;
 import net.bteuk.network.commands.RegionCommand;
 import net.bteuk.network.commands.Reply;
 import net.bteuk.network.commands.Rules;
-import net.bteuk.network.commands.Season;
 import net.bteuk.network.commands.Speed;
 import net.bteuk.network.commands.TipsToggle;
 import net.bteuk.network.commands.Where;
@@ -52,13 +51,12 @@ import net.bteuk.network.commands.navigation.Navigation;
 import net.bteuk.network.commands.navigation.Server;
 import net.bteuk.network.commands.navigation.Sethome;
 import net.bteuk.network.commands.navigation.Spawn;
-import net.bteuk.network.commands.navigation.Tp;
+import net.bteuk.network.commands.navigation.Teleport;
 import net.bteuk.network.commands.navigation.TpToggle;
 import net.bteuk.network.commands.navigation.Tpll;
 import net.bteuk.network.commands.navigation.Warp;
 import net.bteuk.network.commands.navigation.Warps;
 import net.bteuk.network.commands.staff.Ban;
-import net.bteuk.network.commands.staff.Exp;
 import net.bteuk.network.commands.staff.Kick;
 import net.bteuk.network.commands.staff.Mute;
 import net.bteuk.network.commands.staff.Staff;
@@ -126,7 +124,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
     public boolean allowShutdown;
     // Guis
     public NavigatorGui navigatorGui;
-    public ItemStack navigator;
+    public ItemStack navigatorItem;
     public RegionSQL regionSQL;
     // Movement listeners.
     public NetworkMoveListener moveListener;
@@ -137,7 +135,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
     private RegionManager regionManager;
     // List of users connected to the network.
     @Getter
-    private HashSet<OnlineUser> onlineUsers;
+    private HashSet<OnlineUser> onlineUsers; // TODO: Populate this list on a standalone server using the join/leave events.
     // Server User List
     private ArrayList<NetworkUser> networkUsers;
     // SQL
@@ -328,21 +326,19 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         chat = new CustomChat(this, constants, afk, globalSQL, connect);
 
         // Create the navigator.
-        navigatorGui = new NavigatorGui();
-        navigator = Utils.createItem(Material.NETHER_STAR, 1, Utils.title("Navigator"), Utils.line("Click to open the" +
-                " navigator."));
-        
+        navigatorItem = Utils.createItem(Material.NETHER_STAR, 1, Utils.title("Navigator"), Utils.line("Click to open the navigator."));
+
         Moderation moderation = new Moderation(this, eventManager);
 
         // Register events.
         new PreJoinServer(this, constants, moderation);
 
         new GuiListener(this);
-        new PlayerInteract(this);
 
         // Create the region manager if enabled.
         if (constants.regionsEnabled()) {
             regionManager = new RegionManager(regionSQL, this, coordinateAPI, eventManager, worldGuardAPI, constants, this, serverAPI);
+            commandManager.registerCommand(new RegionCommand(regionManager, eventManager));
         }
 
         moveListener = new NetworkMoveListener(this, afk);
@@ -352,12 +348,10 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         timerAPI = new TimerAPIImpl(this);
 
         // Set up the lobby, most features are only enabled in the lobby server.
+        Lobby lobby = new Lobby(this);
+        // Create the rules book.
+        lobby.loadRules();
         if (!constants.standalone()) {
-            // Get lobby.
-            // Lobby
-            Lobby lobby = new Lobby(this);
-            // Create the rules book.
-            lobby.loadRules();
             if (constants.serverType() == ServerType.LOBBY) {
 
                 // Set spawn location and enable auto-spawn teleport when falling in the void.
@@ -393,47 +387,47 @@ public final class Network extends JavaPlugin implements NetworkAPI {
             commandManager.registerCommand(new Unban(this, moderation));
         }
 
-        commands.register("teleport", "Teleport to any online player.", List.of("tp"), new Tp());
-        commands.register("back", "Teleports the player to the previous teleported location.", new Back(eventAPI));
-        commands.register("warp", "Warp to locations in the exploration menu.", new Warp());
-        commands.register("warps", "List all warps on the server, 16 per page.", new Warps());
-        commands.register("navigation", "Adds commands to do with navigation.", new Navigation());
+        Back back = new Back(this, constants, eventManager, serverAPI);
+        commandManager.registerCommand(back);
+        commandManager.registerCommand(new Teleport(this, back, eventManager, serverAPI, constants));
+        commandManager.registerCommand(new TpToggle(this));
+
+        if (constants.warpsEnabled()) {
+            new Warp(this, constants, plotAPI, back, eventManager, serverAPI);
+            new Warps(this);
+            new Navigation(this);
+        }
+
         if (!constants.standalone()) {
-            commands.register("lobby", "Command for all lobby management.", new LobbyCommand(instance));
-            commands.register("spawn", "Teleport to spawnpoint in lobby.", new Spawn());
-            commands.register("server", "Switch server by command.", new Server());
-        }
-        if (CONFIG.getBoolean("homes.enabled")) {
-            commands.register("sethome", "Set a home to your current location.", new Sethome(instance));
-            commands.register("home", "Teleport to your home.", new Home(instance));
-            commands.register("delhome", "Delete a home.", new Delhome(instance));
-            commands.register("homes", "Like warps, but for homes, shows all homes the player has set.", new Homes());
+            commandManager.registerCommand(new LobbyCommand(lobby, constants));
+            commandManager.registerCommand(new Spawn(constants, back, lobby, eventManager, serverAPI, globalSQL));
+            commandManager.registerCommand(new Server(globalSQL, constants, serverAPI));
         }
 
-        /*
-         * Gui commands.
-         */
-        commands.register("navigator", "Opens the main gui, will always return to the previous menu if possible.", List.of("nav", "gui", "menu", "claim"), new Navigator());
+        if (constants.homesEnabled()) {
+            commandManager.registerCommand(new Sethome(this));
+            commandManager.registerCommand(new Home(this, constants, eventManager, serverAPI));
+            commandManager.registerCommand(new Delhome(this));
+            commandManager.registerCommand(new Homes(this));
+        }
+
+        Navigator navigator = new Navigator(this, constants, lobby, back, eventManager, serverAPI);
+        commandManager.registerCommand(navigator);
+        new PlayerInteract(this, navigator);
+
         if (constants.plotSystemEnabled()) {
-            commands.register("plot", "Allows players to manipulate plots without using the gui.", List.of("plots"), new Plot(instance));
-            commands.register("zone", "Zone command.", new Zone());
-        }
-        if (constants.regionsEnabled()) {
-            commands.register("region", "Allows players to manipulate regions without using the gui.", new RegionCommand());
+            commandManager.registerCommand(new Plot(this, eventManager, plotSQL));
+            commandManager.registerCommand(new Zone(plotSQL, eventManager));
         }
 
-        /*
-         * Staff commands.
-         */
-        commands.register("staff", "Opens the Staff Menu.", List.of("st"), new Staff());
+        commandManager.registerCommand(new Staff(this, constants, globalSQL, chat));
 
         /*
          * Utility commands.
          */
-        commands.register("building", "adds or shows completed buildings", new Buildings(instance));
-        commands.register("teleporttoggle", "Enables/Disables the ability for other players to teleport to you.", List.of("tptoggle", "toggleteleport", "toggletp"), new TpToggle());
+        commandManager.registerCommand(new Buildings(this, constants));
         if (!constants.standalone()) {
-            commands.register("discord", "Sends a link to our discord server.", new Discord());
+            commandManager.registerCommand(new Discord(this, chat, roles, constants));
             commands.register("focus", "Toggle focus mode, hides chat and players.", List.of("focusmode", "fm"), new Focus());
         }
         commands.register("nightvision", "Toggle nightvision.", List.of("nv"), new Nightvision());
@@ -455,8 +449,8 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         }
         commands.register("ptime", "Sets the time of day for the player", new Ptime());
         commands.register("pweather", "Sets the weather for the player", new Pweather());
-        commands.register("season", "Command for creating, starting and ending seasons.", List.of("seasons"), new Season());
-        commands.register("exp", "Test command for adding exp.", new Exp());
+        // commands.register("season", "Command for creating, starting and ending seasons.", List.of("seasons"), new Season());
+        // commands.register("exp", "Test command for adding exp.", new Exp());
         commands.register("buildingcompanion", "Toggle the building companion.", List.of("bc", "companion"), new BuildingCompanionCommand(instance, constants, regionManager));
         commands.register("pmute", "Mute a player", new Pmute(instance));
         commands.register("punmute", "Unmute a player", new Punmute(instance));
@@ -464,13 +458,15 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         commands.register("msg", "Sends a direct message to a player.", msgCommand);
         commands.register("w", "Sends a direct message to a player.", msgCommand);
         commands.register("tell", "Sends a direct message to a player.", msgCommand);
-        commands.register("r","sends a direct message to the last player you messaged", List.of("reply"), new Reply(msgCommand));
+        commands.register("r", "sends a direct message to the last player you messaged", List.of("reply"), new Reply(msgCommand));
         commands.register("promote", "Add a role to a player.", new Promote(instance));
         commands.register("demote", "Remove a role from a player.", new Demote(instance));
         commands.register("me", "Disabled", new Me());
 
         // Register commandpreprocess to make sure /network:region runs and not that of another plugin.
         new CommandPreProcess(this);
+
+        commandManager.enableCommands();
 
         // Enable tips.
         if (constants.tips()) {

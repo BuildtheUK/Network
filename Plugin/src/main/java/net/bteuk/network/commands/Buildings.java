@@ -5,8 +5,9 @@ import net.bteuk.network.Network;
 import net.bteuk.network.building_counter.Building;
 import net.bteuk.network.building_counter.ConfirmationListener;
 import net.bteuk.network.commands.tabcompleters.FixedArgSelector;
+import net.bteuk.network.core.Constants;
+import net.bteuk.network.core.ServerType;
 import net.bteuk.network.lib.utils.ChatUtils;
-import net.bteuk.network.utils.enums.ServerType;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -17,20 +18,20 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static net.bteuk.network.utils.Constants.SERVER_TYPE;
-
 public class Buildings extends AbstractCommand {
     private static final Component ERROR = ChatUtils.error("/building add/show/count/delete/definition/query");
 
     private static final int SHOW_BUILDINGS_DURATION = 300;
 
     private final Network instance;
-    private final List<Player> playersUsingConfirmationListeners = new ArrayList<Player>();
+    private final Constants constants;
+    private final List<Player> playersUsingConfirmationListeners = new ArrayList<>();
     ;
 
-    public Buildings(Network instance) {
+    public Buildings(Network instance, Constants constants) {
         super();
         this.instance = instance;
+        this.constants = constants;
         setTabCompleter(new FixedArgSelector(Arrays.asList("add", "show", "count", "delete", "definition", "query"), 0));
     }
 
@@ -48,7 +49,7 @@ public class Buildings extends AbstractCommand {
 
         switch (args[0]) {
             case "add":
-                if (SERVER_TYPE != ServerType.EARTH) {
+                if (constants.serverType() != ServerType.EARTH) {
                     player.sendMessage(ChatUtils.error("Please join the earth server before running this command"));
                     return;
                 }
@@ -60,7 +61,7 @@ public class Buildings extends AbstractCommand {
                 }
                 break;
             case "show":
-                if (SERVER_TYPE != ServerType.EARTH) {
+                if (constants.serverType() != ServerType.EARTH) {
                     player.sendMessage(ChatUtils.error("Please join the earth server before running this command"));
                     return;
                 }
@@ -70,7 +71,7 @@ public class Buildings extends AbstractCommand {
                 displayCount(player);
                 break;
             case "delete":
-                if (SERVER_TYPE != ServerType.EARTH) {
+                if (constants.serverType() != ServerType.EARTH) {
                     player.sendMessage(ChatUtils.error("Please join the earth server before running this command"));
                     return;
                 }
@@ -78,20 +79,17 @@ public class Buildings extends AbstractCommand {
                 break;
             case "definition":
                 player.sendMessage(ChatUtils.success(
-                        "A building is a structure that has walls on all sides, a roof, is larger than 2*3m and can be entered by a human (no sheds or caravans). In other words " +
-                                "use common sense. A " +
-                                "terrace is many buildings (one for each property). A semi detached is one building. Apartments are one building"));
+                        "A building is a structure that has walls on all sides, a roof, is larger than 2*3m and can be entered by a human (no sheds or caravans). In other words "
+                                + "use common sense. A " + "terrace is many buildings (one for each property). A semi detached is one building. Apartments are one building"));
                 break;
             case "query":
-                if (SERVER_TYPE != ServerType.EARTH) {
+                if (constants.serverType() != ServerType.EARTH) {
                     player.sendMessage(ChatUtils.error("Please join the earth server before running this command"));
                     return;
                 }
                 queryBuilding(player);
                 break;
-
         }
-
     }
 
     private void deleteBuilding(Player player) {
@@ -114,7 +112,7 @@ public class Buildings extends AbstractCommand {
         double minDist = 100;
         Building minbuilding = null;
         for (Building i : nearbyBuildings) {
-            double currentDist = getDist(i.coordinate(), player.getLocation());
+            double currentDist = i.coordinate().distance(player.getLocation());
             if (currentDist < minDist) {
                 minDist = currentDist;
                 minbuilding = i;
@@ -124,12 +122,6 @@ public class Buildings extends AbstractCommand {
             player.sendMessage(ChatUtils.error("No buildings within 5 blocks"));
         }
         return minbuilding;
-    }
-
-    public static double getDist(Location l1, Location l2) {
-        double deltax = l1.getX() - l2.getX();
-        double deltaz = l2.getZ() - l2.getZ();
-        return Math.sqrt((deltax * deltax) + (deltaz * deltaz));
     }
 
     private void displayCount(Player player) {
@@ -237,4 +229,13 @@ public class Buildings extends AbstractCommand {
 
     }
 
+    @Override
+    public String getLabel() {
+        return "building";
+    }
+
+    @Override
+    public String getDescription() {
+        return "adds or shows completed buildings";
+    }
 }

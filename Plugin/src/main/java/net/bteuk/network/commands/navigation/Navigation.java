@@ -1,11 +1,13 @@
 package net.bteuk.network.commands.navigation;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
+import lombok.extern.java.Log;
 import net.bteuk.network.Network;
 import net.bteuk.network.commands.AbstractCommand;
 import net.bteuk.network.commands.tabcompleters.NavigationTabCompleter;
 import net.bteuk.network.gui.navigation.AddLocation;
 import net.bteuk.network.lib.utils.ChatUtils;
+import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.enums.AddLocationType;
 import net.bteuk.network.utils.enums.Category;
@@ -16,8 +18,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 
-import static net.bteuk.network.utils.Constants.LOGGER;
-
+@Log
 public class Navigation extends AbstractCommand {
 
     private static final Component ERROR_SUBCATEGORY_ADD = ChatUtils.error("/navigation subcategory add [category] " +
@@ -25,12 +26,17 @@ public class Navigation extends AbstractCommand {
     private static final Component ERROR_SUBCATEGORY_REMOVE = ChatUtils.error("/navigation subcategory remove " +
             "<subcategory>");
 
-    public Navigation() {
+    private final Network instance;
+    private final GlobalSQL globalSQL;
+
+    public Navigation(Network instance) {
+        this.instance = instance;
+        this.globalSQL = instance.getGlobalSQL();
         setTabCompleter(new NavigationTabCompleter());
     }
 
     @Override
-    public void execute(@NotNull CommandSourceStack stack, @NotNull String[] args) {
+    public void execute(@NotNull CommandSourceStack stack, String @NotNull [] args) {
 
         // Check if the sender is a player.
         Player player = getPlayer(stack);
@@ -38,11 +44,11 @@ public class Navigation extends AbstractCommand {
             return;
         }
 
-        NetworkUser user = Network.getInstance().getUser(player);
+        NetworkUser user = instance.getUser(player);
 
         // If u is null, cancel.
         if (user == null) {
-            LOGGER.severe("User " + player.getName() + " can not be found!");
+            log.severe("User " + player.getName() + " can not be found!");
             player.sendMessage(ChatUtils.error("User can not be found, please relog!"));
             return;
         }
@@ -103,7 +109,7 @@ public class Navigation extends AbstractCommand {
         String location = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
 
         // Check if the location exists.
-        if (!Network.getInstance().getGlobalSQL()
+        if (!globalSQL
                 .hasRow("SELECT location FROM location_data WHERE location='" + location + "';")) {
             u.sendMessage(ChatUtils.error("The location ")
                     .append(Component.text(location, NamedTextColor.DARK_RED))
@@ -112,7 +118,7 @@ public class Navigation extends AbstractCommand {
         }
 
         // Check if there is a marker on the map.
-        if (Network.getInstance().getGlobalSQL()
+        if (globalSQL
                 .hasRow("SELECT location FROM location_marker WHERE location='" + location + "';")) {
             u.sendMessage(ChatUtils.error("The location %s has a marker on the map, this must be removed first using " +
                             "%s",
@@ -127,16 +133,16 @@ public class Navigation extends AbstractCommand {
         }
 
         // Get details from the location.
-        Category category = Category.valueOf(Network.getInstance().getGlobalSQL().getString("SELECT category FROM " +
+        Category category = Category.valueOf(globalSQL.getString("SELECT category FROM " +
                 "location_data WHERE location='" + location + "';"));
-        int subcategory_id = Network.getInstance().getGlobalSQL().getInt("SELECT subcategory FROM location_data WHERE" +
+        int subcategory_id = globalSQL.getInt("SELECT subcategory FROM location_data WHERE" +
                 " location='" + location + "';");
         String subcategory = null;
         if (subcategory_id != 0) {
-            subcategory = Network.getInstance().getGlobalSQL().getString("SELECT name FROM location_subcategory WHERE" +
+            subcategory = globalSQL.getString("SELECT name FROM location_subcategory WHERE" +
                     " id=" + subcategory_id + ";");
         }
-        int coordinate_id = Network.getInstance().getGlobalSQL().getInt("SELECT coordinate FROM location_data WHERE " +
+        int coordinate_id = globalSQL.getInt("SELECT coordinate FROM location_data WHERE " +
                 "location='" + location + "';");
         u.staffGui = new AddLocation(AddLocationType.UPDATE, location, coordinate_id, category, subcategory);
         u.staffGui.open(u);
@@ -157,7 +163,7 @@ public class Navigation extends AbstractCommand {
         String location = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
 
         // Check if the location exists.
-        if (!Network.getInstance().getGlobalSQL()
+        if (!globalSQL
                 .hasRow("SELECT location FROM location_data WHERE location='" + location + "';")) {
             u.sendMessage(ChatUtils.error("The location ")
                     .append(Component.text(location, NamedTextColor.DARK_RED))
@@ -166,7 +172,7 @@ public class Navigation extends AbstractCommand {
         }
 
         // Check if there is a marker on the map.
-        if (Network.getInstance().getGlobalSQL()
+        if (globalSQL
                 .hasRow("SELECT location FROM location_marker WHERE location='" + location + "';")) {
             u.sendMessage(ChatUtils.error("The location %s has a marker on the map, this must be removed first using " +
                             "%s",
@@ -175,7 +181,7 @@ public class Navigation extends AbstractCommand {
         }
 
         // Delete location.
-        Network.getInstance().getGlobalSQL().update("DELETE FROM location_data WHERE location='" + location + "';");
+        globalSQL.update("DELETE FROM location_data WHERE location='" + location + "';");
         u.sendMessage(ChatUtils.success("Location ")
                 .append(Component.text(location, NamedTextColor.DARK_AQUA))
                 .append(ChatUtils.success(" removed.")));
@@ -188,20 +194,20 @@ public class Navigation extends AbstractCommand {
                 String location = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
 
                 // Check if the location exists.
-                if (Network.getInstance().getGlobalSQL()
+                if (globalSQL
                         .hasRow("SELECT location FROM location_data WHERE location='" + location + "';")) {
                     // Change suggested status of location.
-                    if (Network.getInstance().getGlobalSQL().hasRow("SELECT location FROM location_data WHERE " +
+                    if (globalSQL.hasRow("SELECT location FROM location_data WHERE " +
                             "location='" + location + "' AND suggested=1;")) {
                         // Location is already suggested, remove that.
-                        Network.getInstance().getGlobalSQL().update("UPDATE location_data SET suggested=0 WHERE " +
+                        globalSQL.update("UPDATE location_data SET suggested=0 WHERE " +
                                 "location='" + location + "';");
                         u.sendMessage(ChatUtils.success("The location ")
                                 .append(Component.text(location, NamedTextColor.DARK_AQUA))
                                 .append(ChatUtils.success(" will no longer be suggested.")));
                     } else {
                         // Set location as suggested.
-                        Network.getInstance().getGlobalSQL().update("UPDATE location_data SET suggested=1 WHERE " +
+                        globalSQL.update("UPDATE location_data SET suggested=1 WHERE " +
                                 "location='" + location + "';");
                         u.sendMessage(ChatUtils.success("The location ")
                                 .append(Component.text(location, NamedTextColor.DARK_AQUA))
@@ -250,12 +256,12 @@ public class Navigation extends AbstractCommand {
                     .anyMatch(category -> category.toString().equalsIgnoreCase(args[2]))) {
                 // Check that the subcategory does not yet exist.
                 String name = String.join(" ", Arrays.copyOfRange(args, 3, args.length));
-                if (Network.getInstance().getGlobalSQL()
+                if (globalSQL
                         .hasRow("SELECT name FROM location_subcategory WHERE name='" + name + "';")) {
                     u.sendMessage(ChatUtils.error("Subcategory ").append(Component.text(name,
                             NamedTextColor.DARK_RED)).append(ChatUtils.error(" already exists.")));
                 } else {
-                    Network.getInstance().getGlobalSQL().update("INSERT INTO location_subcategory(name,category) " +
+                    globalSQL.update("INSERT INTO location_subcategory(name,category) " +
                             "VALUES('" + name + "','" + args[2].toUpperCase() + "');");
                     u.sendMessage(ChatUtils.success("Subcategory ").append(Component.text(name,
                                     NamedTextColor.DARK_AQUA))
@@ -278,7 +284,7 @@ public class Navigation extends AbstractCommand {
 
         // Check if a valid subcategory is listed.
         String name = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
-        int subcategory_id = Network.getInstance().getGlobalSQL().getInt("SELECT id FROM location_subcategory WHERE " +
+        int subcategory_id = globalSQL.getInt("SELECT id FROM location_subcategory WHERE " +
                 "name='" + name + "';");
 
         if (subcategory_id == 0) {
@@ -288,7 +294,7 @@ public class Navigation extends AbstractCommand {
         }
 
         // Check if there is a marker on the map.
-        if (Network.getInstance().getGlobalSQL()
+        if (globalSQL
                 .hasRow("SELECT subcategory FROM location_marker WHERE subcategory=" + subcategory_id + ";")) {
             u.sendMessage(ChatUtils.error("The subcategory %s has a marker on the map, this must be removed first " +
                             "using %s",
@@ -297,12 +303,12 @@ public class Navigation extends AbstractCommand {
         }
 
         // Set all locations (and requests) with this subcategory to subcategory = null.
-        Network.getInstance().getGlobalSQL()
+        globalSQL
                 .update("UPDATE location_data SET subcategory=NULL WHERE subcategory=" + subcategory_id + ";");
-        Network.getInstance().getGlobalSQL().update("UPDATE location_requests SET subcategory=NULL WHERE " +
+        globalSQL.update("UPDATE location_requests SET subcategory=NULL WHERE " +
                 "subcategory=" + subcategory_id + ";");
         // Remove the subcategory.
-        Network.getInstance().getGlobalSQL().update("DELETE FROM location_subcategory WHERE id=" + subcategory_id +
+        globalSQL.update("DELETE FROM location_subcategory WHERE id=" + subcategory_id +
                 ";");
         u.sendMessage(ChatUtils.error("Subcategory ").append(Component.text(name, NamedTextColor.DARK_RED))
                 .append(ChatUtils.error(" removed.")));
@@ -341,5 +347,15 @@ public class Navigation extends AbstractCommand {
     private void errorSubcategory(NetworkUser u) {
         u.sendMessage(ERROR_SUBCATEGORY_ADD);
         u.sendMessage(ERROR_SUBCATEGORY_REMOVE);
+    }
+
+    @Override
+    public String getLabel() {
+        return "navigation";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Adds commands to do with navigation.";
     }
 }
