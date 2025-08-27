@@ -4,15 +4,13 @@ import net.bteuk.network.Network;
 import net.bteuk.network.commands.navigation.Back;
 import net.bteuk.network.eventing.events.EventManager;
 import net.bteuk.network.eventing.listeners.regions.RegionTagListener;
-import net.bteuk.network.gui.Gui;
 import net.bteuk.network.gui.InviteMembers;
+import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.lib.utils.ChatUtils;
+import net.bteuk.network.regions.Region;
 import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.utils.SwitchServer;
 import net.bteuk.network.utils.Utils;
-import net.bteuk.network.utils.enums.RegionStatus;
-import net.bteuk.network.utils.enums.RegionType;
-import net.bteuk.network.utils.regions.Region;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -22,7 +20,7 @@ import org.bukkit.inventory.ItemStack;
 
 import static net.bteuk.network.utils.Constants.SERVER_NAME;
 
-public class RegionInfo extends Gui {
+public class RegionInfo extends NetworkRefreshableGui {
 
     private final Region region;
     private final String uuid;
@@ -70,7 +68,7 @@ public class RegionInfo extends Gui {
         // Leave Region.
         setItem(8, Utils.createItem(Material.RED_CONCRETE, 1,
                         Utils.title("Leave Region")),
-                u -> {
+                (NetworkUser u) -> {
 
                     // Send leave event to server events.
                     EventManager.createEvent(u.player.getUniqueId().toString(), "network", globalSQL.getString(
@@ -92,7 +90,7 @@ public class RegionInfo extends Gui {
                         Utils.line("You will be prompted to type a name in chat."),
                         Utils.line("It can have a maximum of 64 characters.")),
 
-                u -> {
+                (NetworkUser u) -> {
 
                     // Create chat listener and send message telling the player.
                     // Listener will automatically close after 1 minute or if a message is sent.
@@ -130,7 +128,7 @@ public class RegionInfo extends Gui {
                         Utils.line("current set location."),
                         Utils.line("You can edit the location by clicking on the"),
                         Utils.line("'Set Location' button while standing in the region.")),
-                u -> {
+                (NetworkUser u) -> {
 
                     // If the player is on the earth server get the coordinate.
                     if (SERVER_NAME.equals(globalSQL.getString("SELECT name FROM server_data WHERE type='EARTH';"))) {
@@ -164,7 +162,7 @@ public class RegionInfo extends Gui {
                         Utils.line("to you current location."),
                         Utils.line("You must be standing in the region"),
                         Utils.line("for this to work.")),
-                u -> {
+                (NetworkUser u) -> {
 
                     u.player.closeInventory();
 
@@ -197,7 +195,7 @@ public class RegionInfo extends Gui {
                 setItem(0, Utils.createItem(Material.IRON_TRAPDOOR, 1,
                                 Utils.title("Make Private"),
                                 Utils.line("New members will need your approval to join the region.")),
-                        u -> {
+                        (NetworkUser u) -> {
 
                             // Set the region as private and refresh gui.
                             region.setDefault();
@@ -211,7 +209,7 @@ public class RegionInfo extends Gui {
                 setItem(0, Utils.createItem(Material.OAK_TRAPDOOR, 1,
                                 Utils.title("Make Public"),
                                 Utils.line("New members can join the region without approval.")),
-                        u -> {
+                        (NetworkUser u) -> {
 
                             // Set the region as public and refresh gui.
                             region.setPublic();
@@ -240,26 +238,26 @@ public class RegionInfo extends Gui {
                             Utils.title("Invite Members"),
                             Utils.line("Invite a new member to your region."),
                             Utils.line("You can only invite online users.")),
-                    u -> {
+                    (NetworkUser u) -> {
 
                         // Open the invite member menu.
                         this.delete();
 
                         u.mainGui = new InviteMembers(region, RegionType.REGION);
-                        u.mainGui.open(u);
+                        u.mainGui.open(u.player);
                     });
 
             // Manage members.
             setItem(18, Utils.createItem(Material.PLAYER_HEAD, 1,
                             Utils.title("Region Members"),
                             Utils.line("Manage the members in your region.")),
-                    u -> {
+                    (NetworkUser u) -> {
 
                         // Open the invite member menu.
                         this.delete();
 
                         u.mainGui = new RegionMembers(region);
-                        u.mainGui.open(u);
+                        u.mainGui.open(u.player);
                     });
         }
 
@@ -267,14 +265,14 @@ public class RegionInfo extends Gui {
         setItem(26, Utils.createItem(Material.SPRUCE_DOOR, 1,
                         Utils.title("Return"),
                         Utils.line("Open the region menu.")),
-                u -> {
+                (NetworkUser u) -> {
 
                     // Delete this gui.
                     this.delete();
 
                     // Switch to plot info.
                     u.mainGui = new RegionMenu(u);
-                    u.mainGui.open(u);
+                    u.mainGui.open(u.player);
                 });
     }
 

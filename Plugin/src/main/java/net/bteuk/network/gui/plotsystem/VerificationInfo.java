@@ -2,7 +2,6 @@ package net.bteuk.network.gui.plotsystem;
 
 import net.bteuk.network.Network;
 import net.bteuk.network.eventing.events.EventManager;
-import net.bteuk.network.gui.Gui;
 import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.sql.PlotSQL;
 import net.bteuk.network.utils.SwitchServer;
@@ -44,10 +43,10 @@ public class VerificationInfo extends Gui {
         setItem(26, Utils.createItem(Material.SPRUCE_DOOR, 1,
                         Utils.title("Return"),
                         Utils.line("Open the plot menu.")),
-                u -> {
+                (NetworkUser u) -> {
                     this.delete();
                     u.mainGui = new PlotMenu(u);
-                    u.mainGui.open(u);
+                    u.mainGui.open(u.player);
                 }
         );
 
@@ -110,7 +109,7 @@ public class VerificationInfo extends Gui {
                         Utils.line("Click to show initial feedback"),
                         Utils.line("for categories that were"),
                         Utils.line("altered by the verifier.")),
-                u -> {
+                (NetworkUser u) -> {
                     // Open the feedback book.
                     u.player.openBook(ReviewFeedback.createVerificationFeedbackBook(verificationId, true));
                 });
@@ -121,7 +120,7 @@ public class VerificationInfo extends Gui {
                         Utils.line("Click to show altered feedback"),
                         Utils.line("for categories that were"),
                         Utils.line("altered by the verifier.")),
-                u -> {
+                (NetworkUser u) -> {
                     // Open the feedback book.
                     u.player.openBook(ReviewFeedback.createVerificationFeedbackBook(verificationId, false));
                 });
@@ -130,7 +129,7 @@ public class VerificationInfo extends Gui {
         setItem(22, Utils.createItem(Material.ENDER_PEARL, 1,
                         Utils.title("Teleport to Plot"),
                         Utils.line("Click to teleport to this plot.")),
-                u -> {
+                (NetworkUser u) -> {
                     u.player.closeInventory();
 
                     // Get the server of the plot.
@@ -157,14 +156,14 @@ public class VerificationInfo extends Gui {
         setItem(26, Utils.createItem(Material.SPRUCE_DOOR, 1,
                         Utils.title("Return"),
                         Utils.line("Open the verified review menu.")),
-                u -> {
+                (NetworkUser u) -> {
                     // Delete this gui.
                     this.delete();
                     u.mainGui = null;
 
                     // Switch to verified review menu.
                     u.mainGui = new VerificationMenu(u);
-                    u.mainGui.open(u);
+                    u.mainGui.open(u.player);
                 });
     }
 

@@ -3,7 +3,6 @@ package net.bteuk.network.gui.progressmap;
 import me.bteuk.progressmapper.guis.LocalFeaturesMenu;
 import net.bteuk.network.Network;
 import net.bteuk.network.gui.BuildGui;
-import net.bteuk.network.gui.Gui;
 import org.bukkit.inventory.Inventory;
 
 public class LocalFeatureListGUI extends Gui {
@@ -28,22 +27,22 @@ public class LocalFeatureListGUI extends Gui {
         // Creates all of the actions
         for (i = 0; i < iFeatures; i++) {
             final int iFinalSlot = i;
-            setAction(i, u -> {
+            setAction(i, (NetworkUser u) -> {
                 // When a feature is clicked on it needs to open a FeaturePageGUI
                 u.mainGui = new FeaturePageGUI(features.getFeatureMenu(iFinalSlot), plugin, this);
-                u.mainGui.open(u);
+                u.mainGui.open(u.player);
             });
         }
 
         // Back button
-        setAction(getInventory().getSize() - 1, u -> {
+        setAction(getInventory().getSize() - 1, (NetworkUser u) -> {
             // Delete this gui.
             this.delete();
             u.mainGui = null;
 
             // Switch to plot info.
             u.mainGui = new BuildGui(u);
-            u.mainGui.open(u);
+            u.mainGui.open(u.player);
         });
     }
 

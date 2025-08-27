@@ -1,6 +1,6 @@
 package net.bteuk.network.gui;
 
-public interface GuiInterface {
+public interface RefreshableGui {
 
     /**
      * Refresh the gui.

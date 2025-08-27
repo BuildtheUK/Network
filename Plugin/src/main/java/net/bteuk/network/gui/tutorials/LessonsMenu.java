@@ -1,7 +1,6 @@
 package net.bteuk.network.gui.tutorials;
 
 import net.bteuk.network.Network;
-import net.bteuk.network.gui.Gui;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
 import org.bukkit.Material;

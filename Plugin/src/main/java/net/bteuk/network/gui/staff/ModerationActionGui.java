@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.Setter;
 import net.bteuk.network.Network;
 import net.bteuk.network.eventing.listeners.staff.ModerationReasonListener;
-import net.bteuk.network.gui.Gui;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.Time;
 import net.bteuk.network.utils.Utils;
@@ -58,7 +57,7 @@ public class ModerationActionGui extends Gui {
             case KICK ->
 
                 // Kick
-                    setItem(0, Utils.createItem(Material.REDSTONE_BLOCK, 1, Utils.title("Kick " + name), Utils.line("Kick the player with the specified reason.")), u -> {
+                    setItem(0, Utils.createItem(Material.REDSTONE_BLOCK, 1, Utils.title("Kick " + name), Utils.line("Kick the player with the specified reason.")), (NetworkUser u) -> {
 
                         // If a reason has been set, kick the user, if they're still online.
                         if (Network.getInstance().isOnlineOnNetwork(uuid)) {
@@ -94,7 +93,7 @@ public class ModerationActionGui extends Gui {
 
                 // Time selection buttons.
                 setItem(3, Utils.createItem((hours == 0) ? Material.BARRIER : Material.CLOCK, (hours == 0) ? 1 : hours, Utils.title("Hours"),
-                        Utils.line("Click to increase the hours by 1.")), u -> {
+                        Utils.line("Click to increase the hours by 1.")), (NetworkUser u) -> {
 
                     hours = (hours == 24) ? 0 : hours + 1;
                     this.refresh();
@@ -102,7 +101,7 @@ public class ModerationActionGui extends Gui {
                 });
 
                 setItem(4, Utils.createItem((days == 0) ? Material.BARRIER : Material.CLOCK, (days == 0) ? 1 : days, Utils.title("Days"),
-                        Utils.line("Click to increase the hours by 1.")), u -> {
+                        Utils.line("Click to increase the hours by 1.")), (NetworkUser u) -> {
 
                     days = (days == 30) ? 0 : days + 1;
                     this.refresh();
@@ -110,7 +109,7 @@ public class ModerationActionGui extends Gui {
                 });
 
                 setItem(5, Utils.createItem((months == 0) ? Material.BARRIER : Material.CLOCK, (months == 0) ? 1 : months, Utils.title("Months"),
-                        Utils.line("Click to increase the hours by 1.")), u -> {
+                        Utils.line("Click to increase the hours by 1.")), (NetworkUser u) -> {
 
                     months = (months == 12) ? 0 : months + 1;
                     this.refresh();
@@ -118,7 +117,7 @@ public class ModerationActionGui extends Gui {
                 });
 
                 setItem(6, Utils.createItem((years == 0) ? Material.BARRIER : Material.CLOCK, (years == 0) ? 1 : years, Utils.title("Years"),
-                        Utils.line("Click to increase the hours by 1.")), u -> {
+                        Utils.line("Click to increase the hours by 1.")), (NetworkUser u) -> {
 
                     years = (years == 5) ? 0 : years + 1;
                     this.refresh();
@@ -127,7 +126,7 @@ public class ModerationActionGui extends Gui {
 
                 // Ban/Mute
                 setItem(0, Utils.createItem(Material.REDSTONE_BLOCK, 1, Utils.title(type.label + " " + name),
-                        Utils.line(type.label + " the player with the specified reason and time.")), u -> {
+                        Utils.line(type.label + " the player with the specified reason and time.")), (NetworkUser u) -> {
 
                     // Check if the reason is set.
                     if (reason != null) {
@@ -189,7 +188,7 @@ public class ModerationActionGui extends Gui {
             // Return to request menu.
             this.delete();
             u.staffGui = new SelectUser(type);
-            u.staffGui.open(u);
+            u.staffGui.open(u.player);
         });
     }
 

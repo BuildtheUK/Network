@@ -2,7 +2,6 @@ package net.bteuk.network.gui.plotsystem;
 
 import net.bteuk.network.Network;
 import net.bteuk.network.eventing.events.EventManager;
-import net.bteuk.network.gui.Gui;
 import net.bteuk.network.sql.PlotSQL;
 import net.bteuk.network.utils.Utils;
 import net.kyori.adventure.text.Component;
@@ -32,7 +31,7 @@ public class CloseConfirm extends Gui {
         setItem(13, Utils.createItem(Material.LIME_CONCRETE, 1,
                         Utils.title("Save and Close Zone " + id),
                         Utils.line("Saves the zone and closes it.")),
-                u -> {
+                (NetworkUser u) -> {
 
                     // Delete this inventory.
                     this.delete();
@@ -64,7 +63,7 @@ public class CloseConfirm extends Gui {
 
                     // Switch back to zone info.
                     u.mainGui = new ZoneInfo(u, id, u.player.getUniqueId().toString());
-                    u.mainGui.open(u);
+                    u.mainGui.open(u.player);
                 });
     }
 

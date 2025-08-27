@@ -66,7 +66,7 @@ public class ModerationReasonListener implements Listener {
                 // This also cancels the task and unregisters the listener.
                 gui.refresh();
 
-                Bukkit.getScheduler().runTask(Network.getInstance(), () -> gui.open(u));
+                Bukkit.getScheduler().runTask(Network.getInstance(), () -> gui.open(u.player));
             }
         }
     }

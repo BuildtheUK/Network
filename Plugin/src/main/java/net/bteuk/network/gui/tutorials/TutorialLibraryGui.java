@@ -1,7 +1,6 @@
 package net.bteuk.network.gui.tutorials;
 
 import net.bteuk.network.Network;
-import net.bteuk.network.gui.Gui;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
 import net.kyori.adventure.text.Component;
@@ -136,7 +135,7 @@ public class TutorialLibraryGui extends Gui {
             public void click(NetworkUser u) {
                 delete();
                 u.mainGui = new TutorialsGui(user);
-                u.mainGui.open(u);
+                u.mainGui.open(u.player);
             }
         });
 

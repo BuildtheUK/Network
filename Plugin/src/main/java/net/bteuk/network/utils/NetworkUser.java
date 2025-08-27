@@ -2,12 +2,13 @@ package net.bteuk.network.utils;
 
 import lombok.Getter;
 import lombok.Setter;
+import net.bteuk.minecraft.gui.Gui;
 import net.bteuk.network.Network;
 import net.bteuk.network.building_companion.BuildingCompanion;
 import net.bteuk.network.commands.Nightvision;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.Time;
-import net.bteuk.network.gui.Gui;
+import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.lib.dto.FocusEvent;
 import net.bteuk.network.lib.dto.UserConnectReply;
 import net.bteuk.network.lib.dto.UserDisconnect;
@@ -34,7 +35,7 @@ public class NetworkUser {
 
     private final Constants constants;
     // Main gui, includes everything that is part of the navigator.
-    public Gui mainGui;
+    public NetworkRefreshableGui mainGui;
 
     // Lights out, a gui game.
     public LightsOut lightsOut;

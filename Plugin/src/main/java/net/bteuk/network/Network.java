@@ -2,6 +2,8 @@ package net.bteuk.network;
 
 import lombok.Getter;
 import lombok.extern.java.Log;
+import net.bteuk.minecraft.gui.GuiListener;
+import net.bteuk.minecraft.gui.GuiManager;
 import net.bteuk.network.api.CoordinateAPI;
 import net.bteuk.network.api.NetworkAPI;
 import net.bteuk.network.api.PlotAPI;
@@ -67,9 +69,11 @@ import net.bteuk.network.core.ServerType;
 import net.bteuk.network.core.Time;
 import net.bteuk.network.core.sql.DatabaseInit;
 import net.bteuk.network.eventing.events.EventManager;
+import net.bteuk.network.eventing.events.InviteEvent;
+import net.bteuk.network.eventing.events.KickEvent;
+import net.bteuk.network.eventing.events.TeleportEvent;
 import net.bteuk.network.eventing.listeners.CommandPreProcess;
 import net.bteuk.network.eventing.listeners.Connect;
-import net.bteuk.network.eventing.listeners.GuiListener;
 import net.bteuk.network.eventing.listeners.NetworkMoveListener;
 import net.bteuk.network.eventing.listeners.NetworkTeleportListener;
 import net.bteuk.network.eventing.listeners.PlayerInteract;
@@ -83,6 +87,7 @@ import net.bteuk.network.lib.dto.ServerStartup;
 import net.bteuk.network.lobby.Lobby;
 import net.bteuk.network.lobby.LobbyCommand;
 import net.bteuk.network.logging.BukkitForwardingHandler;
+import net.bteuk.network.regions.RegionEvent;
 import net.bteuk.network.regions.RegionManager;
 import net.bteuk.network.regions.sql.RegionSQL;
 import net.bteuk.network.services.NetworkPromotionService;
@@ -176,7 +181,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         base.setLevel(Level.ALL);
         base.setUseParentHandlers(false);
 
-        // Make sure we don’t accumulate multiple handlers across reloads
+        // Make sure we don't accumulate multiple handlers across reloads
         for (Handler h : base.getHandlers()) {
             base.removeHandler(h);
         }
@@ -289,10 +294,12 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         networkUsers = new ArrayList<>();
         onlineUsers = new HashSet<>();
 
+        GuiManager networkGuiManager = new GuiManager();
+
         CommandManager commandManager = new CommandManager(this);
 
         CoordinateAPI coordinateAPI = new CoordinateAPIImpl(globalSQL);
-        EventManager eventManager = new EventManager(globalSQL);
+        EventManager eventManager = new EventManager(globalSQL, constants);
         WorldGuardAPI worldGuardAPI = new WorldGuard();
 
         Roles roles = new Roles(this, plotSQL);
@@ -328,7 +335,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         // Register events.
         new PreJoinServer(this, constants, moderation);
 
-        new GuiListener(this);
+        new GuiListener(networkGuiManager).register(this);
 
         // Create the region manager if enabled.
         if (constants.regionsEnabled()) {
@@ -383,6 +390,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         }
 
         Back back = new Back(this, constants, eventManager, serverAPI);
+        eventManager.registerBack(back);
         commandManager.registerCommand(back);
         commandManager.registerCommand(new Teleport(this, back, eventManager, serverAPI, constants));
         commandManager.registerCommand(new TpToggle(this));
@@ -406,10 +414,6 @@ public final class Network extends JavaPlugin implements NetworkAPI {
             commandManager.registerCommand(new Homes(this));
         }
 
-        Navigator navigator = new Navigator(this, constants, lobby, back, eventManager, serverAPI);
-        commandManager.registerCommand(navigator);
-        new PlayerInteract(this, navigator);
-
         if (constants.plotSystemEnabled()) {
             commandManager.registerCommand(new Plot(this, eventManager, plotSQL));
             commandManager.registerCommand(new Zone(plotSQL, eventManager));
@@ -426,7 +430,8 @@ public final class Network extends JavaPlugin implements NetworkAPI {
             commandManager.registerCommand(new Focus(this, constants));
         }
 
-        commandManager.registerCommand(new Nightvision(this));
+        Nightvision nightvision = new Nightvision(this);
+        commandManager.registerCommand(nightvision);
         commandManager.registerCommand(new Speed());
         commandManager.registerCommand(new Help(constants, roles));
         commandManager.registerCommand(new Rules(lobby));
@@ -467,6 +472,10 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
         commandManager.registerCommand(new Me());
 
+        Navigator navigator = new Navigator(this, networkGuiManager, constants, lobby, back, eventManager, serverAPI, nightvision);
+        commandManager.registerCommand(navigator);
+        new PlayerInteract(this, navigator);
+
         // Register command pre-process to make sure network versions of commands run and not that of another plugin.
         new CommandPreProcess(this, constants, afk, connect, serverAPI);
 
@@ -494,6 +503,12 @@ public final class Network extends JavaPlugin implements NetworkAPI {
                 // Only load the PromotionService if the class exists.
             }
         }
+
+        // Register all the events.
+        eventManager.registerEvent("invite", new InviteEvent(globalSQL, plotAPI, regionManager));
+        eventManager.registerEvent("teleport", new TeleportEvent(globalSQL, plotAPI, regionManager, constants, serverAPI, eventManager, tpll, lobby));
+        eventManager.registerEvent("region", new RegionEvent(regionManager, chat, globalSQL, coordinateAPI));
+        eventManager.registerEvent("kick", new KickEvent());
 
         // Let the Proxy know that the server is enabled.
         chat.sendSocketMessage(new ServerStartup(constants.serverName()));
@@ -611,8 +626,6 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
     @Override
     public void registerShutdownHook(ShutdownHook hook) {
-        if (shutdownHooks != null) {
-            shutdownHooks.add(hook);
-        }
+        shutdownHooks.add(hook);
     }
 }

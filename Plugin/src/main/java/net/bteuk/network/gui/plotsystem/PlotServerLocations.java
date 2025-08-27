@@ -3,7 +3,7 @@ package net.bteuk.network.gui.plotsystem;
 import net.bteuk.network.Network;
 import net.bteuk.network.eventing.events.EventManager;
 import net.bteuk.network.gui.BuildGui;
-import net.bteuk.network.gui.Gui;
+import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.sql.PlotSQL;
 import net.bteuk.network.utils.NetworkUser;
@@ -19,7 +19,7 @@ import java.util.ArrayList;
 
 import static net.bteuk.network.utils.Constants.SERVER_NAME;
 
-public class PlotServerLocations extends Gui {
+public class PlotServerLocations extends NetworkRefreshableGui {
 
     private final PlotSQL plotSQL;
     private int plotDifficulty;
@@ -306,7 +306,7 @@ public class PlotServerLocations extends Gui {
 
                     // Create build menu.
                     u.mainGui = new BuildGui(u);
-                    u.mainGui.open(u);
+                    u.mainGui.open(u.player);
                 });
     }
 

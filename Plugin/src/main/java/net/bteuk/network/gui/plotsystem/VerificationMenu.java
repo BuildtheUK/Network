@@ -1,7 +1,6 @@
 package net.bteuk.network.gui.plotsystem;
 
 import net.bteuk.network.Network;
-import net.bteuk.network.gui.Gui;
 import net.bteuk.network.sql.PlotSQL;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
@@ -71,14 +70,14 @@ public class VerificationMenu extends Gui {
             setItem(slot, Utils.createItem(item, 1,
                             Utils.title("Verification " + verificationId),
                             description),
-                    u -> {
+                    (NetworkUser u) -> {
                         // Delete this gui.
                         this.delete();
                         u.mainGui = null;
 
                         // Switch to plot info.
                         u.mainGui = new VerificationInfo(verificationId);
-                        u.mainGui.open(u);
+                        u.mainGui.open(u.player);
                     });
 
             // Increase slot accordingly.
@@ -94,14 +93,14 @@ public class VerificationMenu extends Gui {
             setItem(44, Utils.createItem(Material.SPRUCE_DOOR, 1,
                             Utils.title("Return"),
                             Utils.line("Open the plot menu.")),
-                    u -> {
+                    (NetworkUser u) -> {
                         // Delete this gui.
                         this.delete();
                         u.mainGui = null;
 
                         // Switch to plot info.
                         u.mainGui = new PlotMenu(u);
-                        u.mainGui.open(u);
+                        u.mainGui.open(u.player);
                     });
         }
     }

@@ -1,7 +1,6 @@
 package net.bteuk.network.gui.progressmap;
 
 import me.bteuk.progressmapper.guis.ColourPicker;
-import net.bteuk.network.gui.Gui;
 import org.bukkit.inventory.Inventory;
 
 public class ColourPickerGUI extends Gui {
@@ -24,55 +23,55 @@ public class ColourPickerGUI extends Gui {
         //----------------------------------------------------
 
         // Default 1
-        setAction(0, u -> {
+        setAction(0, (NetworkUser u) -> {
             colourPicker.updateColour(ColourPicker.Dark_Red);
             refresh();
         });
 
         // Default 2
-        setAction(1, u -> {
+        setAction(1, (NetworkUser u) -> {
             colourPicker.updateColour(ColourPicker.Red);
             refresh();
         });
 
         // Default 3
-        setAction(2, u -> {
+        setAction(2, (NetworkUser u) -> {
             colourPicker.updateColour(ColourPicker.Dark_Orange);
             refresh();
         });
 
         // Default 4
-        setAction(3, u -> {
+        setAction(3, (NetworkUser u) -> {
             colourPicker.updateColour(ColourPicker.Orange);
             refresh();
         });
 
         // Default 5
-        setAction(4, u -> {
+        setAction(4, (NetworkUser u) -> {
             colourPicker.updateColour(ColourPicker.Light_Orange);
             refresh();
         });
 
         // Default 6
-        setAction(5, u -> {
+        setAction(5, (NetworkUser u) -> {
             colourPicker.updateColour(ColourPicker.Yellow);
             refresh();
         });
 
         // Default 7
-        setAction(6, u -> {
+        setAction(6, (NetworkUser u) -> {
             colourPicker.updateColour(ColourPicker.Bright_Yellow);
             refresh();
         });
 
         // Default 8
-        setAction(7, u -> {
+        setAction(7, (NetworkUser u) -> {
             colourPicker.updateColour(ColourPicker.Sick_Green);
             refresh();
         });
 
         // Default 9
-        setAction(8, u -> {
+        setAction(8, (NetworkUser u) -> {
             colourPicker.updateColour(ColourPicker.Complete_Green);
             refresh();
         });
@@ -82,25 +81,25 @@ public class ColourPickerGUI extends Gui {
         //-----------------------------------------------------
 
         // Lower red 16
-        setAction(11, u -> {
+        setAction(11, (NetworkUser u) -> {
             colourPicker.lowerRed16();
             refresh();
         });
 
         // Lower red 1
-        setAction(12, u -> {
+        setAction(12, (NetworkUser u) -> {
             colourPicker.lowerRed1();
             refresh();
         });
 
         // Raise red 1
-        setAction(14, u -> {
+        setAction(14, (NetworkUser u) -> {
             colourPicker.raiseRed1();
             refresh();
         });
 
         // Raise red 16
-        setAction(15, u -> {
+        setAction(15, (NetworkUser u) -> {
             colourPicker.raiseRed16();
             refresh();
         });
@@ -110,25 +109,25 @@ public class ColourPickerGUI extends Gui {
         //-----------------------------------------------------
 
         // Lower green 16
-        setAction(20, u -> {
+        setAction(20, (NetworkUser u) -> {
             colourPicker.lowerGreen16();
             refresh();
         });
 
         // Lower green 1
-        setAction(21, u -> {
+        setAction(21, (NetworkUser u) -> {
             colourPicker.lowerGreen1();
             refresh();
         });
 
         // Raise green 1
-        setAction(23, u -> {
+        setAction(23, (NetworkUser u) -> {
             colourPicker.raiseGreen1();
             refresh();
         });
 
         // Raise green 16
-        setAction(24, u -> {
+        setAction(24, (NetworkUser u) -> {
             colourPicker.raiseGreen16();
             refresh();
         });
@@ -138,25 +137,25 @@ public class ColourPickerGUI extends Gui {
         //----------------------------------------------------
 
         // Lower blue 16
-        setAction(29, u -> {
+        setAction(29, (NetworkUser u) -> {
             colourPicker.lowerBlue16();
             refresh();
         });
 
         // Lower blue 1
-        setAction(30, u -> {
+        setAction(30, (NetworkUser u) -> {
             colourPicker.lowerBlue1();
             refresh();
         });
 
         // Raise blue 1
-        setAction(32, u -> {
+        setAction(32, (NetworkUser u) -> {
             colourPicker.raiseBlue1();
             refresh();
         });
 
         // Raise blue 16
-        setAction(33, u -> {
+        setAction(33, (NetworkUser u) -> {
             colourPicker.raiseBlue16();
             refresh();
         });
@@ -166,7 +165,7 @@ public class ColourPickerGUI extends Gui {
         //-----------------------------------------------------
 
         // Return/confirm
-        setAction(40, u -> {
+        setAction(40, (NetworkUser u) -> {
             // Saves the selected colour to the feature
             colourPicker.confirmColour();
 
@@ -177,7 +176,7 @@ public class ColourPickerGUI extends Gui {
             // Switch to feature list menu.
             parentFeatureMenu.refresh();
             u.mainGui = parentFeatureMenu;
-            u.mainGui.open(u);
+            u.mainGui.open(u.player);
         });
     }
 

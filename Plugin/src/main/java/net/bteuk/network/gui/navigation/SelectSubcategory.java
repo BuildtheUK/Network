@@ -1,7 +1,6 @@
 package net.bteuk.network.gui.navigation;
 
 import net.bteuk.network.Network;
-import net.bteuk.network.gui.Gui;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
 import net.bteuk.network.utils.enums.AddLocationType;
@@ -14,14 +13,15 @@ import java.util.List;
 
 public class SelectSubcategory extends Gui {
 
+    private final Network instance;
     private final AddLocation addLocation;
 
     private int page = 1;
 
-    public SelectSubcategory(AddLocation addLocation) {
-
+    public SelectSubcategory(Network instance, AddLocation addLocation) {
         super(45, Component.text("Select Subcategory", NamedTextColor.AQUA, TextDecoration.BOLD));
 
+        this.instance = instance;
         this.addLocation = addLocation;
         createGui();
     }
@@ -29,9 +29,9 @@ public class SelectSubcategory extends Gui {
     private void createGui() {
 
         // Iterate through subcatories, starting with 'None'.
-        List<String> subcategories = Network.getInstance().getGlobalSQL().getStringList("SELECT name FROM " +
+        List<String> subcategories = instance.getGlobalSQL().getStringList("SELECT name FROM " +
                 "location_subcategory WHERE category='" + addLocation.getCategory() + "' ORDER BY name ASC;");
-        subcategories.add(0, "None");
+        subcategories.addFirst("None");
 
         // If page > 1 set number of iterations that must be skipped.
         int skip = (page - 1) * 21;
@@ -66,7 +66,7 @@ public class SelectSubcategory extends Gui {
                             Utils.title(subcategory),
                             Utils.line("Click to select this subcategory.")),
 
-                    u -> {
+                    (NetworkUser u) -> {
                         // Set the county.
                         addLocation.setSubcategory(subcategory);
                         returnToAddLocation(u);
@@ -124,10 +124,10 @@ public class SelectSubcategory extends Gui {
         // Return to addlocation.
         if (addLocation.getType() == AddLocationType.ADD) {
             u.mainGui.refresh();
-            u.mainGui.open(u);
+            u.mainGui.open(u.player);
         } else {
             u.staffGui.refresh();
-            u.staffGui.open(u);
+            u.staffGui.open(u.player);
         }
     }
 }

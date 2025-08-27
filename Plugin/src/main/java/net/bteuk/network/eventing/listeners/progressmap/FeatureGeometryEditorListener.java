@@ -2,7 +2,6 @@ package net.bteuk.network.eventing.listeners.progressmap;
 
 import me.bteuk.progressmapper.GeometryEditor;
 import net.bteuk.network.Network;
-import net.bteuk.network.gui.Gui;
 import net.bteuk.network.gui.progressmap.FeaturePageGUI;
 import net.bteuk.network.utils.NetworkUser;
 import net.kyori.adventure.text.Component;

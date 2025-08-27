@@ -1,19 +1,11 @@
 package net.bteuk.network.eventing.events;
 
 import lombok.extern.java.Log;
-import net.bteuk.network.api.ChatAPI;
-import net.bteuk.network.api.CoordinateAPI;
 import net.bteuk.network.api.EventAPI;
-import net.bteuk.network.api.PlotAPI;
-import net.bteuk.network.api.ServerAPI;
 import net.bteuk.network.api.entity.NetworkLocation;
 import net.bteuk.network.commands.navigation.Back;
-import net.bteuk.network.commands.navigation.Tpll;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.Event;
-import net.bteuk.network.lobby.Lobby;
-import net.bteuk.network.regions.RegionEvent;
-import net.bteuk.network.regions.RegionManager;
 import net.bteuk.network.sql.GlobalSQL;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
@@ -26,18 +18,23 @@ public class EventManager implements EventAPI, Event {
     private final HashMap<String, Event> events = new HashMap<>();
     private final GlobalSQL globalSQL;
     private final Constants constants;
-    private final Back back;
 
-    public EventManager(GlobalSQL globalSQL, Constants constants, Back back, PlotAPI plotAPI, RegionManager regionManager, ServerAPI serverAPI, Tpll tpll, Lobby lobby, ChatAPI chat, CoordinateAPI coordinateAPI) {
+    private Back back;
+
+    public EventManager(GlobalSQL globalSQL, Constants constants) {
         this.globalSQL = globalSQL;
         this.constants = constants;
-        this.back = back;
+    }
 
-        // Register all the events.
-        events.put("invite", new InviteEvent(globalSQL, plotAPI, regionManager));
-        events.put("teleport", new TeleportEvent(globalSQL, plotAPI, regionManager, constants, serverAPI, this, tpll, lobby));
-        events.put("region", new RegionEvent(regionManager, chat, globalSQL, coordinateAPI));
-        events.put("kick", new KickEvent());
+    public void registerBack(Back back) {
+        if (this.back == null) {
+            this.back = back;
+            log.info("Back function registered in EventManager.");
+        }
+    }
+
+    public void registerEvent(String name, Event event) {
+        events.put(name, event);
     }
 
     public void createJoinEvent(String uuid, String type, String event) {

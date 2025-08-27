@@ -2,7 +2,6 @@ package net.bteuk.network.gui.regions;
 
 import net.bteuk.network.Network;
 import net.bteuk.network.gui.BuildGui;
-import net.bteuk.network.gui.Gui;
 import net.bteuk.network.sql.RegionSQL;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
@@ -131,14 +130,14 @@ public class RegionMenu extends Gui {
             RegionStatus status = region.status();
 
             setItem(slot, getGuiItem(regionMember, status),
-                    u -> {
+                    (NetworkUser u) -> {
 
                         // Delete this gui.
                         this.delete();
 
                         // Switch to region info.
                         u.mainGui = new RegionInfo(region, u.player.getUniqueId().toString());
-                        u.mainGui.open(u);
+                        u.mainGui.open(u.player);
                     });
 
             // Increase slot accordingly.
@@ -160,12 +159,12 @@ public class RegionMenu extends Gui {
                             Utils.line("View all region join requests for"),
                             Utils.line("regions that you are the owner of.")),
 
-                    u -> {
+                    (NetworkUser u) -> {
 
                         // Delete this gui and switch to review region requests.
                         this.delete();
                         u.mainGui = new ReviewRegionRequests(false, u.player.getUniqueId().toString());
-                        u.mainGui.open(u);
+                        u.mainGui.open(u.player);
                     });
         }
 
@@ -178,12 +177,12 @@ public class RegionMenu extends Gui {
                             Utils.line("that you have made that have"),
                             Utils.line("not yet been accepted.")),
 
-                    u -> {
+                    (NetworkUser u) -> {
 
                         // Delete this gui and switch to region request menu.
                         this.delete();
                         u.mainGui = new RegionRequestMenu(u);
-                        u.mainGui.open(u);
+                        u.mainGui.open(u.player);
                     });
         }
 
@@ -191,14 +190,14 @@ public class RegionMenu extends Gui {
         setItem(44, Utils.createItem(Material.SPRUCE_DOOR, 1,
                         Utils.title("Return"),
                         Utils.line("Open the building menu.")),
-                u -> {
+                (NetworkUser u) -> {
 
                     // Delete this gui.
                     this.delete();
 
                     // Switch to plot info.
                     u.mainGui = new BuildGui(u);
-                    u.mainGui.open(u);
+                    u.mainGui.open(u.player);
                 });
     }
 

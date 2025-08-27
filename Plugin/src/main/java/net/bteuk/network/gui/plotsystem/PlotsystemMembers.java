@@ -2,7 +2,6 @@ package net.bteuk.network.gui.plotsystem;
 
 import net.bteuk.network.Network;
 import net.bteuk.network.eventing.events.EventManager;
-import net.bteuk.network.gui.Gui;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.sql.PlotSQL;
@@ -138,7 +137,7 @@ public class PlotsystemMembers extends Gui {
 
                                     // Switch back to plot info.
                                     u.mainGui = new PlotInfo(u, id);
-                                    u.mainGui.open(u);
+                                    u.mainGui.open(u.player);
                                 } else {
                                     u.player.sendMessage(ChatUtils.error("This player is not a member of your Plot."));
                                 }
@@ -159,7 +158,7 @@ public class PlotsystemMembers extends Gui {
 
                                     // Switch back to plot info.
                                     u.mainGui = new ZoneInfo(u, id, u.player.getUniqueId().toString());
-                                    u.mainGui.open(u);
+                                    u.mainGui.open(u.player);
                                 } else {
                                     u.player.sendMessage(ChatUtils.error("This player is not a member of your Zone."));
                                 }
@@ -181,7 +180,7 @@ public class PlotsystemMembers extends Gui {
         setItem(44, Utils.createItem(Material.SPRUCE_DOOR, 1,
                         Utils.title("Return"),
                         Utils.line("Open the " + regionType.label + " info for this " + regionType.label + ".")),
-                u -> {
+                (NetworkUser u) -> {
 
                     // Delete this gui.
                     this.delete();
@@ -196,7 +195,7 @@ public class PlotsystemMembers extends Gui {
                         u.mainGui = new ZoneInfo(u, id, u.player.getUniqueId().toString());
                     }
 
-                    u.mainGui.open(u);
+                    u.mainGui.open(u.player);
                 });
     }
 

@@ -44,13 +44,13 @@ public class LocationNameListener implements Listener {
                     if (gui.getType() == AddLocationType.ADD) {
                         if (Objects.requireNonNull(u).mainGui != null) {
                             if (u.mainGui instanceof AddLocation) {
-                                u.mainGui.open(u);
+                                u.mainGui.open(u.player);
                             }
                         }
                     } else {
                         if (Objects.requireNonNull(u).staffGui != null) {
                             if (u.staffGui instanceof AddLocation) {
-                                u.staffGui.open(u);
+                                u.staffGui.open(u.player);
                             }
                         }
                     }
@@ -91,7 +91,7 @@ public class LocationNameListener implements Listener {
                         if (u.mainGui instanceof AddLocation) {
                             Bukkit.getScheduler().runTask(Network.getInstance(), () -> {
                                 u.mainGui.refresh();
-                                u.mainGui.open(u);
+                                u.mainGui.open(u.player);
                             });
                         }
                     }
@@ -100,7 +100,7 @@ public class LocationNameListener implements Listener {
                         if (u.staffGui instanceof AddLocation) {
                             Bukkit.getScheduler().runTask(Network.getInstance(), () -> {
                                 u.staffGui.refresh();
-                                u.staffGui.open(u);
+                                u.staffGui.open(u.player);
                             });
                         }
                     }

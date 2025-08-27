@@ -2,6 +2,7 @@ package net.bteuk.network.commands;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import lombok.extern.java.Log;
+import net.bteuk.minecraft.gui.GuiManager;
 import net.bteuk.network.Network;
 import net.bteuk.network.api.EventAPI;
 import net.bteuk.network.api.ServerAPI;
@@ -28,10 +29,10 @@ public class Navigator extends AbstractCommand {
     private final Constants constants;
     private final NavigatorGui navigator;
 
-    public Navigator(Network instance, Constants constants, Lobby lobby, Back back, EventAPI eventAPI, ServerAPI serverAPI) {
+    public Navigator(Network instance, GuiManager guiManager, Constants constants, Lobby lobby, Back back, EventAPI eventAPI, ServerAPI serverAPI, Nightvision nightvision) {
         this.instance = instance;
         this.constants = constants;
-        navigator = new NavigatorGui(constants, instance.getGlobalSQL(), lobby, back, eventAPI, serverAPI);
+        navigator = new NavigatorGui(instance, guiManager, constants, instance.getGlobalSQL(), lobby, back, eventAPI, serverAPI, nightvision);
     }
 
     public void openNavigator(NetworkUser u) {
@@ -40,9 +41,9 @@ public class Navigator extends AbstractCommand {
         // If no gui exists open the navigator.
         if (u.mainGui != null) {
             u.mainGui.refresh();
-            u.mainGui.open(u);
+            u.mainGui.open(u.player);
         } else {
-            navigator.open(u);
+            navigator.open(u.player);
         }
     }
 
@@ -84,7 +85,7 @@ public class Navigator extends AbstractCommand {
                 u.mainGui.delete();
             }
             u.mainGui = new ExploreGui(u);
-            u.mainGui.open(u);
+            u.mainGui.open(u.player);
         } else {
             openNavigator(u);
         }
@@ -95,7 +96,7 @@ public class Navigator extends AbstractCommand {
             u.mainGui.delete();
         }
         u.mainGui = new BuildGui(u);
-        u.mainGui.open(u);
+        u.mainGui.open(u.player);
     }
 
     // Only if tutorials is enabled and the server is not already tutorials.
@@ -105,7 +106,7 @@ public class Navigator extends AbstractCommand {
                 u.mainGui.delete();
             }
             u.mainGui = new TutorialsGui(u);
-            u.mainGui.open(u);
+            u.mainGui.open(u.player);
         } else {
             openNavigator(u);
         }

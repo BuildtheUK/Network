@@ -6,7 +6,6 @@ import me.bteuk.progressmapper.guis.Field;
 import net.bteuk.network.Network;
 import net.bteuk.network.eventing.listeners.progressmap.FeatureGeometryEditorListener;
 import net.bteuk.network.eventing.listeners.progressmap.FeaturePropertiesBookListener;
-import net.bteuk.network.gui.Gui;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
@@ -38,17 +37,17 @@ public class FeaturePageGUI extends Gui {
         // Slots here are 0 indexed
 
         // Title edit
-        setAction(0, u -> {
+        setAction(0, (NetworkUser u) -> {
             openFieldEditor(u, featureMenu.getTitleBook(), Field.Title);
         });
 
         // Description edit
-        setAction(2, u -> {
+        setAction(2, (NetworkUser u) -> {
             openFieldEditor(u, featureMenu.getDescriptionBook(), Field.Description);
         });
 
         // Fill/stroke edit
-        setAction(4, u -> {
+        setAction(4, (NetworkUser u) -> {
             // Delete this gui.
             // this.delete(); - NO. I do not want to do this
             // u.mainGui = null; - NO. u.mainGui here refers to this gui, so we never want to make it null because it
@@ -56,16 +55,16 @@ public class FeaturePageGUI extends Gui {
 
             // Switch to colour picker menu.
             u.mainGui = new ColourPickerGUI(featureMenu.getColourPicker(), this);
-            u.mainGui.open(u);
+            u.mainGui.open(u.player);
         });
 
         // Media_url edit
-        setAction(6, u -> {
+        setAction(6, (NetworkUser u) -> {
             openFieldEditor(u, featureMenu.getMedialURLBook(), Field.Media_url);
         });
 
         // Geometry
-        setAction(8, u -> {
+        setAction(8, (NetworkUser u) -> {
             // Gives the blaze rod
             ItemStack blazeRod = ItemStack.of(Material.BLAZE_ROD, 1);
             Utils.giveItem(u.player, blazeRod, "Area selection tool");
@@ -81,7 +80,7 @@ public class FeaturePageGUI extends Gui {
         });
 
         // Send update
-        setAction(22, u -> {
+        setAction(22, (NetworkUser u) -> {
             if (featureMenu.isNew()) featureMenu.sendAppend(plugin.getConfig().getString("ProgressMap.MapHubAPIKey"));
             else featureMenu.sendUpdate(plugin.getConfig().getString("ProgressMap.MapHubAPIKey"));
 
@@ -95,11 +94,11 @@ public class FeaturePageGUI extends Gui {
             // Switch to feature list menu.
             parentLocalFeatureListGUI.refresh();
             u.mainGui = parentLocalFeatureListGUI;
-            u.mainGui.open(u);
+            u.mainGui.open(u.player);
         });
 
         // Return
-        setAction(26, u -> {
+        setAction(26, (NetworkUser u) -> {
             // Delete this gui.
             this.delete();
             u.mainGui = null;
@@ -107,7 +106,7 @@ public class FeaturePageGUI extends Gui {
             // Switch to feature list menu.
             parentLocalFeatureListGUI.refresh();
             u.mainGui = parentLocalFeatureListGUI;
-            u.mainGui.open(u);
+            u.mainGui.open(u.player);
         });
     }
 

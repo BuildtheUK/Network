@@ -2,7 +2,6 @@ package net.bteuk.network.gui.plotsystem;
 
 import net.bteuk.network.Network;
 import net.bteuk.network.eventing.events.EventManager;
-import net.bteuk.network.gui.Gui;
 import net.bteuk.network.gui.InviteMembers;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.sql.GlobalSQL;
@@ -69,7 +68,7 @@ public class ZoneInfo extends Gui {
                         Utils.title("Teleport to Zone"),
                         Utils.line("Click to teleport to this zone.")),
 
-                u -> {
+                (NetworkUser u) -> {
 
                     u.player.closeInventory();
 
@@ -106,7 +105,7 @@ public class ZoneInfo extends Gui {
             setItem(6, Utils.createItem(Material.RED_CONCRETE, 1,
                             Utils.title("Delete Zone"),
                             Utils.line("Delete the zone and all its contents.")),
-                    u -> {
+                    (NetworkUser u) -> {
 
                         // Delete this gui.
                         this.delete();
@@ -114,7 +113,7 @@ public class ZoneInfo extends Gui {
 
                         // Switch back to plot menu.
                         u.mainGui = new DeleteConfirm(zoneID, RegionType.ZONE);
-                        u.mainGui.open(u);
+                        u.mainGui.open(u.player);
                     });
 
             // Close and save zone.
@@ -122,7 +121,7 @@ public class ZoneInfo extends Gui {
             setItem(2, Utils.createItem(Material.LIME_CONCRETE, 1,
                             Utils.title("Save and close Zone"),
                             Utils.line("Close the Zone and save its contents.")),
-                    u -> {
+                    (NetworkUser u) -> {
 
                         // Delete this gui.
                         this.delete();
@@ -130,14 +129,14 @@ public class ZoneInfo extends Gui {
 
                         // Open close confirm menu.
                         u.mainGui = new CloseConfirm(zoneID);
-                        u.mainGui.open(u);
+                        u.mainGui.open(u.player);
                     });
 
             // If zone has members, edit plot members.
             setItem(9, Utils.createItem(Material.PLAYER_HEAD, 1,
                             Utils.title("Zone Members"),
                             Utils.line("Manage the members of your zone.")),
-                    u -> {
+                    (NetworkUser u) -> {
 
                         // Delete this gui.
                         this.delete();
@@ -145,7 +144,7 @@ public class ZoneInfo extends Gui {
 
                         // Open the members menu.
                         u.mainGui = new PlotsystemMembers(zoneID, RegionType.ZONE);
-                        u.mainGui.open(u);
+                        u.mainGui.open(u.player);
                     });
 
             // Invite new members to your zone.
@@ -153,7 +152,7 @@ public class ZoneInfo extends Gui {
                             Utils.title("Invite Members"),
                             Utils.line("Invite a new member to your zone."),
                             Utils.line("You can only invite online users.")),
-                    u -> {
+                    (NetworkUser u) -> {
 
                         // Delete this gui.
                         this.delete();
@@ -161,7 +160,7 @@ public class ZoneInfo extends Gui {
 
                         // Switch back to plot menu.
                         u.mainGui = new InviteMembers(zoneID, RegionType.ZONE);
-                        u.mainGui.open(u);
+                        u.mainGui.open(u.player);
                     });
 
             // Set public/private
@@ -171,7 +170,7 @@ public class ZoneInfo extends Gui {
                                 Utils.title("Set Private"),
                                 Utils.line("Private zones require you to"),
                                 Utils.line("invite people if they want to build.")),
-                        u -> {
+                        (NetworkUser u) -> {
 
                             // Set zone to private and refresh this gui.
                             plotSQL.update("UPDATE zones SET is_public=0 WHERE id=" + zoneID + ";");
@@ -187,7 +186,7 @@ public class ZoneInfo extends Gui {
                                 Utils.title("Set Public"),
                                 Utils.line("Public zones allow Jr.Builder+"),
                                 Utils.line("to join the zone without invitation.")),
-                        u -> {
+                        (NetworkUser u) -> {
 
                             // Set zone to private and refresh this gui.
                             plotSQL.update("UPDATE zones SET is_public=1 WHERE id=" + zoneID + ";");
@@ -209,7 +208,7 @@ public class ZoneInfo extends Gui {
             setItem(4, Utils.createItem(Material.RED_CONCRETE, 1,
                             Utils.title("Leave Zone"),
                             Utils.line("You will not be able to build in the zone once you leave.")),
-                    u -> {
+                    (NetworkUser u) -> {
 
                         // Delete this gui.
                         this.delete();
@@ -218,7 +217,7 @@ public class ZoneInfo extends Gui {
                         // Switch back to zone menu,
                         Bukkit.getScheduler().scheduleSyncDelayedTask(Network.getInstance(), () -> {
                             u.mainGui = new ZoneMenu(u);
-                            u.mainGui.open(u);
+                            u.mainGui.open(u.player);
                         }, 20L);
 
                         // Add server event to leave plot.
@@ -246,7 +245,7 @@ public class ZoneInfo extends Gui {
 
                     // Switch back to plot menu.
                     u.mainGui = new ZoneMenu(u);
-                    u.mainGui.open(u);
+                    u.mainGui.open(u.player);
                 });
     }
 
@@ -274,7 +273,7 @@ public class ZoneInfo extends Gui {
                         Utils.line("Increases the expiration time"),
                         Utils.line("of the zone by " + extension.hours + " hours,"),
                         Utils.line("can't exceed the maximum of " + ZoneExtensionTime.HOUR_48.hours + " hours.")),
-                u -> {
+                (NetworkUser u) -> {
                     // Get expiration time.
                     long expiration =
                             plotSQL.getLong("SELECT expiration FROM zones WHERE id=" + zoneID + ";") + extension.time;

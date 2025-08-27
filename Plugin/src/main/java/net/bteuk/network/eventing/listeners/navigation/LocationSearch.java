@@ -63,7 +63,7 @@ public class LocationSearch implements Listener {
 
                         u.mainGui.delete();
                         u.mainGui = gui;
-                        u.mainGui.open(u);
+                        u.mainGui.open(u.player);
                     });
                 }
 

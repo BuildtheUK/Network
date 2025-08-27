@@ -1,7 +1,6 @@
 package net.bteuk.network.gui.regions;
 
 import net.bteuk.network.Network;
-import net.bteuk.network.gui.Gui;
 import net.bteuk.network.lib.dto.DirectMessage;
 import net.bteuk.network.lib.enums.ChatChannels;
 import net.bteuk.network.lib.utils.ChatUtils;
@@ -59,7 +58,7 @@ public class RegionMembers extends Gui {
                             Utils.line("Clicking on a player head"),
                             Utils.line("will kick them from the region.")),
 
-                    u -> {
+                    (NetworkUser u) -> {
 
                         transfer = !transfer;
                         this.refresh();
@@ -72,7 +71,7 @@ public class RegionMembers extends Gui {
                             Utils.line("Clicking on a player head will"),
                             Utils.line("make them the owner of the region.")),
 
-                    u -> {
+                    (NetworkUser u) -> {
 
                         transfer = !transfer;
                         this.refresh();
@@ -169,7 +168,7 @@ public class RegionMembers extends Gui {
                             u.mainGui = null;
 
                             u.mainGui = new RegionInfo(region, u.player.getUniqueId().toString());
-                            u.mainGui.open(u);
+                            u.mainGui.open(u.player);
                         });
             } else {
 
@@ -221,7 +220,7 @@ public class RegionMembers extends Gui {
 
                     // Switch back to plot info.
                     u.mainGui = new RegionInfo(region, u.player.getUniqueId().toString());
-                    u.mainGui.open(u);
+                    u.mainGui.open(u.player);
                 });
     }
 

@@ -1,6 +1,5 @@
 package net.bteuk.network.gui.staff;
 
-import net.bteuk.network.gui.Gui;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
 import net.bteuk.network.utils.enums.ModerationType;
@@ -25,7 +24,7 @@ public class ModerationGui extends Gui {
                         "30506c52de360dfaec1b84998ba060fa6ce12be818fc13edc5db7a7921a35d7e", Material.REDSTONE_BLOCK, 1,
                         Utils.title("Ban"),
                         Utils.line("Click to select an online user to ban.")),
-                u -> {
+                (NetworkUser u) -> {
 
                     if (u.hasPermission("uknet.ban")) {
                         openSelectUser(u, ModerationType.BAN);
@@ -37,7 +36,7 @@ public class ModerationGui extends Gui {
                         "c2abe43288a6c8cd76d0228f39112d2520c289d7c15c6aafe0c532ad9f5db9ad", Material.REDSTONE_BLOCK, 1,
                         Utils.title("Unban"),
                         Utils.line("Click to select a banned user to unban.")),
-                u -> {
+                (NetworkUser u) -> {
 
                     if (u.hasPermission("uknet.ban")) {
                         openSelectUser(u, ModerationType.UNBAN);
@@ -49,7 +48,7 @@ public class ModerationGui extends Gui {
                         "4f130f485c3f7697f320ddc1128cd3f17cdbd3791764f7a7bb95cf252738588", Material.REDSTONE_BLOCK, 1,
                         Utils.title("Mute"),
                         Utils.line("Click to select an online user to mute.")),
-                u -> {
+                (NetworkUser u) -> {
 
                     if (u.hasPermission("uknet.mute")) {
                         openSelectUser(u, ModerationType.MUTE);
@@ -61,7 +60,7 @@ public class ModerationGui extends Gui {
                         "f81422e8ddc0d3109aa657b89b0b0eb1d25cb3bc8d54dc6c99c3c9c081440254", Material.REDSTONE_BLOCK, 1,
                         Utils.title("Unmute"),
                         Utils.line("Click to select a muted user to unmute.")),
-                u -> {
+                (NetworkUser u) -> {
 
                     if (u.hasPermission("uknet.mute")) {
                         openSelectUser(u, ModerationType.UNMUTE);
@@ -73,7 +72,7 @@ public class ModerationGui extends Gui {
                         "5ae0e486db4ec49ff1b52cfeceda4c3f36fde23c835ea3ccfcaac935e49b5f10", Material.REDSTONE_BLOCK, 1,
                         Utils.title("Kick"),
                         Utils.line("Click to select an online user to kick.")),
-                u -> {
+                (NetworkUser u) -> {
 
                     if (u.hasPermission("uknet.kick")) {
                         openSelectUser(u, ModerationType.KICK);
@@ -91,7 +90,7 @@ public class ModerationGui extends Gui {
                     // Return to request menu.
                     this.delete();
                     u.staffGui = new StaffGui(u);
-                    u.staffGui.open(u);
+                    u.staffGui.open(u.player);
                 });
     }
 
@@ -107,6 +106,6 @@ public class ModerationGui extends Gui {
         this.delete();
 
         u.staffGui = new SelectUser(type);
-        u.staffGui.open(u);
+        u.staffGui.open(u.player);
     }
 }

@@ -1,7 +1,6 @@
 package net.bteuk.network.gui.staff;
 
 import net.bteuk.network.Network;
-import net.bteuk.network.gui.Gui;
 import net.bteuk.network.lib.dto.OnlineUser;
 import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.utils.Time;
@@ -135,7 +134,7 @@ public class SelectUser extends Gui {
                                     // Open the kick menu.
                                     this.delete();
                                     u.staffGui = new ModerationActionGui(type, uuid);
-                                    u.staffGui.open(u);
+                                    u.staffGui.open(u.player);
                                 });
 
                 case UNBAN, UNMUTE -> // Unban/unmute the player.
@@ -143,7 +142,7 @@ public class SelectUser extends Gui {
                                         Utils.title(type.label + " " + name),
                                         Utils.line(type.label + " the player immediately.")),
 
-                                u -> {
+                                (NetworkUser u) -> {
 
                                     u.player.closeInventory();
 
@@ -186,7 +185,7 @@ public class SelectUser extends Gui {
                     u.staffGui = null;
 
                     u.staffGui = new ModerationGui();
-                    u.staffGui.open(u);
+                    u.staffGui.open(u.player);
                 });
     }
 

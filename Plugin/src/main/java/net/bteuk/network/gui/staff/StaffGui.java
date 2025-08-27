@@ -2,7 +2,6 @@ package net.bteuk.network.gui.staff;
 
 import net.bteuk.network.Network;
 import net.bteuk.network.eventing.events.EventManager;
-import net.bteuk.network.gui.Gui;
 import net.bteuk.network.gui.regions.ReviewRegionRequests;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.NetworkUser;
@@ -55,7 +54,7 @@ public class StaffGui extends Gui {
                         Utils.title("Location Requests"),
                         Utils.line("Opens a menu to view all location requests for navigation."),
                         lRequestString),
-                u -> {
+                (NetworkUser u) -> {
 
                     // Check if the user has the relevant permissions.
                     if (Network.getInstance().getGlobalSQL()
@@ -67,7 +66,7 @@ public class StaffGui extends Gui {
                             u.staffGui = null;
 
                             u.staffGui = new LocationRequests();
-                            u.staffGui.open(u);
+                            u.staffGui.open(u.player);
                         } else {
                             u.player.sendMessage(ChatUtils.error("You must be a reviewer to review location requests" +
                                     "."));
@@ -105,7 +104,7 @@ public class StaffGui extends Gui {
                                 // Open manage region menu
                                 this.delete();
                                 u.staffGui = new ManageRegion(u, u.region);
-                                u.staffGui.open(u);
+                                u.staffGui.open(u.player);
                             }
                         }
 
@@ -144,7 +143,7 @@ public class StaffGui extends Gui {
                         Utils.title("Review Region Requests"),
                         Utils.line("Opens a menu to review active region join requests by Jr.Builders."),
                         rRequestString),
-                u -> {
+                (NetworkUser u) -> {
 
                     if (Network.getInstance().regionSQL.hasRow("SELECT region FROM region_requests WHERE " +
                             "staff_accept=0;")) {
@@ -155,7 +154,7 @@ public class StaffGui extends Gui {
                             u.staffGui = null;
 
                             u.staffGui = new ReviewRegionRequests(true, u.player.getUniqueId().toString());
-                            u.staffGui.open(u);
+                            u.staffGui.open(u.player);
                         } else {
                             u.player.sendMessage(ChatUtils.error("You must be a reviewer to review region requests."));
                         }
@@ -187,7 +186,7 @@ public class StaffGui extends Gui {
                         Utils.title("Review Plot"),
                         Utils.line("Click to review a submitted plot."),
                         plotReviewMessage),
-                u -> {
+                (NetworkUser u) -> {
 
                     // Get arraylist of submitted plots.
                     // Order them by submit time, so the oldest submissions are reviewed first.
@@ -298,7 +297,7 @@ public class StaffGui extends Gui {
                         this.delete();
 
                         u.staffGui = new ModerationGui();
-                        u.staffGui.open(u);
+                        u.staffGui.open(u.player);
                     } else {
 
                         u.player.sendMessage(ChatUtils.error("You do not have permission to access the Moderation Menu."));

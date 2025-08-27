@@ -3,7 +3,6 @@ package net.bteuk.network.gui.navigation;
 import net.bteuk.network.Network;
 import net.bteuk.network.commands.navigation.Back;
 import net.bteuk.network.eventing.events.EventManager;
-import net.bteuk.network.gui.Gui;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.SwitchServer;
@@ -130,13 +129,13 @@ public class LocationMenu extends Gui {
                                 Utils.title(location.getKey()),
                                 Utils.line("Click to open the menu for"),
                                 Utils.line("for this subcategory.")),
-                        u -> {
+                        (NetworkUser u) -> {
                             u.mainGui = new LocationMenu(location.getKey(), u, Category.SUBCATEGORY, category,
                                     location.getKey());
 
                             // Switch to location menu.
                             this.delete();
-                            u.mainGui.open(u);
+                            u.mainGui.open(u.player);
                         });
             } else {
                 // Create location teleport button.
@@ -144,7 +143,7 @@ public class LocationMenu extends Gui {
                                 Utils.title(location.getKey()),
                                 Utils.line("Click to teleport here.")),
 
-                        u -> {
+                        (NetworkUser u) -> {
 
                             // Get the coordinate id.
                             int coordinate_id = Network.getInstance().getGlobalSQL().getInt("SELECT coordinate FROM " +
@@ -217,7 +216,7 @@ public class LocationMenu extends Gui {
             setItem(44, Utils.createItem(Material.SPRUCE_DOOR, 1,
                             Utils.title("Return"),
                             Utils.line("Open the previous menu.")),
-                    u -> {
+                    (NetworkUser u) -> {
                         // Delete this gui.
                         this.delete();
 
@@ -227,7 +226,7 @@ public class LocationMenu extends Gui {
                             if (!returnGui.isDeleteOnClose()) {
                                 u.mainGui = returnGui;
                             }
-                            returnGui.open(u);
+                            returnGui.open(u.player);
                         } else {
                             u.player.sendMessage(ChatUtils.error("An error occurred, please contact an admin."));
                             u.player.closeInventory();

@@ -22,6 +22,8 @@
         <maven.compiler.release>${java-version}</maven.compiler.release>
 
         <paper.api.version>1.21.8-R0.1-SNAPSHOT</paper.api.version>
+
+        <bteuk.lib.version>764f5c1ece</bteuk.lib.version>
     </properties>
 
     <repositories>
@@ -81,6 +83,12 @@
                 <groupId>net.bteuk.network</groupId>
                 <artifactId>regions</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.BTEUK.BTEUKLib</groupId>
+                <artifactId>Minecraft</artifactId>
+                <version>${bteuk.lib.version}</version>
             </dependency>
 
             <dependency>

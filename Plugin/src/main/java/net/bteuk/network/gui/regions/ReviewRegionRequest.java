@@ -3,7 +3,6 @@ package net.bteuk.network.gui.regions;
 import net.bteuk.network.Network;
 import net.bteuk.network.commands.navigation.Back;
 import net.bteuk.network.eventing.events.EventManager;
-import net.bteuk.network.gui.Gui;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.sql.RegionSQL;
@@ -70,7 +69,7 @@ public class ReviewRegionRequest extends Gui {
                         // Delay opening to make sure request was dealt with.
                         Bukkit.getScheduler().runTaskLater(Network.getInstance(), () -> {
                             u.staffGui = new ReviewRegionRequests(true, u.player.getUniqueId().toString());
-                            u.staffGui.open(u);
+                            u.staffGui.open(u.player);
                         }, 20L);
                     } else {
 
@@ -79,7 +78,7 @@ public class ReviewRegionRequest extends Gui {
                         // Delay opening to make sure request was dealt with.
                         Bukkit.getScheduler().runTaskLater(Network.getInstance(), () -> {
                             u.mainGui = new ReviewRegionRequests(false, u.player.getUniqueId().toString());
-                            u.mainGui.open(u);
+                            u.mainGui.open(u.player);
                         }, 20L);
                     }
                 });
@@ -107,7 +106,7 @@ public class ReviewRegionRequest extends Gui {
                         // Delay opening to make sure request was dealt with.
                         Bukkit.getScheduler().runTaskLater(Network.getInstance(), () -> {
                             u.staffGui = new ReviewRegionRequests(true, u.player.getUniqueId().toString());
-                            u.staffGui.open(u);
+                            u.staffGui.open(u.player);
                         }, 20L);
                     } else {
 
@@ -116,7 +115,7 @@ public class ReviewRegionRequest extends Gui {
                         // Delay opening to make sure request was dealt with.
                         Bukkit.getScheduler().runTaskLater(Network.getInstance(), () -> {
                             u.mainGui = new ReviewRegionRequests(false, u.player.getUniqueId().toString());
-                            u.mainGui.open(u);
+                            u.mainGui.open(u.player);
                         }, 20L);
                     }
                 });
@@ -178,7 +177,7 @@ public class ReviewRegionRequest extends Gui {
                         // Delay opening to make sure request was dealt with.
                         Bukkit.getScheduler().runTaskLater(Network.getInstance(), () -> {
                             u.staffGui = new ReviewRegionRequests(true, u.player.getUniqueId().toString());
-                            u.staffGui.open(u);
+                            u.staffGui.open(u.player);
                         }, 20L);
                     } else {
 
@@ -187,7 +186,7 @@ public class ReviewRegionRequest extends Gui {
                         // Delay opening to make sure request was dealt with.
                         Bukkit.getScheduler().runTaskLater(Network.getInstance(), () -> {
                             u.mainGui = new ReviewRegionRequests(false, u.player.getUniqueId().toString());
-                            u.mainGui.open(u);
+                            u.mainGui.open(u.player);
                         }, 20L);
                     }
                 });

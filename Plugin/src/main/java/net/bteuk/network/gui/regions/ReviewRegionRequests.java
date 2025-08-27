@@ -1,7 +1,6 @@
 package net.bteuk.network.gui.regions;
 
 import net.bteuk.network.Network;
-import net.bteuk.network.gui.Gui;
 import net.bteuk.network.gui.staff.StaffGui;
 import net.bteuk.network.sql.RegionSQL;
 import net.bteuk.network.utils.Utils;
@@ -106,7 +105,7 @@ public class ReviewRegionRequests extends Gui {
                     Utils.line("Requested by ")
                             .append(Component.text(Network.getInstance().getGlobalSQL().getString("SELECT name FROM " +
                                     "player_data WHERE uuid='" + requests.get(i).uuid + "';"), NamedTextColor.GRAY)),
-                    Utils.line("Click to open the menu for this request.")), u -> {
+                    Utils.line("Click to open the menu for this request.")), (NetworkUser u) -> {
 
                 // Delete this gui.
                 this.delete();
@@ -116,14 +115,14 @@ public class ReviewRegionRequests extends Gui {
 
                     // Switch to region request.
                     u.staffGui = new ReviewRegionRequest(requests.get(finalI), true);
-                    u.staffGui.open(u);
+                    u.staffGui.open(u.player);
                 } else {
 
                     u.mainGui = null;
 
                     // Switch to region request.
                     u.mainGui = new ReviewRegionRequest(requests.get(finalI), false);
-                    u.mainGui.open(u);
+                    u.mainGui.open(u.player);
                 }
             });
 
@@ -152,7 +151,7 @@ public class ReviewRegionRequests extends Gui {
 
                 // Switch to staff menu.
                 u.staffGui = new StaffGui(u);
-                u.staffGui.open(u);
+                u.staffGui.open(u.player);
             });
         } else {
 
@@ -168,7 +167,7 @@ public class ReviewRegionRequests extends Gui {
 
                 // Switch to staff menu.
                 u.mainGui = new RegionMenu(u);
-                u.mainGui.open(u);
+                u.mainGui.open(u.player);
             });
         }
     }

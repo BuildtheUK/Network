@@ -133,6 +133,11 @@
             <artifactId>regions</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.github.BTEUK.BTEUKLib</groupId>
+            <artifactId>Minecraft</artifactId>
+        </dependency>
+
         <!-- Server api | scope provided -->
         <dependency>
             <groupId>io.papermc.paper</groupId>

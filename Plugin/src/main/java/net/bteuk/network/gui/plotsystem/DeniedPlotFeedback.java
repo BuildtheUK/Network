@@ -1,7 +1,6 @@
 package net.bteuk.network.gui.plotsystem;
 
 import net.bteuk.network.Network;
-import net.bteuk.network.gui.Gui;
 import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.sql.PlotSQL;
 import net.bteuk.network.utils.Utils;
@@ -69,7 +68,7 @@ public class DeniedPlotFeedback extends Gui {
                                                             "AND uuid='" + uuid + "' AND attempt=" + i + ";") + "';"),
                                             NamedTextColor.GRAY))),
 
-                    u -> {
+                    (NetworkUser u) -> {
 
                         // Close the inventory.
                         u.player.closeInventory();
@@ -106,7 +105,7 @@ public class DeniedPlotFeedback extends Gui {
 
                     // Switch back to plot menu.
                     u.mainGui = new PlotInfo(u, plotID);
-                    u.mainGui.open(u);
+                    u.mainGui.open(u.player);
                 });
     }
 

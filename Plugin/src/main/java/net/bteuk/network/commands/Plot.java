@@ -80,7 +80,7 @@ public class Plot extends AbstractCommand {
             u.mainGui.delete();
         }
         u.mainGui = new PlotMenu(u);
-        u.mainGui.open(u);
+        u.mainGui.open(u.player);
     }
 
     private void info(Player p, int plot) {
@@ -106,7 +106,7 @@ public class Plot extends AbstractCommand {
             u.mainGui.delete();
         }
         u.mainGui = new PlotInfo(u, plot);
-        u.mainGui.open(u);
+        u.mainGui.open(u.player);
     }
 
     private void join(Player p, int plot) {

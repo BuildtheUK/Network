@@ -1,7 +1,6 @@
 package net.bteuk.network.gui.tutorials;
 
 import net.bteuk.network.Network;
-import net.bteuk.network.gui.Gui;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
@@ -99,10 +98,10 @@ public class RecommendationAddGui extends Gui {
                         ChatUtils.title("Delete"),
                         ChatUtils.line("Go back to the recommended tutorials.")),
 
-                u -> {
+                (NetworkUser u) -> {
                     // Go back to the review gui.
                     u.player.closeInventory();
-                    parentGui.open(u);
+                    parentGui.open(u.player);
                     delete();
                 }
         );
@@ -113,7 +112,7 @@ public class RecommendationAddGui extends Gui {
                             ChatUtils.title("Submit"),
                             ChatUtils.line("Add recommendation.")),
 
-                    u -> {
+                    (NetworkUser u) -> {
 
                         boolean bTutorialAlreadyRecommendedAndNotComplete = false;
 
@@ -139,7 +138,7 @@ public class RecommendationAddGui extends Gui {
                             // Go back to the recommended tutorials list.
                             u.player.closeInventory();
                             parentGui.refresh();
-                            parentGui.open(u);
+                            parentGui.open(u.player);
                             delete();
                         }
 
@@ -149,7 +148,7 @@ public class RecommendationAddGui extends Gui {
 
         // Reason button
         setItem(50, Utils.createItem(Material.WRITABLE_BOOK, 1,
-                ChatUtils.title("Set Reason")), u -> {
+                ChatUtils.title("Set Reason")), (NetworkUser u) -> {
             reasonEditor.startEdit("Reason Editor");
         });
 

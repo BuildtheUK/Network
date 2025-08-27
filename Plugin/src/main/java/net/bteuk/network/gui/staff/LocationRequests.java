@@ -1,7 +1,6 @@
 package net.bteuk.network.gui.staff;
 
 import net.bteuk.network.Network;
-import net.bteuk.network.gui.Gui;
 import net.bteuk.network.gui.navigation.AddLocation;
 import net.bteuk.network.utils.Utils;
 import net.bteuk.network.utils.enums.AddLocationType;
@@ -38,7 +37,7 @@ public class LocationRequests extends Gui {
             setItem(slot, Utils.createItem(Material.ORANGE_CONCRETE, 1,
                             Utils.title(location),
                             Utils.line("Click to review this location request.")),
-                    u -> {
+                    (NetworkUser u) -> {
 
                         // Opens location request.
                         this.delete();
@@ -59,7 +58,7 @@ public class LocationRequests extends Gui {
 
                         u.staffGui = new AddLocation(AddLocationType.REVIEW, location, coordinate_id, category,
                                 subcategory);
-                        u.staffGui.open(u);
+                        u.staffGui.open(u.player);
                     });
 
             slot++;
@@ -83,7 +82,7 @@ public class LocationRequests extends Gui {
 
                     // Switch to staff menu.
                     u.staffGui = new StaffGui(u);
-                    u.staffGui.open(u);
+                    u.staffGui.open(u.player);
                 });
     }
 

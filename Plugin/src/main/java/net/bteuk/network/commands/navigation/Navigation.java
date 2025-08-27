@@ -88,7 +88,7 @@ public class Navigation extends AbstractCommand {
                 u.mainGui.delete();
             }
             u.mainGui = new AddLocation(AddLocationType.ADD);
-            u.mainGui.open(u);
+            u.mainGui.open(u.player);
         } else {
             u.sendMessage(ChatUtils.error("You do not have permission to use this command."));
         }
@@ -145,7 +145,7 @@ public class Navigation extends AbstractCommand {
         int coordinate_id = globalSQL.getInt("SELECT coordinate FROM location_data WHERE " +
                 "location='" + location + "';");
         u.staffGui = new AddLocation(AddLocationType.UPDATE, location, coordinate_id, category, subcategory);
-        u.staffGui.open(u);
+        u.staffGui.open(u.player);
     }
 
     private void removeLocation(NetworkUser u, String[] args) {

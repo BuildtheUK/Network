@@ -3,7 +3,6 @@ package net.bteuk.network.gui.plotsystem;
 import lombok.Setter;
 import net.bteuk.network.Network;
 import net.bteuk.network.eventing.events.EventManager;
-import net.bteuk.network.gui.Gui;
 import net.bteuk.network.gui.InviteMembers;
 import net.bteuk.network.gui.tutorials.RecommendedTutorialsGui;
 import net.bteuk.network.lib.utils.ChatUtils;
@@ -91,18 +90,18 @@ public class PlotInfo extends Gui {
         }
 
         // Return
-        setItem(26, Utils.createItem(Material.SPRUCE_DOOR, 1, Utils.title("Return"), Utils.line("Open the plot menu.")), u -> {
+        setItem(26, Utils.createItem(Material.SPRUCE_DOOR, 1, Utils.title("Return"), Utils.line("Open the plot menu.")), (NetworkUser u) -> {
 
             // Switch back to plot menu, or accepted plot menu.
             if (status == PlotStatus.COMPLETED && acceptedPlotMenu != null) {
                 this.deleteThis();
                 acceptedPlotMenu.setPlotInfo(null);
-                acceptedPlotMenu.open(u);
+                acceptedPlotMenu.open(u.player);
             } else {
                 // Delete this gui.
                 this.delete();
                 u.mainGui = new PlotMenu(u);
-                u.mainGui.open(u);
+                u.mainGui.open(u.player);
             }
         });
 
@@ -110,7 +109,7 @@ public class PlotInfo extends Gui {
         setItem(4, Utils.createItem(Material.BOOK, 1, Utils.title("Plot " + plotID), createPlotInfo(status)));
 
         // Plot Teleport (Always in slot 24).
-        setItem(24, Utils.createItem(Material.ENDER_PEARL, 1, Utils.title("Teleport to Plot"), Utils.line("Click to teleport to this plot.")), u -> {
+        setItem(24, Utils.createItem(Material.ENDER_PEARL, 1, Utils.title("Teleport to Plot"), Utils.line("Click to teleport to this plot.")), (NetworkUser u) -> {
             u.player.closeInventory();
 
             // Get the server of the plot.
@@ -138,7 +137,7 @@ public class PlotInfo extends Gui {
 
         // Plot in Google Maps (In slot 20 or 23 depending on the situation).
         setItem(getSlotForGoogleMapsLink(plotInfoType),
-                Utils.createItem(Material.ENDER_EYE, 1, Utils.title("View plot in Google Maps"), Utils.line("Click to be linked to the plot in Google Maps.")), u -> {
+                Utils.createItem(Material.ENDER_EYE, 1, Utils.title("View plot in Google Maps"), Utils.line("Click to be linked to the plot in Google Maps.")), (NetworkUser u) -> {
                     u.player.closeInventory();
 
                     // Get corners of the plot.
@@ -177,7 +176,7 @@ public class PlotInfo extends Gui {
         // Enable/disable outlines for the plot. (Slot 18 if owner or member)
         if (plotInfoType == PLOT_INFO_TYPE.CLAIMED_OWNER || plotInfoType == PLOT_INFO_TYPE.CLAIMED_MEMBER) {
             setItem(18, Utils.createItem(Material.ORANGE_STAINED_GLASS, 1, Utils.title("Toggle Outlines"), Utils.line("Enable/disable the outlines"), Utils.line("for this plot."),
-                    Utils.line("Rejoining the server"), Utils.line("will reset this to enabled.")), u -> {
+                    Utils.line("Rejoining the server"), Utils.line("will reset this to enabled.")), (NetworkUser u) -> {
                 EventManager.createEvent(u.player.getUniqueId().toString(), "plotsystem", SERVER_NAME, "outlines toggle " + plotID);
                 u.player.closeInventory();
             });
@@ -187,7 +186,7 @@ public class PlotInfo extends Gui {
         // As well as the submit/retract button. (Slot 2)
         // If the plot is not under review allow it to be removed. (Slot 6)
         if (plotInfoType == PLOT_INFO_TYPE.CLAIMED_OWNER) {
-            setItem(20, Utils.createItem(Material.PLAYER_HEAD, 1, Utils.title("Plot Members"), Utils.line("Manage the members of your plot.")), u -> {
+            setItem(20, Utils.createItem(Material.PLAYER_HEAD, 1, Utils.title("Plot Members"), Utils.line("Manage the members of your plot.")), (NetworkUser u) -> {
 
                 // Delete this gui.
                 this.delete();
@@ -195,11 +194,11 @@ public class PlotInfo extends Gui {
 
                 // Switch back to plot menu.
                 u.mainGui = new PlotsystemMembers(plotID, RegionType.PLOT);
-                u.mainGui.open(u);
+                u.mainGui.open(u.player);
             });
 
             setItem(19, Utils.createItem(Material.OAK_BOAT, 1, Utils.title("Invite Members"), Utils.line("Invite a new member to your plot."),
-                    Utils.line("You can only invite online users.")), u -> {
+                    Utils.line("You can only invite online users.")), (NetworkUser u) -> {
 
                 // Delete this gui.
                 this.delete();
@@ -207,12 +206,12 @@ public class PlotInfo extends Gui {
 
                 // Switch back to plot menu.
                 u.mainGui = new InviteMembers(plotID, RegionType.PLOT);
-                u.mainGui.open(u);
+                u.mainGui.open(u.player);
             });
 
             if (status == PlotStatus.CLAIMED) {
                 setItem(2, Utils.createItem(Material.LIGHT_BLUE_CONCRETE, 1, Utils.title("Submit Plot"), Utils.line("Submit your plot to be reviewed."),
-                        Utils.line("Reviewing may take over 24 hours.")), u -> {
+                        Utils.line("Reviewing may take over 24 hours.")), (NetworkUser u) -> {
 
                     u.player.closeInventory();
 
@@ -225,7 +224,7 @@ public class PlotInfo extends Gui {
 
             // The plot can only be retracted if it is not yet under review.
             if (status == PlotStatus.SUBMITTED && submittedStatus == SubmittedStatus.SUBMITTED) {
-                setItem(2, Utils.createItem(Material.ORANGE_CONCRETE, 1, Utils.title("Retract Submission"), Utils.line("Your plot will no longer be submitted.")), u -> {
+                setItem(2, Utils.createItem(Material.ORANGE_CONCRETE, 1, Utils.title("Retract Submission"), Utils.line("Your plot will no longer be submitted.")), (NetworkUser u) -> {
 
                     u.player.closeInventory();
 
@@ -238,7 +237,7 @@ public class PlotInfo extends Gui {
 
             // The plot can only be deleted if it is not yet submitted.
             if (status != PlotStatus.SUBMITTED) {
-                setItem(6, Utils.createItem(Material.RED_CONCRETE, 1, Utils.title("Delete Plot"), Utils.line("Delete the plot and all its contents.")), u -> {
+                setItem(6, Utils.createItem(Material.RED_CONCRETE, 1, Utils.title("Delete Plot"), Utils.line("Delete the plot and all its contents.")), (NetworkUser u) -> {
 
                     // Delete this gui.
                     this.delete();
@@ -246,14 +245,14 @@ public class PlotInfo extends Gui {
 
                     // Switch back to plot menu.
                     u.mainGui = new DeleteConfirm(plotID, RegionType.PLOT);
-                    u.mainGui.open(u);
+                    u.mainGui.open(u.player);
                 });
             }
         }
 
         // Members have the option to leave the plot (Slot 20)
         if (plotInfoType == PLOT_INFO_TYPE.CLAIMED_MEMBER) {
-            setItem(20, Utils.createItem(Material.RED_CONCRETE, 1, Utils.title("Leave Plot"), Utils.line("You will not be able to build in the plot once you leave.")), u -> {
+            setItem(20, Utils.createItem(Material.RED_CONCRETE, 1, Utils.title("Leave Plot"), Utils.line("You will not be able to build in the plot once you leave.")), (NetworkUser u) -> {
 
                 // Delete this gui.
                 this.delete();
@@ -262,7 +261,7 @@ public class PlotInfo extends Gui {
                 // Switch back to plot menu.
                 Bukkit.getScheduler().scheduleSyncDelayedTask(Network.getInstance(), () -> {
                     u.mainGui = new PlotMenu(u);
-                    u.mainGui.open(u);
+                    u.mainGui.open(u.player);
                 }, 20L);
 
                 // Add server event to leave plot.
@@ -277,7 +276,7 @@ public class PlotInfo extends Gui {
         if ((plotInfoType == PLOT_INFO_TYPE.CLAIMED_OWNER || plotInfoType == PLOT_INFO_TYPE.CLAIMED_MEMBER || plotInfoType == PLOT_INFO_TYPE.REVIEWING_REVIEWER || plotInfoType == PLOT_INFO_TYPE.SUBMITTED_REVIEWER || plotInfoType == PLOT_INFO_TYPE.REVIEWED_REVIEWER || plotInfoType == PLOT_INFO_TYPE.VERIFYING_REVIEWER) && plotSQL.hasRow(
                 "SELECT 1 FROM plot_review WHERE plot_id=" + plotID + " AND uuid='" + plot_owner + "' AND accepted=0 AND completed=1;")) {
             setItem(getFeedbackSlot(plotInfoType), Utils.createItem(Material.WRITABLE_BOOK, 1, Utils.title("Plot Feedback"), Utils.line("Click to show feedback for this plot.")),
-                    u -> {
+                    (NetworkUser u) -> {
 
                         // Delete this gui.
                         this.delete();
@@ -285,13 +284,13 @@ public class PlotInfo extends Gui {
 
                         // Switch back to plot menu.
                         u.mainGui = new DeniedPlotFeedback(plotID);
-                        u.mainGui.open(u);
+                        u.mainGui.open(u.player);
                     });
             // If the plot is accepted and has feedback show for the owner (Slot 21)
         } else if (plotInfoType == PLOT_INFO_TYPE.ACCEPTED_OWNER && plotSQL.hasRow(
                 "SELECT 1 FROM " + "plot_category_feedback WHERE review_id=( SELECT id FROM plot_review WHERE plot_id=" + plotID + " AND " + "accepted=1 AND completed=1 );")) {
             setItem(getFeedbackSlot(plotInfoType), Utils.createItem(Material.WRITABLE_BOOK, 1, Utils.title("Plot Feedback"), Utils.line("Click to show feedback for this plot.")),
-                    u -> {
+                    (NetworkUser u) -> {
                         int reviewId = plotSQL.getInt(
                                 "SELECT id FROM plot_review WHERE uuid='" + u.getUuid() + "' " + "AND plot_id=" + plotID + " AND accepted=1 AND completed=1;");
 
@@ -304,14 +303,14 @@ public class PlotInfo extends Gui {
         switch (plotInfoType) {
             case CLAIMED_OWNER, CLAIMED_MEMBER, ACCEPTED_OWNER -> {
                 setItem(getRecommendationsSlot(plotInfoType), Utils.createItem(Material.LECTERN, 1, Utils.title("Tutorial Recommendations"),
-                        Utils.line("Click to see your"), Utils.line("recommended tutorials")), u -> {
+                        Utils.line("Click to see your"), Utils.line("recommended tutorials")), (NetworkUser u) -> {
                     user.mainGui = new RecommendedTutorialsGui(this, plotID, user, plot_owner, false);
                     user.mainGui.open(user);
                 });
             }
             case SUBMITTED_REVIEWER, REVIEWED_REVIEWER, REVIEWING_REVIEWER, VERIFYING_REVIEWER -> {
                 setItem(getRecommendationsSlot(plotInfoType), Utils.createItem(Material.LECTERN, 1, Utils.title("Tutorial Recommendations"),
-                        Utils.line("Click to see the"), Utils.line("tutorial recommendations"), Utils.line("and add more")), u -> {
+                        Utils.line("Click to see the"), Utils.line("tutorial recommendations"), Utils.line("and add more")), (NetworkUser u) -> {
                     user.mainGui = new RecommendedTutorialsGui(this, plotID, user, plot_owner, true);
                     user.mainGui.open(user);
                 });
@@ -321,7 +320,7 @@ public class PlotInfo extends Gui {
                 // Architects can always add recommendations to claimed plots
                 if (user.hasPermission("group.reviewer") || (user.hasPermission("group.architect") && plotInfoType.equals(PLOT_INFO_TYPE.CLAIMED))) {
                     setItem(getRecommendationsSlot(plotInfoType), Utils.createItem(Material.LECTERN, 1, Utils.title("Tutorial Recommendations"),
-                            Utils.line("Click to see the"), Utils.line("tutorial recommendations"), Utils.line("and add more")), u -> {
+                            Utils.line("Click to see the"), Utils.line("tutorial recommendations"), Utils.line("and add more")), (NetworkUser u) -> {
                         user.mainGui = new RecommendedTutorialsGui(this, plotID, user, plot_owner, true);
                         user.mainGui.open(user);
                     });
@@ -331,7 +330,7 @@ public class PlotInfo extends Gui {
 
         // If the plot is submitted add the start review option for reviewers. (Slot 20)
         if (plotInfoType == PLOT_INFO_TYPE.SUBMITTED_REVIEWER) {
-            setItem(20, Utils.createItem(Material.EMERALD, 1, Utils.title("Review Plot"), Utils.line("Click to start reviewing this plot.")), u -> {
+            setItem(20, Utils.createItem(Material.EMERALD, 1, Utils.title("Review Plot"), Utils.line("Click to start reviewing this plot.")), (NetworkUser u) -> {
                 // If you are not owner or member of the plot, start the review.
                 if (canReviewPlot()) {
                     // Get server of plot.
@@ -359,7 +358,7 @@ public class PlotInfo extends Gui {
             // If the plot has been reviewed and must be verified add the start verifying option for reviewers. (Slot
             // 20)
         } else if (plotInfoType == PLOT_INFO_TYPE.REVIEWED_REVIEWER) {
-            setItem(20, Utils.createItem(Material.SPYGLASS, 1, Utils.title("Verify Plot"), Utils.line("Click to start verifying this plot.")), u -> {
+            setItem(20, Utils.createItem(Material.SPYGLASS, 1, Utils.title("Verify Plot"), Utils.line("Click to start verifying this plot.")), (NetworkUser u) -> {
                 if (canVerifyPlot()) {
                     // Get server of plot.
                     String server = Network.getInstance().getPlotSQL().getString("SELECT server FROM " + "location_data WHERE name='" + Network.getInstance().getPlotSQL()

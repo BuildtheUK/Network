@@ -7,7 +7,6 @@ import net.bteuk.network.TabManager;
 import net.bteuk.network.building_companion.BuildingCompanion;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.Time;
-import net.bteuk.network.gui.Gui;
 import net.bteuk.network.lib.dto.OnlineUser;
 import net.bteuk.network.lib.dto.OnlineUserAdd;
 import net.bteuk.network.lib.dto.OnlineUserRemove;

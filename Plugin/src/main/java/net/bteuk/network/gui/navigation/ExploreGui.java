@@ -2,7 +2,7 @@ package net.bteuk.network.gui.navigation;
 
 import net.bteuk.network.Network;
 import net.bteuk.network.eventing.listeners.navigation.LocationSearch;
-import net.bteuk.network.gui.Gui;
+import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
@@ -15,7 +15,7 @@ import org.bukkit.Material;
 
 import static net.bteuk.network.utils.NetworkConfig.CONFIG;
 
-public class ExploreGui extends Gui {
+public class ExploreGui extends NetworkRefreshableGui {
 
     private final NetworkUser u;
 
@@ -34,14 +34,14 @@ public class ExploreGui extends Gui {
         if (u.player.hasPermission("uknet.navigation.request")) {
 
             setItem(18, Utils.createItem(Material.MAGENTA_GLAZED_TERRACOTTA, 1, Utils.title("Add Location"),
-                    Utils.line("Request a new location to add"), Utils.line("to the exploration menu.")), u -> {
+                    Utils.line("Request a new location to add"), Utils.line("to the exploration menu.")), (NetworkUser u) -> {
 
                 this.delete();
                 u.mainGui = null;
 
                 // Switch to the location add menu.
                 u.mainGui = new AddLocation(AddLocationType.ADD);
-                u.mainGui.open(u);
+                u.mainGui.open(u.player);
             });
         }
 
@@ -109,7 +109,7 @@ public class ExploreGui extends Gui {
 
         // Find Locations
         setItem(23, Utils.createItem(Material.OAK_SIGN, 1, Utils.title("Find Locations"),
-                Utils.line("Click to " + "search" + " for locations"), Utils.line("based on chat input.")), u -> {
+                Utils.line("Click to " + "search" + " for locations"), Utils.line("based on chat input.")), (NetworkUser u) -> {
             u.player.sendMessage(ChatUtils.success("Type a word or phrase in chat to search for locations."));
             new LocationSearch(u);
             u.player.closeInventory();
@@ -117,13 +117,13 @@ public class ExploreGui extends Gui {
 
         // Return
         setItem(26, Utils.createItem(Material.SPRUCE_DOOR, 1, Utils.title("Return"),
-                Utils.line("Open the navigator " + "main menu.")), u -> {
+                Utils.line("Open the navigator " + "main menu.")), (NetworkUser u) -> {
             // Delete this gui.
             this.delete();
             u.mainGui = null;
 
             // Switch to navigation menu.
-            Network.getInstance().navigatorGui.open(u);
+            Network.getInstance().navigatorGui.open(u.player);
         });
     }
 
@@ -147,7 +147,7 @@ public class ExploreGui extends Gui {
             // Switch to location menu.
             this.delete();
             u.mainGui = gui;
-            u.mainGui.open(u);
+            u.mainGui.open(u.player);
         }
     }
 }

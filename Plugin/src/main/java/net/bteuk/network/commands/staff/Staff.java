@@ -44,11 +44,11 @@ public class Staff extends AbstractCommand {
         if (u.staffGui != null) {
 
             u.staffGui.refresh();
-            u.staffGui.open(u);
+            u.staffGui.open(u.player);
         } else {
 
             u.staffGui = new StaffGui(u);
-            u.staffGui.open(u);
+            u.staffGui.open(u.player);
         }
     }
 

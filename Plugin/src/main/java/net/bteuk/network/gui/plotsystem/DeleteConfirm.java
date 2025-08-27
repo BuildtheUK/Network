@@ -3,7 +3,6 @@ package net.bteuk.network.gui.plotsystem;
 import net.bteuk.network.Network;
 import net.bteuk.network.eventing.events.EventManager;
 import net.bteuk.network.gui.BuildGui;
-import net.bteuk.network.gui.Gui;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.sql.PlotSQL;
 import net.bteuk.network.utils.Utils;
@@ -37,7 +36,7 @@ public class DeleteConfirm extends Gui {
         setItem(13, Utils.createItem(Material.TNT, 1,
                         Utils.title("Delete " + regionType.label + " " + id),
                         Utils.line("Delete the " + regionType.label + " and its contents.")),
-                u -> {
+                (NetworkUser u) -> {
 
                     // Delete this inventory.
                     this.delete();
@@ -96,7 +95,7 @@ public class DeleteConfirm extends Gui {
                         u.mainGui = new BuildGui(u);
                     }
 
-                    u.mainGui.open(u);
+                    u.mainGui.open(u.player);
                 });
     }
 

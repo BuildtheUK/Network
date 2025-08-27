@@ -2,7 +2,6 @@ package net.bteuk.network.gui.plotsystem;
 
 import com.destroystokyo.paper.profile.PlayerProfile;
 import net.bteuk.network.Network;
-import net.bteuk.network.gui.Gui;
 import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.sql.PlotSQL;
 import net.bteuk.network.utils.NetworkUser;
@@ -93,7 +92,7 @@ public class FilterMenu extends Gui {
                 setItem(26, Utils.createItem(Material.ARROW, 1,
                                 Utils.title("Next Page"),
                                 Utils.line("Open the next page of users.")),
-                        u -> {
+                        (NetworkUser u) -> {
 
                             // Update the gui.
                             page++;
@@ -121,7 +120,7 @@ public class FilterMenu extends Gui {
                                     Utils.title("All Plots"),
                                     Utils.line("Click to set the filter"),
                                     Utils.line("to all completed plots.")),
-                            u -> {
+                            (NetworkUser u) -> {
                                 // Set the filter and refresh the accepted plots menu at page 1.
                                 acceptedPlotMenu.setFilter(uuid);
                                 acceptedPlotMenu.setPage(1);
@@ -129,7 +128,7 @@ public class FilterMenu extends Gui {
                                 this.refresh();
 
                                 // Return to the accepted plot menu.
-                                acceptedPlotMenu.open(u);
+                                acceptedPlotMenu.open(u.player);
                             });
                 } else {
 
@@ -183,7 +182,7 @@ public class FilterMenu extends Gui {
                             Utils.title(globalSQL.getString("SELECT name FROM player_data WHERE uuid='" + uuid + "';")),
                             Utils.line("Click to set the filter"),
                             Utils.line("to this player.")),
-                    u -> {
+                    (NetworkUser u) -> {
                         // Set the filter and refresh the accepted plots menu at page 1.
                         acceptedPlotMenu.setFilter(uuid);
                         acceptedPlotMenu.setPage(1);
@@ -191,7 +190,7 @@ public class FilterMenu extends Gui {
                         this.refresh();
 
                         // Return to the accepted plot menu.
-                        acceptedPlotMenu.open(u);
+                        acceptedPlotMenu.open(u.player);
                     });
         }
     }

@@ -1,7 +1,6 @@
 package net.bteuk.network.gui.tutorials;
 
 import net.bteuk.network.Network;
-import net.bteuk.network.gui.Gui;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.SwitchServer;
@@ -68,10 +67,10 @@ public class RecommendedTutorialsGui extends Gui {
         setItem(53, Utils.createItem(Material.SPRUCE_DOOR, 1,
                         ChatUtils.title("Return")),
 
-                u -> {
+                (NetworkUser u) -> {
                     // Go back to the review gui.
                     u.player.closeInventory();
-                    parentGui.open(u);
+                    parentGui.open(u.player);
                 }
         );
 

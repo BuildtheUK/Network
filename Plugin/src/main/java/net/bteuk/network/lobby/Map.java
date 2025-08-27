@@ -390,7 +390,7 @@ public class Map extends AbstractReloadableComponent {
         menu.setDeleteOnClose(true);
 
         // Open the menu.
-        menu.open(u);
+        menu.open(u.player);
     }
 
     public interface HologramClickAction {

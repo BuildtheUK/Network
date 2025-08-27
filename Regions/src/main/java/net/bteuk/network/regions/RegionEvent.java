@@ -129,7 +129,7 @@ public class RegionEvent implements Event {
                 // time this is done.
                 int originalCoordinateID = regionManager.getCoordinateID(region, regionManager.getOwner(region));
                 int coordinateID = coordinateAPI.copyCoordinate(originalCoordinateID);
-                regionManager.joinRegion(uuid, coordinateID == -1 ? originalCoordinateID, coordinateID);
+                regionManager.joinRegion(region, uuid, coordinateID == -1 ? originalCoordinateID : coordinateID);
 
                 // Send a message to the plot owner.
                 DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), regionManager.getOwner(region), "server",

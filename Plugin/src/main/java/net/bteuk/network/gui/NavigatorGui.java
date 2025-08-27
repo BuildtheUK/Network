@@ -1,5 +1,7 @@
 package net.bteuk.network.gui;
 
+import net.bteuk.minecraft.gui.GuiManager;
+import net.bteuk.network.Network;
 import net.bteuk.network.api.EventAPI;
 import net.bteuk.network.api.ServerAPI;
 import net.bteuk.network.api.entity.NetworkLocation;
@@ -15,6 +17,7 @@ import net.bteuk.network.papercore.LocationAdapter;
 import net.bteuk.network.papercore.PlayerAdapter;
 import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.utils.LightsOut;
+import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -22,32 +25,30 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
 import org.bukkit.potion.PotionEffectType;
 
-public class NavigatorGui extends Gui {
+public class NavigatorGui extends NetworkGui {
 
-    public NavigatorGui(Constants constants, GlobalSQL globalSQL, Lobby lobby, Back back, EventAPI eventAPI, ServerAPI serverAPI) {
+    public NavigatorGui(Network instance, GuiManager guiManager, Constants constants, GlobalSQL globalSQL, Lobby lobby, Back back, EventAPI eventAPI, ServerAPI serverAPI, Nightvision nightvision) {
+        super(instance, guiManager, 27, Component.text("Navigator", NamedTextColor.AQUA, TextDecoration.BOLD));
 
-        super(27, Component.text("Navigator", NamedTextColor.AQUA, TextDecoration.BOLD));
-
-        setItem(2, Utils.createItem(Material.DIAMOND_PICKAXE, 1, Utils.title("Build"), Utils.line("Click to open the build menu.")), u -> {
-
+        setItem(2, Utils.createItem(Material.DIAMOND_PICKAXE, 1, Utils.title("Build"), Utils.line("Click to open the build menu.")), (NetworkUser u) -> {
             // Switch to the build menu.
             u.mainGui = new BuildGui(u);
-            u.mainGui.open(u);
+            u.mainGui.open(u.player);
         });
 
-        setItem(4, Utils.createItem(Material.SPRUCE_BOAT, 1, Utils.title("Explore"), Utils.line("Click to open the explore menu.")), u -> {
+        setItem(4, Utils.createItem(Material.SPRUCE_BOAT, 1, Utils.title("Explore"), Utils.line("Click to open the explore menu.")), (NetworkUser u) -> {
 
             // Click Action
             if (constants.warpsEnabled()) {
                 u.mainGui = new ExploreGui(u);
-                u.mainGui.open(u);
+                u.mainGui.open(u.player);
             } else {
                 u.player.closeInventory();
                 u.player.sendMessage(ChatUtils.error("Warps are currently not enabled!"));
             }
         });
 
-        setItem(6, Utils.createItem(Material.KNOWLEDGE_BOOK, 1, Utils.title("Tutorials"), Utils.line("Click to open the tutorials menu.")), u -> {
+        setItem(6, Utils.createItem(Material.KNOWLEDGE_BOOK, 1, Utils.title("Tutorials"), Utils.line("Click to open the tutorials menu.")), (NetworkUser u) -> {
             // Switch to tutorials menu if it's online and enabled.
             // If the current server is already tutorials, don't open the gui.
             if (constants.serverType() == ServerType.TUTORIAL) {
@@ -57,7 +58,7 @@ public class NavigatorGui extends Gui {
                 if (globalSQL.hasRow("SELECT name FROM server_data WHERE " + "type='TUTORIAL' AND online=1;")) {
 
                     u.mainGui = new TutorialsGui(u);
-                    u.mainGui.open(u);
+                    u.mainGui.open(u.player);
                 } else {
                     u.player.closeInventory();
                     u.player.sendMessage(ChatUtils.error("The tutorials server is offline!"));
@@ -69,7 +70,7 @@ public class NavigatorGui extends Gui {
         });
 
         setItem(26, Utils.createItem(Material.NETHER_STAR, 1, Utils.title("Toggle Navigator"), Utils.line("Click to toggle the navigator in your inventory."),
-                Utils.line("You can always open this menu with ").append(Component.text("/navigator", NamedTextColor.GRAY))), u -> {
+                Utils.line("You can always open this menu with ").append(Component.text("/navigator", NamedTextColor.GRAY))), (NetworkUser u) -> {
 
             if (u.isNavigatorEnabled()) {
 
@@ -95,28 +96,28 @@ public class NavigatorGui extends Gui {
 
         setItem(25, Utils.createPotion(Material.SPLASH_POTION, PotionEffectType.NIGHT_VISION, 1, Utils.title("Toggle Nightvision"), Utils.line("Click to toggle nightvision."),
                 Utils.line("You can also use the command ").append(Component.text("/nightvision", NamedTextColor.GRAY)).append(Utils.line(" or "))
-                        .append(Component.text("/nv", NamedTextColor.GRAY))), Nightvision::toggleNightvision);
+                        .append(Component.text("/nv", NamedTextColor.GRAY))), nightvision::toggleNightvision);
 
-        setItem(19, Utils.createItem(Material.REDSTONE_LAMP, 1, Utils.title("Lights Out"), Utils.line("Play a game of Lights Out.")), u -> {
+        setItem(19, Utils.createItem(Material.REDSTONE_LAMP, 1, Utils.title("Lights Out"), Utils.line("Play a game of Lights Out.")), (NetworkUser u) -> {
             if (u.lightsOut == null) {
 
                 u.lightsOut = new LightsOut(u);
-                u.lightsOut.open(u);
+                u.lightsOut.open(u.player);
             } else {
 
-                u.lightsOut.open(u);
+                u.lightsOut.open(u.player);
             }
         });
 
         // Set rules.
-        setItem(21, Utils.createItem(Material.ENCHANTED_BOOK, 1, Utils.title("Rules"), Utils.line("Click to view the rules.")), u -> {
+        setItem(21, Utils.createItem(Material.ENCHANTED_BOOK, 1, Utils.title("Rules"), Utils.line("Click to view the rules.")), (NetworkUser u) -> {
             u.player.closeInventory();
             u.player.openBook(lobby.getRules());
         });
 
         // Spawn
         if (!constants.standalone()) {
-            setItem(23, Utils.createItem(Material.RED_BED, 1, Utils.title("Spawn"), Utils.line("Teleport to spawn.")), u -> {
+            setItem(23, Utils.createItem(Material.RED_BED, 1, Utils.title("Spawn"), Utils.line("Teleport to spawn.")), (NetworkUser u) -> {
                 u.player.closeInventory();
 
                 // If server is Lobby, teleport to spawn.
@@ -134,10 +135,5 @@ public class NavigatorGui extends Gui {
                 }
             });
         }
-    }
-
-    // This methods is not needed in this class, so it is empty.
-    @Override
-    public void refresh() {
     }
 }

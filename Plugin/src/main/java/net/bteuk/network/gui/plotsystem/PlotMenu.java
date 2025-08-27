@@ -2,7 +2,7 @@ package net.bteuk.network.gui.plotsystem;
 
 import net.bteuk.network.Network;
 import net.bteuk.network.gui.BuildGui;
-import net.bteuk.network.gui.Gui;
+import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.sql.PlotSQL;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
@@ -13,7 +13,7 @@ import org.bukkit.Material;
 
 import java.util.ArrayList;
 
-public class PlotMenu extends Gui {
+public class PlotMenu extends NetworkRefreshableGui {
 
     private final NetworkUser user;
     private final PlotSQL plotSQL;
@@ -53,14 +53,14 @@ public class PlotMenu extends Gui {
                             1,
                             Utils.title("Plot " + plots.get(i)),
                             Utils.line("Click to open the menu of this plot.")),
-                    u -> {
+                    (NetworkUser u) -> {
                         // Delete this gui.
                         this.delete();
                         u.mainGui = null;
 
                         // Switch to plot info.
                         u.mainGui = new PlotInfo(u, plots.get(finalI));
-                        u.mainGui.open(u);
+                        u.mainGui.open(u.player);
                     });
 
             // Increase slot accordingly.
@@ -80,13 +80,13 @@ public class PlotMenu extends Gui {
                             Utils.title("Verified Reviews"),
                             Utils.line("Click to view all verifications"),
                             Utils.line("on plots that you have reviewed.")),
-                    u -> {
+                    (NetworkUser u) -> {
                         // Delete this gui.
                         this.delete();
                         u.mainGui = null;
 
                         u.mainGui = new VerificationMenu(u);
-                        u.mainGui.open(u);
+                        u.mainGui.open(u.player);
                     });
         }
 
@@ -94,28 +94,28 @@ public class PlotMenu extends Gui {
         setItem(40, Utils.createItem(Material.CLOCK, 1,
                         Utils.title("Accepted Plots"),
                         Utils.line("Click to view your accepted plots.")),
-                u -> {
+                (NetworkUser u) -> {
                     // Delete this gui.
                     this.delete();
                     u.mainGui = null;
 
                     // Switch to plot info.
                     u.mainGui = new AcceptedPlotMenu(u);
-                    u.mainGui.open(u);
+                    u.mainGui.open(u.player);
                 });
 
         // Return
         setItem(44, Utils.createItem(Material.SPRUCE_DOOR, 1,
                         Utils.title("Return"),
                         Utils.line("Open the building menu.")),
-                u -> {
+                (NetworkUser u) -> {
                     // Delete this gui.
                     this.delete();
                     u.mainGui = null;
 
                     // Switch to plot info.
                     u.mainGui = new BuildGui(u);
-                    u.mainGui.open(u);
+                    u.mainGui.open(u.player);
                 });
     }
 

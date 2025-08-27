@@ -1,6 +1,5 @@
 package net.bteuk.network.utils.texteditorbooks;
 
-import net.bteuk.network.gui.Gui;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
 import net.kyori.adventure.text.Component;

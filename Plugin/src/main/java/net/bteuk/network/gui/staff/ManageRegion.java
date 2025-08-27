@@ -1,6 +1,5 @@
 package net.bteuk.network.gui.staff;
 
-import net.bteuk.network.gui.Gui;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
@@ -48,7 +47,7 @@ public class ManageRegion extends Gui {
                                 Utils.line("to join without needing"),
                                 Utils.line("the owner to accept it.")),
 
-                        u -> {
+                        (NetworkUser u) -> {
 
                             region.setPublic();
                             u.player.sendMessage(ChatUtils.success("Set region ")
@@ -64,7 +63,7 @@ public class ManageRegion extends Gui {
                                 Utils.line("joining requires the owner"),
                                 Utils.line("to accept the request.")),
 
-                        u -> {
+                        (NetworkUser u) -> {
 
                             region.setDefault();
                             u.player.sendMessage(ChatUtils.success("Set region ")
@@ -86,7 +85,7 @@ public class ManageRegion extends Gui {
                                 Utils.line("Allows you to make a member"),
                                 Utils.line("the new region owner.")),
 
-                        u -> {
+                        (NetworkUser u) -> {
 
                             // Close this menu.
                             this.delete();
@@ -94,7 +93,7 @@ public class ManageRegion extends Gui {
 
                             // Open transfer owner menu.
                             u.staffGui = new TransferOwner(region);
-                            u.staffGui.open(u);
+                            u.staffGui.open(u.player);
                         });
             }
         }
@@ -109,7 +108,7 @@ public class ManageRegion extends Gui {
                                 Utils.line("Remove any current members,"),
                                 Utils.line("or the owner from the region.")),
 
-                        u -> {
+                        (NetworkUser u) -> {
 
                             // Close this menu.
                             this.delete();
@@ -117,7 +116,7 @@ public class ManageRegion extends Gui {
 
                             // Open transfer owner menu.
                             u.staffGui = new KickMembers(region);
-                            u.staffGui.open(u);
+                            u.staffGui.open(u.player);
                         });
             }
         }
@@ -134,7 +133,7 @@ public class ManageRegion extends Gui {
                                 Utils.line("region, any existing members"),
                                 Utils.line("will be kicked")),
 
-                        u -> {
+                        (NetworkUser u) -> {
 
                             // If region is currently open, remove jrbuilder group.
                             if (region.status() == RegionStatus.OPEN) {
@@ -156,7 +155,7 @@ public class ManageRegion extends Gui {
                                 Utils.line("people will be able to join"),
                                 Utils.line("and build in the region again.")),
 
-                        u -> {
+                        (NetworkUser u) -> {
 
                             region.setDefault();
                             u.player.sendMessage(ChatUtils.success("Set region ")
@@ -179,7 +178,7 @@ public class ManageRegion extends Gui {
                                 Utils.line("needing to join the region."),
                                 Utils.line("Any existing members will be kicked.")),
 
-                        u -> {
+                        (NetworkUser u) -> {
                             region.setOpen();
                             u.player.sendMessage(ChatUtils.success("Set region ")
                                     .append(Component.text(region.regionName(), NamedTextColor.DARK_AQUA))
@@ -194,7 +193,7 @@ public class ManageRegion extends Gui {
                                 Utils.line("people will again be required"),
                                 Utils.line("to join the region to build.")),
 
-                        u -> {
+                        (NetworkUser u) -> {
                             region.setDefault("jrbuilder");
                             u.player.sendMessage(ChatUtils.success("Set region ")
                                     .append(Component.text(region.regionName(), NamedTextColor.DARK_AQUA))
@@ -216,7 +215,7 @@ public class ManageRegion extends Gui {
                     u.staffGui = null;
 
                     u.staffGui = new StaffGui(u);
-                    u.staffGui.open(u);
+                    u.staffGui.open(u.player);
                 });
     }
 

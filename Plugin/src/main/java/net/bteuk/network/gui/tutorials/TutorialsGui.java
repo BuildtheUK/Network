@@ -1,7 +1,7 @@
 package net.bteuk.network.gui.tutorials;
 
 import net.bteuk.network.Network;
-import net.bteuk.network.gui.Gui;
+import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Role;
 import net.bteuk.network.utils.Roles;
@@ -24,7 +24,7 @@ import teachingtutorials.utils.User;
 import static net.bteuk.network.utils.Constants.LOGGER;
 import static net.bteuk.network.utils.NetworkConfig.CONFIG;
 
-public class TutorialsGui extends Gui {
+public class TutorialsGui extends NetworkRefreshableGui {
 
     private final Network plugin = Network.getInstance();
 

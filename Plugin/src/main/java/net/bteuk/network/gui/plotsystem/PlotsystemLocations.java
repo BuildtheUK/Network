@@ -3,7 +3,7 @@ package net.bteuk.network.gui.plotsystem;
 import net.bteuk.network.Network;
 import net.bteuk.network.eventing.events.EventManager;
 import net.bteuk.network.gui.BuildGui;
-import net.bteuk.network.gui.Gui;
+import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.sql.PlotSQL;
 import net.bteuk.network.utils.SwitchServer;
@@ -20,7 +20,7 @@ import java.util.Objects;
 
 import static net.bteuk.network.utils.Constants.SERVER_NAME;
 
-public class PlotsystemLocations extends Gui {
+public class PlotsystemLocations extends NetworkRefreshableGui {
 
     private final PlotSQL plotSQL;
     private final GlobalSQL globalSQL;
@@ -55,7 +55,7 @@ public class PlotsystemLocations extends Gui {
                             )),
                             Utils.line("Click to teleport to the centre"),
                             Utils.line("of this plotsystem location.")),
-                    u -> {
+                    (NetworkUser u) -> {
 
                         // Teleport to centre of the plotsystem location.
                         // Get coordinate ids for min and max.
@@ -117,7 +117,7 @@ public class PlotsystemLocations extends Gui {
         setItem(44, Utils.createItem(Material.SPRUCE_DOOR, 1,
                         Utils.title("Return"),
                         Utils.line("Open the building menu.")),
-                u -> {
+                (NetworkUser u) -> {
 
                     // Delete this gui.
                     this.delete();
@@ -125,7 +125,7 @@ public class PlotsystemLocations extends Gui {
 
                     // Switch to plot info.
                     u.mainGui = new BuildGui(u);
-                    u.mainGui.open(u);
+                    u.mainGui.open(u.player);
                 });
     }
 

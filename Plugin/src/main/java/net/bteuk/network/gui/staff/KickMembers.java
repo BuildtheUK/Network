@@ -1,7 +1,6 @@
 package net.bteuk.network.gui.staff;
 
 import net.bteuk.network.Network;
-import net.bteuk.network.gui.Gui;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.utils.Utils;
@@ -135,7 +134,7 @@ public class KickMembers extends Gui {
 
                     // Switch back to plot info.
                     u.staffGui = new ManageRegion(u, region);
-                    u.staffGui.open(u);
+                    u.staffGui.open(u.player);
                 });
     }
 

@@ -3,7 +3,7 @@ package net.bteuk.network.gui.plotsystem;
 import net.bteuk.network.Network;
 import net.bteuk.network.eventing.events.EventManager;
 import net.bteuk.network.gui.BuildGui;
-import net.bteuk.network.gui.Gui;
+import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.sql.PlotSQL;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
@@ -14,7 +14,7 @@ import org.bukkit.Material;
 
 import java.util.ArrayList;
 
-public class ZoneMenu extends Gui {
+public class ZoneMenu extends NetworkRefreshableGui {
 
     private final NetworkUser user;
     private final PlotSQL plotSQL;
@@ -67,7 +67,7 @@ public class ZoneMenu extends Gui {
                                 1,
                                 Utils.title("Zone " + zones.get(i)),
                                 Utils.line("Click to open the menu of this zone.")),
-                        u -> {
+                        (NetworkUser u) -> {
 
                             // Delete this gui.
                             this.delete();
@@ -75,7 +75,7 @@ public class ZoneMenu extends Gui {
 
                             // Switch to zone info.
                             u.mainGui = new ZoneInfo(u, zones.get(finalI), u.player.getUniqueId().toString());
-                            u.mainGui.open(u);
+                            u.mainGui.open(u.player);
                         });
             } else if (plotSQL.hasRow("SELECT id FROM zones WHERE id=" + zones.get(i) + " AND is_public=1;")) {
 
@@ -83,7 +83,7 @@ public class ZoneMenu extends Gui {
                                 1,
                                 Utils.title("Zone " + zones.get(i)),
                                 Utils.line("Click to join this zone.")),
-                        u -> {
+                        (NetworkUser u) -> {
 
                             // Add server event to join zone.
                             EventManager.createEvent(u.player.getUniqueId().toString(), "plotsystem",
@@ -123,7 +123,7 @@ public class ZoneMenu extends Gui {
         setItem(44, Utils.createItem(Material.SPRUCE_DOOR, 1,
                         Utils.title("Return"),
                         Utils.line("Open the building menu.")),
-                u -> {
+                (NetworkUser u) -> {
 
                     // Delete this gui.
                     this.delete();
@@ -131,7 +131,7 @@ public class ZoneMenu extends Gui {
 
                     // Switch to plot info.
                     u.mainGui = new BuildGui(u);
-                    u.mainGui.open(u);
+                    u.mainGui.open(u.player);
                 });
     }
 

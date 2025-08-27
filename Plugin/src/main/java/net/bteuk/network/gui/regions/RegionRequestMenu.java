@@ -1,7 +1,6 @@
 package net.bteuk.network.gui.regions;
 
 import net.bteuk.network.Network;
-import net.bteuk.network.gui.Gui;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.sql.RegionSQL;
 import net.bteuk.network.utils.NetworkUser;
@@ -118,7 +117,7 @@ public class RegionRequestMenu extends Gui {
                             )),
                             Utils.line("Click to cancel")),
 
-                    u -> {
+                    (NetworkUser u) -> {
 
                         // Delete region request.
                         regionSQL.update("DELETE FROM region_requests  WHERE region='" + requests.get(finalI) + "' " +
@@ -143,14 +142,14 @@ public class RegionRequestMenu extends Gui {
         // Return
         setItem(44, Utils.createItem(Material.SPRUCE_DOOR, 1,
                 Utils.title("Return"),
-                Utils.line("Open the region menu.")), u -> {
+                Utils.line("Open the region menu.")), (NetworkUser u) -> {
 
             // Delete this gui.
             this.delete();
 
             // Switch to region menu.
             u.mainGui = new RegionMenu(u);
-            u.mainGui.open(u);
+            u.mainGui.open(u.player);
         });
     }
 

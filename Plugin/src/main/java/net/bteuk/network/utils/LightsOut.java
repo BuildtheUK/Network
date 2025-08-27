@@ -1,6 +1,6 @@
 package net.bteuk.network.utils;
 
-import net.bteuk.network.gui.Gui;
+import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -10,7 +10,7 @@ import org.bukkit.Material;
 import java.util.Arrays;
 import java.util.Random;
 
-public class LightsOut extends Gui {
+public class LightsOut extends NetworkRefreshableGui {
 
     // Lights out is a simple game where the objective is to turn off all the lights.
     // You start with a 6*9 grid of lights that are either on or off.

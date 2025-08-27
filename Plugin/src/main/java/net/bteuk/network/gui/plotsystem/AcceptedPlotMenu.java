@@ -4,7 +4,6 @@ import com.destroystokyo.paper.profile.PlayerProfile;
 import lombok.Getter;
 import lombok.Setter;
 import net.bteuk.network.Network;
-import net.bteuk.network.gui.Gui;
 import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.sql.PlotSQL;
 import net.bteuk.network.utils.NetworkUser;
@@ -162,14 +161,14 @@ public class AcceptedPlotMenu extends Gui {
         setItem(44, Utils.createItem(Material.SPRUCE_DOOR, 1,
                         Utils.title("Return"),
                         Utils.line("Open the plot menu.")),
-                u -> {
+                (NetworkUser u) -> {
                     // Delete this gui.
                     this.delete();
                     u.mainGui = null;
 
                     // Return to the plot menu.
                     u.mainGui = new PlotMenu(u);
-                    u.mainGui.open(u);
+                    u.mainGui.open(u.player);
                 });
     }
 
@@ -196,14 +195,14 @@ public class AcceptedPlotMenu extends Gui {
                         "WHERE uuid='" + uuid + "';"), NamedTextColor.GRAY)),
                 Utils.line("Click to open the menu of this plot."));
 
-        setItem(slot, guiItem, u -> {
+        setItem(slot, guiItem, (NetworkUser u) -> {
             // Switch to plot info.
             if (plotInfo != null) {
                 plotInfo.deleteThis();
             }
             plotInfo = new PlotInfo(u, plotID);
             plotInfo.setAcceptedPlotMenu(this);
-            plotInfo.open(u);
+            plotInfo.open(u.player);
         });
     }
 }

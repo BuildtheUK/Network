@@ -172,7 +172,7 @@ public class InviteMembers extends Gui {
 
                         // Switch back to plot info.
                         u.mainGui = new RegionInfo(region, u.player.getUniqueId().toString());
-                        u.mainGui.open(u);
+                        u.mainGui.open(u.player);
                     });
         } else if (regionType == RegionType.PLOT) {
 
@@ -191,7 +191,7 @@ public class InviteMembers extends Gui {
 
                         // Switch back to plot info.
                         u.mainGui = new PlotInfo(u, plotID);
-                        u.mainGui.open(u);
+                        u.mainGui.open(u.player);
                     });
         } else if (regionType == RegionType.ZONE) {
 
@@ -210,7 +210,7 @@ public class InviteMembers extends Gui {
 
                         // Switch back to plot info.
                         u.mainGui = new ZoneInfo(u, zoneID, u.player.getUniqueId().toString());
-                        u.mainGui.open(u);
+                        u.mainGui.open(u.player);
                     });
         }
     }
