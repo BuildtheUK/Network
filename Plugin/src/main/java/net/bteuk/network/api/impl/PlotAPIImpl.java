@@ -206,4 +206,14 @@ public class PlotAPIImpl implements PlotAPI {
     public boolean hasLocation(String location) {
         return plotSQL.hasRow("SELECT name FROM location_data WHERE name='" + location + "';");
     }
+
+    @Override
+    public String getPlotOwner(int plotID) {
+        return plotSQL.getString("SELECT uuid FROM plot_members WHERE id=" + plotID + " AND is_owner=1;");
+    }
+
+    @Override
+    public String getZoneOwner(int zoneID) {
+        return plotSQL.getString("SELECT uuid FROM zone_members WHERE id=" + zoneID + " AND is_owner=1;");
+    }
 }

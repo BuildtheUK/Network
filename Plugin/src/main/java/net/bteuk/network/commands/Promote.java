@@ -1,6 +1,7 @@
 package net.bteuk.network.commands;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
+import net.bteuk.network.CustomChat;
 import net.bteuk.network.Network;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.Roles;
@@ -14,8 +15,8 @@ import org.jetbrains.annotations.NotNull;
 public class Promote extends PromotionAction {
     private static final Component ERROR = ChatUtils.error("/promote [player] [role]");
 
-    public Promote(Network instance, Roles roles) {
-        super(instance, roles, ERROR);
+    public Promote(Network instance, Roles roles, CustomChat chat) {
+        super(instance, roles, chat, ERROR);
     }
 
     @Override

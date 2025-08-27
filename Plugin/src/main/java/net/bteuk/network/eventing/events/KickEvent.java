@@ -1,17 +1,18 @@
 package net.bteuk.network.eventing.events;
 
+import lombok.extern.java.Log;
+import net.bteuk.network.core.Event;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-
-import static net.bteuk.network.utils.Constants.LOGGER;
 
 /**
  * Event for kicking players from the server
  * <p>
  * A kick event does not have any additional arguments, but should include a message.
  */
-public class KickEvent extends AbstractEvent {
+@Log
+public class KickEvent implements Event {
 
     @Override
     public void event(String uuid, String[] args, String message) {
@@ -33,6 +34,6 @@ public class KickEvent extends AbstractEvent {
         }
 
         // If the player could not be found log it in the console.
-        LOGGER.warning("Attempted to kick player with uuid " + uuid + " but they could not be found on this server!");
+        log.warning("Attempted to kick player with uuid " + uuid + " but they could not be found on this server!");
     }
 }

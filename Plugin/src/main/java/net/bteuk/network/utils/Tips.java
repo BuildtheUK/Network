@@ -1,8 +1,9 @@
 package net.bteuk.network.utils;
 
+import lombok.extern.java.Log;
 import net.bteuk.network.Network;
+import net.bteuk.network.core.Constants;
 import org.apache.commons.io.FileUtils;
-import org.bukkit.Bukkit;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,39 +15,37 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static net.bteuk.network.utils.Constants.LOGGER;
-import static net.bteuk.network.utils.NetworkConfig.CONFIG;
-
 /**
  * Class that manages the automated tips in chat.
  * The frequency is specified in the config.
  * Each builder role can have a file, if no file exists for the role, no message is sent.
  */
+@Log
 public class Tips {
 
-    HashMap<String, TipsList> tipsMap;
+    private HashMap<String, TipsList> tipsMap;
 
     /**
      * Load the tips from the text files in the tips folder, if any exist.
      * If no files exist in the directory don't load tips.
      */
-    public Tips() {
+    public Tips(Network instance, Constants constants) {
 
         // Create the directory if not exists.
-        File file = new File(Network.getInstance().getDataFolder() + "/tips");
+        File file = new File(instance.getDataFolder() + "/tips");
 
         if (!file.exists()) {
 
             if (file.mkdir()) {
 
-                // Add example file.
+                // Add an example file.
                 try {
 
-                    FileUtils.copyToFile(Objects.requireNonNull(Network.getInstance().getResource("tips-example.txt")),
+                    FileUtils.copyToFile(Objects.requireNonNull(instance.getResource("tips-example.txt")),
                             new File(file + "/tips-example.txt"));
-                    LOGGER.info("Created tips directory and added example file.");
+                    log.info("Created tips directory and added example file.");
                 } catch (IOException | NullPointerException e) {
-                    e.printStackTrace();
+                    log.severe("An error occurred while creating the tips directory and example file: " + e.getLocalizedMessage());
                 }
             }
         } else {
@@ -72,7 +71,7 @@ public class Tips {
                             tipsMap.put(txtFile.getName().replace(".txt", ""), new TipsList(lines));
                         }
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        log.severe("An error occurred while loading the tips file " + txtFile.getName() + ": " + e.getLocalizedMessage());
                     }
                 }
 
@@ -80,18 +79,18 @@ public class Tips {
                 if (!tipsMap.isEmpty()) {
 
                     // Get interval.
-                    long frequency = CONFIG.getInt("chat.tips.frequency") * 60L * 20L;
+                    long frequency = constants.tipsFrequency() * 60L * 20L;
 
-                    Bukkit.getScheduler().scheduleSyncRepeatingTask(Network.getInstance(), () -> {
+                    instance.getTimerAPI().registerTimer(() -> {
 
                         // For all online players see if their builder role has tips, if true send them the current tip.
-                        for (NetworkUser user : Network.getInstance().getUsers()) {
+                        for (NetworkUser user : instance.getUsers()) {
 
                             // Check if the user has tips enabled.
                             if (user.isTipsEnabled()) {
 
                                 // Get builder role from database.
-                                String role = Network.getInstance().getGlobalSQL().getString("SELECT builder_role " +
+                                String role = instance.getGlobalSQL().getString("SELECT builder_role " +
                                         "FROM player_data WHERE uuid='" + user.player.getUniqueId() + "';");
 
                                 if (tipsMap.containsKey(role)) {
@@ -102,9 +101,9 @@ public class Tips {
 
                         // Increment the counter on all TipsLists
                         tipsMap.values().forEach(TipsList::increment);
-                    }, 2400L, frequency);
+                    }, frequency, 2400L);
 
-                    LOGGER.info("Enabled tips timer!");
+                    log.info("Enabled tips timer!");
                 }
             }
         }

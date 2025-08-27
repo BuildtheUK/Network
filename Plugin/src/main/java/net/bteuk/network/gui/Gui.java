@@ -13,8 +13,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static net.bteuk.network.utils.Constants.LOGGER;
-
 @Getter
 public abstract class Gui implements GuiInterface {
 
@@ -73,11 +71,8 @@ public abstract class Gui implements GuiInterface {
     }
 
     public void open(NetworkUser u) {
-
         u.player.openInventory(inv);
         openInventories.put(u.player.getUniqueId(), getUuid());
-
-        LOGGER.info("Total gui's = " + inventoriesByUUID.size());
     }
 
     public void delete() {

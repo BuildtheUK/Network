@@ -68,18 +68,21 @@ public class GlobalSQL extends AbstractSQL {
     // Add new coordinate to database and return the id.
     public int addCoordinate(Location l) {
 
-        return (addCoordinate(constants.serverName(), l.getWorld().getName(), l.getX(), l.getY(), l.getZ(), l.getYaw(), l.getPitch()));
+        return addCoordinate(constants.serverName(), l.getWorld().getName(), l.getX(), l.getY(), l.getZ(), l.getYaw(), l.getPitch());
     }
 
     // Add new coordinate to database and return the id.
     public int addCoordinate(NetworkLocation l) {
-        return (addCoordinate(constants.serverName(), l.world(), l.x(), l.y(), l.z(), l.yaw(), l.pitch()));
+        return addCoordinate(constants.serverName(), l.world(), l.x(), l.y(), l.z(), l.yaw(), l.pitch());
+    }
+
+    public int addCoordinate(Coordinate coordinate) {
+        return addCoordinate(coordinate.getServer(), coordinate.getWorld(), coordinate.getX(), coordinate.getY(), coordinate.getZ(), coordinate.getYaw(), coordinate.getPitch());
     }
 
     // Add new coordinate to database and return the id.
     public int addCoordinate(String server, Location l) {
-
-        return (addCoordinate(server, l.getWorld().getName(), l.getX(), l.getY(), l.getZ(), l.getYaw(), l.getPitch()));
+        return addCoordinate(server, l.getWorld().getName(), l.getX(), l.getY(), l.getZ(), l.getYaw(), l.getPitch());
     }
 
     // Add new coordinate using values, rather than location.

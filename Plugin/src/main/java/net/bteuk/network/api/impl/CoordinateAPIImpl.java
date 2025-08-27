@@ -3,6 +3,7 @@ package net.bteuk.network.api.impl;
 import net.bteuk.network.api.CoordinateAPI;
 import net.bteuk.network.api.entity.NetworkLocation;
 import net.bteuk.network.sql.GlobalSQL;
+import net.bteuk.network.utils.Coordinate;
 
 public class CoordinateAPIImpl implements CoordinateAPI {
 
@@ -20,5 +21,14 @@ public class CoordinateAPIImpl implements CoordinateAPI {
     @Override
     public int addCoordinate(NetworkLocation location) {
         return globalSQL.addCoordinate(location);
+    }
+
+    @Override
+    public int copyCoordinate(int coordinateID) {
+        Coordinate coordinate = globalSQL.getCoordinate(coordinateID);
+        if (coordinate != null) {
+            return globalSQL.addCoordinate(coordinate);
+        }
+        return -1;
     }
 }

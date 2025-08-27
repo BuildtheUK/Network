@@ -90,4 +90,8 @@ public interface PlotAPI {
     int getZTransform(String location);
 
     boolean hasLocation(String location);
+
+    String getPlotOwner(int plotID);
+
+    String getZoneOwner(int zoneID);
 }

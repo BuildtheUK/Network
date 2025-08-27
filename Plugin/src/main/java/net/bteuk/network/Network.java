@@ -462,8 +462,8 @@ public final class Network extends JavaPlugin implements NetworkAPI {
             commandManager.registerCommand(new Reply(chat));
         }
 
-        commandManager.registerCommand(new Promote(this, roles));
-        commandManager.registerCommand(new Demote(this, roles));
+        commandManager.registerCommand(new Promote(this, roles, chat));
+        commandManager.registerCommand(new Demote(this, roles, chat));
 
         commandManager.registerCommand(new Me());
 
@@ -475,7 +475,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         // Enable tips.
         if (constants.tips()) {
             // Enable tips in chat.
-            new Tips();
+            new Tips(this, constants);
         }
 
         // Create a default season if not exists.

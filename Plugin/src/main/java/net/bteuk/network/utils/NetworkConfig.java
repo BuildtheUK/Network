@@ -175,10 +175,12 @@ public class NetworkConfig {
         int chatSocketOutputPort = config.getInt("chat.socket.output.port");
         int chatSocketInputPort = config.getInt("chat.socket.input.port");
 
+        int tipsFrequency = config.getInt("chat.tips.frequency");
+
         log.info("Loaded constants from config.");
         return new Constants(serverName, serverType, standalone, regionsEnabled, regionInactivity, tpllEnabled, tpllRequiredPermission, maxY, minY, earthWorld, staffChat, tips,
                 tutorials, llEnabled, progressMap, progression, announceOverallLevelUps, announceSeasonalLevelUps, sidebarEnabled, sidebarTitle, sidebarTextList, motdEnabled,
                 motdText, plotSystemEnabled, moderationEnabled, warpsEnabled, homesEnabled, announcePromotions, discordLink, skullsEnabled, progressMapLink, chatSocketOutputIP,
-                chatSocketOutputPort, chatSocketInputPort);
+                chatSocketOutputPort, chatSocketInputPort, tipsFrequency);
     }
 }

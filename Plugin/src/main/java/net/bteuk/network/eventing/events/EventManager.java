@@ -1,21 +1,43 @@
 package net.bteuk.network.eventing.events;
 
-import net.bteuk.network.Network;
+import lombok.extern.java.Log;
+import net.bteuk.network.api.ChatAPI;
+import net.bteuk.network.api.CoordinateAPI;
 import net.bteuk.network.api.EventAPI;
+import net.bteuk.network.api.PlotAPI;
+import net.bteuk.network.api.ServerAPI;
 import net.bteuk.network.api.entity.NetworkLocation;
 import net.bteuk.network.commands.navigation.Back;
+import net.bteuk.network.commands.navigation.Tpll;
+import net.bteuk.network.core.Constants;
+import net.bteuk.network.core.Event;
+import net.bteuk.network.lobby.Lobby;
+import net.bteuk.network.regions.RegionEvent;
+import net.bteuk.network.regions.RegionManager;
 import net.bteuk.network.sql.GlobalSQL;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 
-import static net.bteuk.network.utils.Constants.SERVER_NAME;
+import java.util.HashMap;
 
-public class EventManager extends AbstractEvent implements EventAPI {
+@Log
+public class EventManager implements EventAPI, Event {
 
+    private final HashMap<String, Event> events = new HashMap<>();
     private final GlobalSQL globalSQL;
+    private final Constants constants;
+    private final Back back;
 
-    public EventManager(GlobalSQL globalSQL) {
+    public EventManager(GlobalSQL globalSQL, Constants constants, Back back, PlotAPI plotAPI, RegionManager regionManager, ServerAPI serverAPI, Tpll tpll, Lobby lobby, ChatAPI chat, CoordinateAPI coordinateAPI) {
         this.globalSQL = globalSQL;
+        this.constants = constants;
+        this.back = back;
+
+        // Register all the events.
+        events.put("invite", new InviteEvent(globalSQL, plotAPI, regionManager));
+        events.put("teleport", new TeleportEvent(globalSQL, plotAPI, regionManager, constants, serverAPI, this, tpll, lobby));
+        events.put("region", new RegionEvent(regionManager, chat, globalSQL, coordinateAPI));
+        events.put("kick", new KickEvent());
     }
 
     public void createJoinEvent(String uuid, String type, String event) {
@@ -24,16 +46,16 @@ public class EventManager extends AbstractEvent implements EventAPI {
     }
 
     public void createJoinEvent(String uuid, String type, String event, String message) {
-        Network.getInstance().getGlobalSQL()
-                .update("INSERT INTO join_events(uuid,type,event,message) " + "VALUES('" + uuid + "','" + type + "','" + event + "','" + message + "') " + "ON DUPLICATE KEY " +
-                        "UPDATE type='" + type + "', event='" + event + "', message='" + message + "';");
+        globalSQL.update(
+                "INSERT INTO join_events(uuid,type,event,message) " + "VALUES('" + uuid + "','" + type + "','" + event + "','" + message + "') " + "ON DUPLICATE KEY " + "UPDATE " +
+                        "type='" + type + "', event='" + event + "', message='" + message + "';");
     }
 
     public void createJoinEvent(String uuid, String type, String event, Component message) {
         String messageString = PlainTextComponentSerializer.plainText().serialize(message);
-        Network.getInstance().getGlobalSQL()
-                .update("INSERT INTO join_events(uuid,type,event,message) " + "VALUES('" + uuid + "','" + type + "','" + event + "','" + message + "') " + "ON DUPLICATE KEY " +
-                        "UPDATE type='" + type + "', event='" + event + "', message='" + messageString + "';");
+        globalSQL.update(
+                "INSERT INTO join_events(uuid,type,event,message) " + "VALUES('" + uuid + "','" + type + "','" + event + "','" + message + "') " + "ON DUPLICATE KEY " + "UPDATE " +
+                        "type='" + type + "', event='" + event + "', message='" + messageString + "';");
     }
 
     /**
@@ -47,10 +69,9 @@ public class EventManager extends AbstractEvent implements EventAPI {
      */
     public void createEvent(String uuid, String type, String server, String event) {
         if (uuid == null) {
-            Network.getInstance().getGlobalSQL().update("INSERT INTO server_events(type,server,event) " + "VALUES('" + type + "','" + server + "','" + event + "');");
+            globalSQL.update("INSERT INTO server_events(type,server,event) " + "VALUES('" + type + "','" + server + "','" + event + "');");
         } else {
-            Network.getInstance().getGlobalSQL()
-                    .update("INSERT INTO server_events(uuid,type,server,event) " + "VALUES('" + uuid + "','" + type + "','" + server + "','" + event + "');");
+            globalSQL.update("INSERT INTO server_events(uuid,type,server,event) " + "VALUES('" + uuid + "','" + type + "','" + server + "','" + event + "');");
         }
     }
 
@@ -66,12 +87,10 @@ public class EventManager extends AbstractEvent implements EventAPI {
      */
     public void createEvent(String uuid, String type, String server, String event, String message) {
         if (uuid == null) {
-            Network.getInstance().getGlobalSQL()
-                    .update("INSERT INTO server_events(type,server,event,message) " + "VALUES('" + type + "','" + server + "','" + event + "','" + message + "');");
+            globalSQL.update("INSERT INTO server_events(type,server,event,message) " + "VALUES('" + type + "','" + server + "','" + event + "','" + message + "');");
         } else {
-            Network.getInstance().getGlobalSQL()
-                    .update("INSERT INTO server_events(uuid,type,server,event,message) " + "VALUES('" + uuid + "','" + type + "','" + server + "','" + event + "','" + message +
-                            "');");
+            globalSQL.update(
+                    "INSERT INTO server_events(uuid,type,server,event,message) " + "VALUES('" + uuid + "','" + type + "','" + server + "','" + event + "','" + message + "');");
         }
     }
 
@@ -88,48 +107,48 @@ public class EventManager extends AbstractEvent implements EventAPI {
     public void createEvent(String uuid, String type, String server, String event, Component message) {
         String messageString = PlainTextComponentSerializer.plainText().serialize(message);
         if (uuid == null) {
-            Network.getInstance().getGlobalSQL()
-                    .update("INSERT INTO server_events(type,server,event,message) " + "VALUES('" + type + "','" + server + "','" + event + "','" + messageString + "');");
+            globalSQL.update("INSERT INTO server_events(type,server,event,message) " + "VALUES('" + type + "','" + server + "','" + event + "','" + messageString + "');");
         } else {
-            Network.getInstance().getGlobalSQL()
-                    .update("INSERT INTO server_events(uuid,type,server,event,message) " + "VALUES('" + uuid + "','" + type + "','" + server + "','" + event + "','" + messageString + "');");
+            globalSQL.update(
+                    "INSERT INTO server_events(uuid,type,server,event,message) " + "VALUES('" + uuid + "','" + type + "','" + server + "','" + event + "','" + messageString +
+                            "');");
         }
     }
 
     public void createTeleportEvent(boolean join, String uuid, String type, String event, NetworkLocation previousLocation) {
 
-        Back.setPreviousCoordinate(uuid, previousLocation);
+        back.setPreviousCoordinate(uuid, previousLocation);
 
         // Create event
         if (join) {
             createJoinEvent(uuid, type, event);
         } else {
-            createEvent(uuid, type, SERVER_NAME, event);
+            createEvent(uuid, type, constants.serverName(), event);
         }
     }
 
     public void createTeleportEvent(boolean join, String uuid, String type, String event, String message, NetworkLocation previousLocation) {
 
-        Back.setPreviousCoordinate(uuid, previousLocation);
+        back.setPreviousCoordinate(uuid, previousLocation);
 
         // Create event
         if (join) {
             createJoinEvent(uuid, type, event, message);
         } else {
-            createEvent(uuid, type, SERVER_NAME, event, message);
+            createEvent(uuid, type, constants.serverName(), event, message);
         }
     }
 
     public void createTeleportEvent(boolean join, String uuid, String type, String event, Component message, NetworkLocation previousLocation) {
 
         String messageString = PlainTextComponentSerializer.plainText().serialize(message);
-        Back.setPreviousCoordinate(uuid, previousLocation);
+        back.setPreviousCoordinate(uuid, previousLocation);
 
         // Create event
         if (join) {
             createJoinEvent(uuid, type, event, messageString);
         } else {
-            createEvent(uuid, type, SERVER_NAME, event, messageString);
+            createEvent(uuid, type, constants.serverName(), event, messageString);
         }
     }
 
@@ -138,17 +157,15 @@ public class EventManager extends AbstractEvent implements EventAPI {
      *
      * @param uuid    the uuid of the player to whom this event applies
      * @param event   arguments of the event
-     * @param message optional message to send to the player after the event has executes successfully
+     * @param message optional message to send to the player after the event has executed successfully
      */
     @Override
     public void event(String uuid, String[] event, String message) {
-
-        // Start the execution process by looking at the event message structure.
-        switch (event[0]) {
-            case "invite" -> new InviteEvent().event(uuid, event, message);
-            case "teleport" -> new TeleportEvent().event(uuid, event, message);
-            case "region" -> new RegionEvent().event(uuid, event, message);
-            case "kick" -> new KickEvent().event(uuid, event, message);
+        Event eventType = events.get(event[0]);
+        if (eventType == null) {
+            log.warning("Event " + event[0] + " is not registered.");
+        } else {
+            eventType.event(uuid, event, message);
         }
     }
 }
