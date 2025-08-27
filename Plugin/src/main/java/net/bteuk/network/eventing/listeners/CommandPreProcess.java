@@ -1,11 +1,15 @@
 package net.bteuk.network.eventing.listeners;
 
+import lombok.extern.java.Log;
 import net.bteuk.network.Network;
+import net.bteuk.network.api.ServerAPI;
+import net.bteuk.network.commands.Afk;
+import net.bteuk.network.core.Constants;
+import net.bteuk.network.core.Time;
 import net.bteuk.network.lib.dto.ServerShutdown;
 import net.bteuk.network.lib.utils.ChatUtils;
+import net.bteuk.network.papercore.PlayerAdapter;
 import net.bteuk.network.utils.NetworkUser;
-import net.bteuk.network.utils.SwitchServer;
-import net.bteuk.network.utils.Time;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
@@ -16,18 +20,21 @@ import org.bukkit.event.server.ServerCommandEvent;
 
 import java.util.ArrayList;
 
-import static net.bteuk.network.commands.Afk.updateAfkStatus;
-import static net.bteuk.network.utils.Constants.LOGGER;
-import static net.bteuk.network.utils.Constants.REGIONS_ENABLED;
-import static net.bteuk.network.utils.Constants.SERVER_NAME;
-import static net.bteuk.network.utils.Constants.TPLL_ENABLED;
-
+@Log
 public class CommandPreProcess implements Listener {
 
     private final Network instance;
+    private final Constants constants;
+    private final Afk afk;
+    private final Connect connect;
+    private final ServerAPI serverAPI;
 
-    public CommandPreProcess(Network instance) {
+    public CommandPreProcess(Network instance, Constants constants, Afk afk, Connect connect, ServerAPI serverAPI) {
         this.instance = instance;
+        this.constants = constants;
+        this.afk = afk;
+        this.connect = connect;
+        this.serverAPI = serverAPI;
         instance.allowShutdown = false;
         Bukkit.getServer().getPluginManager().registerEvents(this, instance);
     }
@@ -44,7 +51,7 @@ public class CommandPreProcess implements Listener {
 
             // If u is null, cancel.
             if (user == null) {
-                LOGGER.severe("User " + e.getPlayer().getName() + " can not be found!");
+                log.severe("User " + e.getPlayer().getName() + " can not be found!");
                 e.getPlayer().sendMessage(ChatUtils.error("User can not be found, please relog!"));
                 e.setCancelled(true);
                 return;
@@ -53,24 +60,26 @@ public class CommandPreProcess implements Listener {
             user.last_movement = Time.currentTime();
             if (user.isAfk()) {
                 user.setAfk(false);
-                updateAfkStatus(user, false);
+                afk.updateAfkStatus(user, false);
             }
         }
 
         // Replace /region with /network:region
         if (isCommand(e.getMessage(), "/region")) {
-            if (REGIONS_ENABLED) {
+            if (constants.regionsEnabled()) {
                 e.setMessage(e.getMessage().replace("/region", "/network:region"));
             }
         } else if (isCommand(e.getMessage(), "/tpll")) {
-            if (TPLL_ENABLED) {
+            if (constants.tpllEnabled()) {
                 e.setMessage(e.getMessage().replace("/tpll", "/network:tpll"));
             }
         } else if (isCommand(e.getMessage(), "/server")) {
-            e.setMessage(e.getMessage().replace("/server", "/network:server"));
+            if (!constants.standalone()) {
+                e.setMessage(e.getMessage().replace("/server", "/network:server"));
+            }
         } else if (isCommand(e.getMessage(), "/hdb")) {
-            // If skulls plugin exists and is loaded.
-            if (Bukkit.getServer().getPluginManager().getPlugin("skulls") != null) {
+            // If the skulls plugin exists and is loaded.
+            if (constants.skullsEnabled() && Bukkit.getServer().getPluginManager().getPlugin("skulls") != null) {
                 e.setMessage(e.getMessage().replace("/hdb", "/skulls"));
             }
         }
@@ -107,8 +116,8 @@ public class CommandPreProcess implements Listener {
                 s.setCancelled(true);
                 Bukkit.getScheduler().scheduleSyncDelayedTask(instance, () -> {
                     // Disable the LeaveServer event, although everyone should already be disconnected by now.
-                    if (instance.getConnect() != null) {
-                        instance.getConnect().setBlockLeaveEvent(true);
+                    if (connect != null) {
+                        connect.setBlockLeaveEvent(true);
                     }
 
                     Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "stop");
@@ -118,7 +127,7 @@ public class CommandPreProcess implements Listener {
     }
 
     // This class executes when the server closes, instead of a player server quit event since that will cause errors.
-    // It for the most part copies the methods.
+    // For the most part, it copies the methods.
     public void onServerClose(ArrayList<NetworkUser> users) {
 
         // Check if another server is online,
@@ -128,21 +137,23 @@ public class CommandPreProcess implements Listener {
         String server = null;
 
         // Try different servers.
-        if (instance.getGlobalSQL().hasRow("SELECT name FROM server_data WHERE type='LOBBY' AND online=1 AND name<>'" + SERVER_NAME + "';")) {
+        if (!constants.standalone()) {
+            if (instance.getGlobalSQL().hasRow("SELECT name FROM server_data WHERE type='LOBBY' AND online=1 AND name<>'" + constants.serverName() + "';")) {
 
-            server = instance.getGlobalSQL().getString("SELECT name FROM server_data WHERE type='LOBBY' AND online=1 AND name<>'" + SERVER_NAME + "';");
-        } else if (instance.getGlobalSQL().hasRow("SELECT name FROM server_data WHERE type='EARTH' AND online=1 AND name<>'" + SERVER_NAME + "';")) {
+                server = instance.getGlobalSQL().getString("SELECT name FROM server_data WHERE type='LOBBY' AND online=1 AND name<>'" + constants.serverName() + "';");
+            } else if (instance.getGlobalSQL().hasRow("SELECT name FROM server_data WHERE type='EARTH' AND online=1 AND name<>'" + constants.serverName() + "';")) {
 
-            server = instance.getGlobalSQL().getString("SELECT name FROM server_data WHERE type='EARTH' AND online=1 AND name<>'" + SERVER_NAME + "';");
-        } else if (instance.getGlobalSQL().hasRow("SELECT name FROM server_data WHERE online=1 AND name<>'" + SERVER_NAME + "';")) {
+                server = instance.getGlobalSQL().getString("SELECT name FROM server_data WHERE type='EARTH' AND online=1 AND name<>'" + constants.serverName() + "';");
+            } else if (instance.getGlobalSQL().hasRow("SELECT name FROM server_data WHERE online=1 AND name<>'" + constants.serverName() + "';")) {
 
-            server = instance.getGlobalSQL().getString("SELECT name FROM server_data WHERE online=1 AND name<>'" + SERVER_NAME + "';");
+                server = instance.getGlobalSQL().getString("SELECT name FROM server_data WHERE online=1 AND name<>'" + constants.serverName() + "';");
+            }
         }
 
         for (NetworkUser user : users) {
             // Switch the player to another server, if available, else kick them.
             if (server != null) {
-                SwitchServer.switchServer(user.player, server);
+                serverAPI.switchServer(PlayerAdapter.adapt(user.player), server);
             } else {
                 // Kick the player.
                 instance.getServer().getScheduler().runTask(instance, () -> user.player.kick(Component.text("The server is restarting!", NamedTextColor.RED)));
@@ -153,10 +164,10 @@ public class CommandPreProcess implements Listener {
         instance.moveListener.block();
         instance.teleportListener.block();
 
-        // Remove users from list.
+        // Remove users from the list.
         users.clear();
 
         // Let the Proxy know the server is closing.
-        instance.getChat().sendSocketMessage(new ServerShutdown(SERVER_NAME));
+        instance.getChat().sendSocketMessage(new ServerShutdown(constants.serverName()));
     }
 }

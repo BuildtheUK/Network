@@ -26,7 +26,7 @@ public class Ptime extends AbstractCommand {
     }
 
     @Override
-    public void execute(@NotNull CommandSourceStack stack, @NotNull String[] args) {
+    public void execute(@NotNull CommandSourceStack stack, String @NotNull [] args) {
 
         // Check if the sender is a player.
         Player player = getPlayer(stack);
@@ -124,5 +124,15 @@ public class Ptime extends AbstractCommand {
 
     private int convertMinutesToTicks(int minutes) {
         return minutes * 1000 / 60;
+    }
+
+    @Override
+    public String getLabel() {
+        return "ptime";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Sets the time of day for the player";
     }
 }

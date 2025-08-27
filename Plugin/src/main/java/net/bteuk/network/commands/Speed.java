@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 public class Speed extends AbstractCommand {
 
     @Override
-    public void execute(@NotNull CommandSourceStack stack, @NotNull String[] args) {
+    public void execute(@NotNull CommandSourceStack stack, String @NotNull [] args) {
 
         // Check if the sender is a player.
         Player player = getPlayer(stack);
@@ -37,7 +37,6 @@ public class Speed extends AbstractCommand {
         speed = getRealMoveSpeed(speed, isFly);
 
         if (isFly) {
-
             player.setFlySpeed(speed);
             player.sendMessage(ChatUtils.success("Set flying speed to ")
                     .append(Component.text(args[0], NamedTextColor.DARK_AQUA)));
@@ -77,5 +76,15 @@ public class Speed extends AbstractCommand {
     // Error message.
     private void error(Player p) {
         p.sendMessage(ChatUtils.error("/speed [0-10]"));
+    }
+
+    @Override
+    public String getLabel() {
+        return "speed";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Sets the players speed, value up to 10.";
     }
 }

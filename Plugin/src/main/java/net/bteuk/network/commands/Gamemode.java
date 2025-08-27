@@ -2,9 +2,10 @@ package net.bteuk.network.commands;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.bteuk.network.commands.tabcompleters.FixedArgSelector;
+import net.bteuk.network.core.Constants;
+import net.bteuk.network.core.ServerType;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.Utils;
-import net.bteuk.network.utils.enums.ServerType;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
@@ -17,24 +18,24 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
-
-import static net.bteuk.network.utils.Constants.SERVER_TYPE;
 
 public class Gamemode extends AbstractCommand {
 
     // Gamemodes.
-    private final ArrayList<String> gamemodes = new ArrayList<>(Arrays.asList("creative", "spectator", "adventure",
-            "survival"));
+    private final ArrayList<String> gamemodes = new ArrayList<>(Arrays.asList("creative", "spectator", "adventure", "survival"));
+
+    private final Constants constants;
 
     // Constructor to enable the command.
-    public Gamemode() {
-        // Set tab completer.
+    public Gamemode(Constants constants) {
+        this.constants = constants;
         setTabCompleter(new FixedArgSelector(gamemodes, 0));
     }
 
     @Override
-    public void execute(@NotNull CommandSourceStack stack, @NotNull String[] args) {
+    public void execute(@NotNull CommandSourceStack stack, String @NotNull [] args) {
 
         // Check if the sender is a player.
         Player player = getPlayer(stack);
@@ -43,7 +44,7 @@ public class Gamemode extends AbstractCommand {
         }
 
         // Check allowed server type.
-        if (SERVER_TYPE != ServerType.PLOT && SERVER_TYPE != ServerType.EARTH) {
+        if (constants.serverType() != ServerType.PLOT && constants.serverType() != ServerType.EARTH) {
             player.sendMessage(ChatUtils.error("You do not have permission to use this command here."));
             return;
         }
@@ -66,14 +67,12 @@ public class Gamemode extends AbstractCommand {
                 // If the player is in the gamemode, highlight it.
                 if (player.getGameMode() == GameMode.valueOf(gamemodes.get(i).toUpperCase(Locale.ROOT))) {
                     gamemode = Component.text(StringUtils.capitalize(gamemodes.get(i)), TextColor.color(245, 173, 100));
-                    gamemode = gamemode.hoverEvent(HoverEvent.hoverEvent(HoverEvent.Action.SHOW_TEXT, Utils.line("You" +
-                            " are already in this gamemode.")));
+                    gamemode = gamemode.hoverEvent(HoverEvent.hoverEvent(HoverEvent.Action.SHOW_TEXT, Utils.line("You" + " are already in this gamemode.")));
                 } else {
                     gamemode = Component.text(StringUtils.capitalize(gamemodes.get(i)), TextColor.color(245, 221, 100));
-                    gamemode = gamemode.clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND,
-                            "/gamemode " + gamemodes.get(i)));
-                    gamemode = gamemode.hoverEvent(HoverEvent.hoverEvent(HoverEvent.Action.SHOW_TEXT, Utils.line(
-                            "Click to switch to " + StringUtils.capitalize(gamemodes.get(i)))));
+                    gamemode = gamemode.clickEvent(ClickEvent.runCommand("/gamemode " + gamemodes.get(i)));
+                    gamemode = gamemode.hoverEvent(
+                            HoverEvent.hoverEvent(HoverEvent.Action.SHOW_TEXT, Utils.line("Click to switch to " + StringUtils.capitalize(gamemodes.get(i)))));
                 }
 
                 message = message.append(gamemode);
@@ -99,9 +98,22 @@ public class Gamemode extends AbstractCommand {
 
             // Set the player to this gamemode.
             player.setGameMode(GameMode.valueOf(args[0].toUpperCase(Locale.ROOT)));
-            player.sendMessage(ChatUtils.success("Set gamemode to ")
-                    .append(Component.text(StringUtils.capitalize(args[0].toLowerCase(Locale.ROOT)),
-                            NamedTextColor.DARK_AQUA)));
+            player.sendMessage(ChatUtils.success("Set gamemode to ").append(Component.text(StringUtils.capitalize(args[0].toLowerCase(Locale.ROOT)), NamedTextColor.DARK_AQUA)));
         }
+    }
+
+    @Override
+    public String getLabel() {
+        return "gamemode";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Switch gamemode.";
+    }
+
+    @Override
+    public List<String> getAliases() {
+        return List.of("gm");
     }
 }

@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 public class Clear extends AbstractCommand {
 
     @Override
-    public void execute(@NotNull CommandSourceStack stack, @NotNull String[] args) {
+    public void execute(@NotNull CommandSourceStack stack, String @NotNull [] args) {
 
         // Check if the sender is a player.
         Player player = getPlayer(stack);
@@ -24,5 +24,15 @@ public class Clear extends AbstractCommand {
         // Clear inventory.
         player.getInventory().clear();
         player.sendMessage(ChatUtils.success("Cleared your inventory."));
+    }
+
+    @Override
+    public String getLabel() {
+        return "clear";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Clears your inventory.";
     }
 }

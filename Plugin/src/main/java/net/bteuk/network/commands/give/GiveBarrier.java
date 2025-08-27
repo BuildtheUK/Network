@@ -16,7 +16,17 @@ public class GiveBarrier extends GiveItem {
     }
 
     @Override
-    public void execute(@NotNull CommandSourceStack stack, @NotNull String[] args) {
+    public void execute(@NotNull CommandSourceStack stack, String @NotNull [] args) {
         onCommand(stack, "uknet.barrier", ItemStack.of(Material.BARRIER), "Barrier");
+    }
+
+    @Override
+    public String getLabel() {
+        return "barrier";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Get a barrier block.";
     }
 }

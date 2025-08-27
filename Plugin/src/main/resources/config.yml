@@ -169,3 +169,6 @@ motd:
   enabled: false
   # Use MiniMessage format to define the text. (https://webui.advntr.dev/). Use %player% as player name placeholder
   text: ""
+
+# Whether the skulls plugin is used as head database.
+skulls_plugin_enabled: true

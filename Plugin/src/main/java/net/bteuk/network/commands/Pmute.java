@@ -18,7 +18,17 @@ public class Pmute extends PmuteAction {
     }
 
     @Override
-    public void execute(@NotNull CommandSourceStack stack, @NotNull String[] args) {
+    public void execute(@NotNull CommandSourceStack stack, String @NotNull [] args) {
         onCommand(stack, args, true);
+    }
+
+    @Override
+    public String getLabel() {
+        return "pmute";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Mute a player";
     }
 }

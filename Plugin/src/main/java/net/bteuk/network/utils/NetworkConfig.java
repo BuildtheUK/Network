@@ -5,6 +5,7 @@ import lombok.extern.java.Log;
 import net.bteuk.network.Network;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.ServerType;
+import org.apache.logging.log4j.util.Strings;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.io.File;
@@ -135,7 +136,7 @@ public class NetworkConfig {
         boolean announceSeasonalLevelUps = config.getBoolean("progression.announce_level-ups.seasonal");
 
         boolean sidebarEnabled = config.getBoolean("sidebar.enabled");
-        String sidebarTitle = config.getString("sidebar.title", "");
+        String sidebarTitle = config.getString("sidebar.title", Strings.EMPTY);
 
         List<?> sidebarTextConfig = config.getList("sidebar.text");
         List<String> sidebarText = new ArrayList<>();
@@ -152,13 +153,7 @@ public class NetworkConfig {
         boolean motdEnabled = config.getBoolean("motd.enabled");
         String motdText = config.getString("motd.text", "");
 
-        String earthWorld;
-        if (config.getString("regions.earth_world") == null) {
-            // Setting default value.
-            earthWorld = "earth";
-        } else {
-            earthWorld = config.getString("regions.earth_world");
-        }
+        String earthWorld = config.getString("regions.earth_world", "earth");
 
         boolean plotSystemEnabled = config.getBoolean("plot_system.enabled");
 
@@ -170,11 +165,20 @@ public class NetworkConfig {
 
         boolean announcePromotions = config.getBoolean("chat.announce_promotions");
 
-        String discordLink = config.getString("discord");
+        String discordLink = config.getString("discord", Strings.EMPTY);
+
+        boolean skullsEnabled = config.getBoolean("skulls_plugin_enabled");
+
+        String progressMapLink = config.getString("ProgressMap.Link", Strings.EMPTY);
+
+        String chatSocketOutputIP = config.getString("chat.socket.output.IP");
+        int chatSocketOutputPort = config.getInt("chat.socket.output.port");
+        int chatSocketInputPort = config.getInt("chat.socket.input.port");
 
         log.info("Loaded constants from config.");
         return new Constants(serverName, serverType, standalone, regionsEnabled, regionInactivity, tpllEnabled, tpllRequiredPermission, maxY, minY, earthWorld, staffChat, tips,
                 tutorials, llEnabled, progressMap, progression, announceOverallLevelUps, announceSeasonalLevelUps, sidebarEnabled, sidebarTitle, sidebarTextList, motdEnabled,
-                motdText, plotSystemEnabled, moderationEnabled, warpsEnabled, homesEnabled, announcePromotions, discordLink);
+                motdText, plotSystemEnabled, moderationEnabled, warpsEnabled, homesEnabled, announcePromotions, discordLink, skullsEnabled, progressMapLink, chatSocketOutputIP,
+                chatSocketOutputPort, chatSocketInputPort);
     }
 }

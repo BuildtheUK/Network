@@ -16,7 +16,17 @@ public class GiveLight extends GiveItem {
     }
 
     @Override
-    public void execute(@NotNull CommandSourceStack stack, @NotNull String[] args) {
+    public void execute(@NotNull CommandSourceStack stack, String @NotNull [] args) {
         onCommand(stack, "uknet.light", ItemStack.of(Material.LIGHT), "Light");
+    }
+
+    @Override
+    public String getLabel() {
+        return "light";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Get a light block.";
     }
 }

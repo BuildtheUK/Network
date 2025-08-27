@@ -20,7 +20,7 @@ public class Pweather extends AbstractCommand {
     }
 
     @Override
-    public void execute(@NotNull CommandSourceStack stack, @NotNull String[] args) {
+    public void execute(@NotNull CommandSourceStack stack, String @NotNull [] args) {
 
         // Check if the sender is a player.
         Player player = getPlayer(stack);
@@ -45,5 +45,15 @@ public class Pweather extends AbstractCommand {
 
         player.setPlayerWeather(weatherType);
         player.sendMessage(Utils.success("Set weather to %s", weatherType.name()));
+    }
+
+    @Override
+    public String getLabel() {
+        return "pweather";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Sets the weather for the player";
     }
 }

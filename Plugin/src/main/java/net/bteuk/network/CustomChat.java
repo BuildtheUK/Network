@@ -28,6 +28,8 @@ import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Role;
+import net.bteuk.network.utils.Roles;
+import net.bteuk.network.utils.staff.Moderation;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -37,9 +39,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 
 import static net.bteuk.network.lib.enums.ChatChannels.STAFF;
-import static net.bteuk.network.utils.NetworkConfig.CONFIG;
-import static net.bteuk.network.utils.staff.Moderation.getMutedComponent;
-import static net.bteuk.network.utils.staff.Moderation.isMuted;
 
 @Log
 public class CustomChat implements Listener, SocketHandler, ChatAPI {
@@ -48,34 +47,33 @@ public class CustomChat implements Listener, SocketHandler, ChatAPI {
     private static final String NOT_AFK = "%s is no longer afk";
     private final Network instance;
     private OutputSocket outputSocket;
-
     private final Constants constants;
-
     private final Afk afk;
-
     private final GlobalSQL globalSQL;
-
     private final Connect connect;
+    private final Moderation moderation;
+    private final TabManager tabManager;
+    private final Roles roles;
 
-    public CustomChat(Network instance, Constants constants, Afk afk, GlobalSQL globalSQL, Connect connect) {
+    public CustomChat(Network instance, Constants constants, Afk afk, GlobalSQL globalSQL, Connect connect, Moderation moderation, TabManager tabManager, Roles roles) {
 
         this.instance = instance;
         this.constants = constants;
         this.afk = afk;
         this.globalSQL = globalSQL;
         this.connect = connect;
+        this.moderation = moderation;
+        this.tabManager = tabManager;
+        this.roles = roles;
 
         instance.getServer().getPluginManager().registerEvents(this, instance);
 
         // Set up the output socket.
         if (!constants.standalone()) {
-            outputSocket = new OutputSocket(
-                    CONFIG.getString("chat.socket.output.IP"),
-                    CONFIG.getInt("chat.socket.output.port")
-            );
+            outputSocket = new OutputSocket(constants.chatSocketOutputIP(), constants.chatSocketOutputPort());
 
             // Register input socket for receiving messages from the proxy.
-            int inputSocketPort = CONFIG.getInt("chat.socket.input.port");
+            int inputSocketPort = constants.chatSocketInputPort();
             if (inputSocketPort == 0) {
                 log.severe("Input socket port is not set in config or is set to 0. Please set a valid port!");
             } else {
@@ -151,12 +149,12 @@ public class CustomChat implements Listener, SocketHandler, ChatAPI {
     public void onPlayerChatEvent(AsyncChatEvent e) {
 
         // If player is muted cancel.
-        if (isMuted(e.getPlayer().getUniqueId().toString())) {
+        if (moderation.isMuted(e.getPlayer().getUniqueId().toString())) {
             e.setCancelled(true);
             try {
 
                 // Send message and end event.
-                e.getPlayer().sendMessage(getMutedComponent(e.getPlayer().getUniqueId().toString()));
+                e.getPlayer().sendMessage(moderation.getMutedComponent(e.getPlayer().getUniqueId().toString()));
                 return;
             } catch (NotMutedException ex) {
 
@@ -167,7 +165,7 @@ public class CustomChat implements Listener, SocketHandler, ChatAPI {
 
         if (!e.isCancelled()) {
             e.setCancelled(true);
-            // Get user, if staff chat enabled send message to staff chat.
+            // Get user, if staff chat is enabled, send the message to staff chat.
             NetworkUser user = instance.getUser(e.getPlayer());
 
             // If u is null, cancel.
@@ -200,7 +198,7 @@ public class CustomChat implements Listener, SocketHandler, ChatAPI {
         switch (abstractTransferObject) {
             case DirectMessage directMessage -> handleDirectMessage(directMessage);
             case DiscordLinking discordLinking -> handleDiscordLinking(discordLinking);
-            case AddTeamEvent addTeamEvent -> instance.getTab().handle(addTeamEvent); // TODO: TAB
+            case AddTeamEvent addTeamEvent -> tabManager.handle(addTeamEvent);
             case UserConnectReply userConnectReply -> connect.handleUserConnectReply(userConnectReply);
             case UserRemove userRemove -> connect.handleUserRemove(userRemove);
             case UserUpdate userUpdate -> handleUserUpdate(userUpdate);
@@ -238,7 +236,6 @@ public class CustomChat implements Listener, SocketHandler, ChatAPI {
                 });
     }
 
-    // TODO: Remove from this class, as it has a cyclical with Roles.
     private void handleDiscordLinking(DiscordLinking discordLinking) {
 
         if (discordLinking.isUnlink() && discordLinking.getDiscordId() != -1) {
@@ -285,7 +282,6 @@ public class CustomChat implements Listener, SocketHandler, ChatAPI {
                 });
     }
 
-    // TODO: Remove from this class, as it has a cyclical with Roles.
     private void handleUserUpdate(UserUpdate userUpdate) {
         // If the user is online check if anything needs updating.
         instance.getUsers().stream().filter(user -> user.player.getUniqueId().toString().equals(userUpdate.getUuid()))

@@ -2,6 +2,7 @@ package net.bteuk.network.commands;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.bteuk.network.commands.tabcompleters.FixedArgSelector;
+import net.bteuk.network.core.Constants;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.Role;
 import net.bteuk.network.utils.Roles;
@@ -19,13 +20,18 @@ public class Help extends AbstractCommand {
     private static final Component ROLE_ERROR = ChatUtils.error("An error occurred while loading a role, please " +
             "contact an administrator.");
 
-    public Help() {
+    private final Constants constants;
+    private final Roles roles;
+
+    public Help(Constants constants, Roles roles) {
+        this.constants = constants;
+        this.roles = roles;
         setTabCompleter(new FixedArgSelector(Arrays.asList("building", "explore", "plots", "regions", "utils",
                 "worldedit"), 0));
     }
 
     @Override
-    public void execute(@NotNull CommandSourceStack stack, @NotNull String[] args) {
+    public void execute(@NotNull CommandSourceStack stack, String @NotNull [] args) {
 
         // Check if the sender is a player.
         Player player = getPlayer(stack);
@@ -39,7 +45,7 @@ public class Help extends AbstractCommand {
             return;
         }
 
-        // Check for first arg to determine message.
+        // Check for the first argument to determine the message.
         switch (args[0]) {
 
             // Building
@@ -72,46 +78,50 @@ public class Help extends AbstractCommand {
         // Navigator
         p.sendMessage(Component.text("/navigator", NamedTextColor.GRAY).append(Utils.line(" - Click to open the " +
                         "navigator, access most server features from here."))
-                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/navigator")));
+                .clickEvent(ClickEvent.runCommand("/navigator")));
 
         // Exporing
         p.sendMessage(Component.text("/help explore", NamedTextColor.GRAY).append(Utils.line(" - Click to list " +
                         "commands used for exploring the server."))
-                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/help explore")));
+                .clickEvent(ClickEvent.runCommand("/help explore")));
 
         // Building
         p.sendMessage(Component.text("/help building", NamedTextColor.GRAY).append(Utils.line(" - Click for " +
                         "information on how to rank-up and build."))
-                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/help building")));
+                .clickEvent(ClickEvent.runCommand("/help building")));
 
         // Plots
         // Information about plots.
-        p.sendMessage(Component.text("/help plots", NamedTextColor.GRAY).append(Utils.line(" - Click for details on " +
-                        "plots and how to use them."))
-                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/help plots")));
+        if (constants.plotSystemEnabled()) {
+            p.sendMessage(Component.text("/help plots", NamedTextColor.GRAY).append(Utils.line(" - Click for details on " +
+                            "plots and how to use them."))
+                    .clickEvent(ClickEvent.runCommand("/help plots")));
+        }
 
         // Regions
         // Information about regions.
-        p.sendMessage(Component.text("/help regions", NamedTextColor.GRAY).append(Utils.line(" - Click for " +
-                        "information about regions and why we have them."))
-                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/help regions")));
+        if (constants.regionsEnabled()) {
+            p.sendMessage(Component.text("/help regions", NamedTextColor.GRAY).append(Utils.line(" - Click for " +
+                            "information about regions and why we have them."))
+                    .clickEvent(ClickEvent.runCommand("/help regions")));
+        }
 
         // Utilities
         p.sendMessage(Component.text("/help utils", NamedTextColor.GRAY).append(Utils.line(" - Click for other " +
                         "commands that can be useful in general."))
-                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/help utils")));
+                .clickEvent(ClickEvent.runCommand("/help utils")));
 
         // Worldedit
         p.sendMessage(Component.text("/help worldedit", NamedTextColor.GRAY).append(Utils.line(" - Click to list " +
                         "available WorldEdit commands."))
-                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/help worldedit")));
+                .clickEvent(ClickEvent.runCommand("/help worldedit")));
     }
 
     private void building(Player p) {
 
         // Building is partially role-specific.
         // Get the current builder-role of the player.
-        Role builderRole = Roles.builderRole(p);
+        Role builderRole = roles.builderRole(p);
         if (builderRole == null) {
             p.sendMessage(ChatUtils.error("You have an invalid role, please contact an administrator."));
             return;
@@ -124,7 +134,7 @@ public class Help extends AbstractCommand {
 
         Component roleSpecificMessage = switch (builderRole.getId()) {
             case "reviewer" -> {
-                Role architect = Roles.getRoleById("architect");
+                Role architect = roles.getRoleById("architect");
                 if (architect == null) {
                     yield null;
                 }
@@ -136,7 +146,7 @@ public class Help extends AbstractCommand {
             }
 
             case "architect" -> {
-                Role builder = Roles.getRoleById("builder");
+                Role builder = roles.getRoleById("builder");
                 if (builder == null) {
                     yield null;
                 }
@@ -154,7 +164,7 @@ public class Help extends AbstractCommand {
                 "To be promoted to &7Architect &fyou need x building points in the last 30 days."*/));
 
             case "jrbuilder" -> {
-                Role builder = Roles.getRoleById("builder");
+                Role builder = roles.getRoleById("builder");
                 if (builder == null) {
                     yield null;
                 }
@@ -166,7 +176,7 @@ public class Help extends AbstractCommand {
             }
 
             case "apprentice" -> {
-                Role jrbuilder = Roles.getRoleById("jrbuilder");
+                Role jrbuilder = roles.getRoleById("jrbuilder");
                 if (jrbuilder == null) {
                     yield null;
                 }
@@ -178,7 +188,7 @@ public class Help extends AbstractCommand {
             }
 
             case "applicant" -> {
-                Role apprentice = Roles.getRoleById("apprentice");
+                Role apprentice = roles.getRoleById("apprentice");
                 if (apprentice == null) {
                     yield null;
                 }
@@ -204,22 +214,28 @@ public class Help extends AbstractCommand {
         p.sendMessage(roleSpecificMessage);
 
         // Tpll and ll.
-        p.sendMessage(Component.text("/tpll <lat> <lon> [altitude]", NamedTextColor.GRAY)
-                .append(Utils.line(" - Teleport to the coordinates provided, altitude is optional.")));
-        p.sendMessage(Component.text("/ll", NamedTextColor.GRAY)
-                .append(Utils.line(" - Get the real life coordinates of your current location, with a link to Google " +
-                        "Maps.")));
+        if (constants.tpllEnabled()) {
+            p.sendMessage(Component.text("/tpll <lat> <lon> [altitude]", NamedTextColor.GRAY)
+                    .append(Utils.line(" - Teleport to the coordinates provided, altitude is optional.")));
+        }
+        if (constants.ll()) {
+            p.sendMessage(Component.text("/ll", NamedTextColor.GRAY)
+                    .append(Utils.line(" - Get the real life coordinates of your current location, with a link to Google " +
+                            "Maps.")));
+        }
 
-        p.sendMessage(Component.text("/skulls", NamedTextColor.GRAY)
-                .append(Utils.line(" - Opens the head menu. To search for a specific head use "))
-                .append(Component.text("/skulls search")));
+        if (constants.skullsEnabled()) {
+            p.sendMessage(Component.text("/skulls", NamedTextColor.GRAY)
+                    .append(Utils.line(" - Opens the head menu. To search for a specific head use "))
+                    .append(Component.text("/skulls search")));
+        }
         p.sendMessage(Component.text("/bannermaker", NamedTextColor.GRAY)
                 .append(Utils.line(" - Opens the bannermaker menu, allows you to create and save banners easily.")));
     }
 
     private void explore(Player p) {
 
-        Role builderRole = Roles.builderRole(p);
+        Role builderRole = roles.builderRole(p);
         if (builderRole == null) {
             p.sendMessage(ChatUtils.error("You have an invalid role, please contact an administrator."));
             return;
@@ -228,57 +244,71 @@ public class Help extends AbstractCommand {
         p.sendMessage(Utils.title("Exploring the server:"));
 
         // Exploring using the gui or map.
-        p.sendMessage(Utils.line("Using the navigator ")
-                .append(Component.text("/navigator", NamedTextColor.GRAY))
-                .append(Utils.line(" you can access many locations that are being or have been built on the server.")));
-        p.sendMessage(Utils.line("Alternatively you can use the ")
-                .append(Component.text("/map", NamedTextColor.GRAY))
-                .append(Utils.line(" located in the "))
-                .append(Component.text("/lobby", NamedTextColor.GRAY)));
+        if (constants.warpsEnabled()) {
+            p.sendMessage(Utils.line("Using the navigator ")
+                    .append(Component.text("/navigator", NamedTextColor.GRAY))
+                    .append(Utils.line(" you can access many locations that are being or have been built on the server.")));
+        }
+        if (!constants.standalone()) {
+            p.sendMessage(Utils.line("Alternatively you can use the ")
+                    .append(Component.text("/map", NamedTextColor.GRAY))
+                    .append(Utils.line(" located in the "))
+                    .append(Component.text("/lobby", NamedTextColor.GRAY)));
+        }
 
         // Tpll can be used otherwise but for roles without region access they can't load new terrain.
         // For Jr.Builder also explain how to request new locations.
 
         switch (builderRole.getId()) {
 
-            case "apprentice", "applicant", "default" -> p.sendMessage(Utils.line("\nTo access other areas you can try using ")
-                    .append(Component.text("/tpll <lat> <lon>", NamedTextColor.GRAY))
-                    .append(Utils.line(", however you will only be able to teleport to locations that have " +
-                            "already been generated on the server.")));
+            case "apprentice", "applicant", "default" -> {
+                if (constants.tpllEnabled()) {
+                    p.sendMessage(Utils.line("\nTo access other areas you can try using ")
+                            .append(Component.text("/tpll <lat> <lon>", NamedTextColor.GRAY))
+                            .append(Utils.line(", however you will only be able to teleport to locations that have " +
+                                    "already been generated on the server.")));
+                }
+            }
 
             default -> {
-                p.sendMessage(Utils.line("\nYou can request new locations to be added to the navigator, " +
-                        "this can be done by standing at the location you want to add and then clicking on 'Add " +
-                        "Location' in the exporation menu. " +
-                        "Please only request locations with a decent bit of progress."));
+                if (constants.warpsEnabled()) {
+                    p.sendMessage(Utils.line("\nYou can request new locations to be added to the navigator, " +
+                            "this can be done by standing at the location you want to add and then clicking on 'Add " +
+                            "Location' in the exporation menu. " +
+                            "Please only request locations with a decent bit of progress."));
+                }
 
-                p.sendMessage(Utils.line("\nTo access other areas you can try using ")
-                        .append(Component.text("/tpll <lat> <lon>", NamedTextColor.GRAY))
-                        .append(Utils.line(", however please don't generate new terrain for no good reason.")));
+                if (constants.tpllEnabled()) {
+                    p.sendMessage(Utils.line("\nTo access other areas you can try using ")
+                            .append(Component.text("/tpll <lat> <lon>", NamedTextColor.GRAY))
+                            .append(Utils.line(", however please don't generate new terrain for no good reason.")));
+                }
             }
         }
 
         // Home command for saving personal locations.
-        switch (builderRole.getId()) {
-            case "apprentice", "applicant", "default" -> p.sendMessage(Utils.line("\nYou can set a ")
-                    .append(Component.text("/home", NamedTextColor.GRAY))
-                    .append(Utils.line(" using "))
-                    .append(Component.text("/sethome", NamedTextColor.GRAY)));
+        if (constants.homesEnabled()) {
+            switch (builderRole.getId()) {
+                case "apprentice", "applicant", "default" -> p.sendMessage(Utils.line("\nYou can set a ")
+                        .append(Component.text("/home", NamedTextColor.GRAY))
+                        .append(Utils.line(" using "))
+                        .append(Component.text("/sethome", NamedTextColor.GRAY)));
 
-            default -> p.sendMessage(Utils.line("\nYou can set ")
-                    .append(Component.text("/homes", NamedTextColor.GRAY))
-                    .append(Utils.line(" using "))
-                    .append(Component.text("/sethome <name>", NamedTextColor.GRAY)));
+                default -> p.sendMessage(Utils.line("\nYou can set ")
+                        .append(Component.text("/homes", NamedTextColor.GRAY))
+                        .append(Utils.line(" using "))
+                        .append(Component.text("/sethome <name>", NamedTextColor.GRAY)));
+            }
         }
     }
 
     private void plots(Player p) {
 
         // Get the roles needed for the text.
-        Role applicant = Roles.getRoleById("applicant");
-        Role apprentice = Roles.getRoleById("apprentice");
-        Role jrbuilder = Roles.getRoleById("jrbuilder");
-        Role builder = Roles.getRoleById("builder");
+        Role applicant = roles.getRoleById("applicant");
+        Role apprentice = roles.getRoleById("apprentice");
+        Role jrbuilder = roles.getRoleById("jrbuilder");
+        Role builder = roles.getRoleById("builder");
 
         if (applicant == null || apprentice == null || jrbuilder == null || builder == null) {
             p.sendMessage(ROLE_ERROR);
@@ -332,7 +362,7 @@ public class Help extends AbstractCommand {
                 "We keep track of every player who joins a region, this allows us to trace back any wrongdoers with " +
                 "relative ease."));
 
-        Role jrbuilder = Roles.getRoleById("jrbuilder");
+        Role jrbuilder = roles.getRoleById("jrbuilder");
         p.sendMessage(Utils.line("\nTo join a region you must be a ")
                 .append(jrbuilder.getColouredRoleName())
                 .append(Utils.line(" or above, this is both to prevent griefers and to ensure building standards.")));
@@ -360,8 +390,10 @@ public class Help extends AbstractCommand {
         p.sendMessage(Component.text("/nv", NamedTextColor.GRAY)
                 .append(Utils.line(" - Toggle night vision, also removes glitched shadows.")));
 
-        p.sendMessage(Component.text("\n/discord", NamedTextColor.GRAY)
-                .append(Utils.line(" - Sends you a link to our Discord server.")));
+        if (!constants.standalone()) {
+            p.sendMessage(Component.text("\n/discord", NamedTextColor.GRAY)
+                    .append(Utils.line(" - Sends you a link to our Discord server.")));
+        }
     }
 
     private void worldedit(Player p) {
@@ -389,8 +421,17 @@ public class Help extends AbstractCommand {
 
         Component worldEditMessage = Utils.line("For more information you can reference: ")
                 .append(Component.text("https://worldedit.enginehub.org/en/latest/usage/", NamedTextColor.GRAY));
-        worldEditMessage = worldEditMessage.clickEvent(ClickEvent.clickEvent(ClickEvent.Action.OPEN_URL, "https" +
-                "://worldedit.enginehub.org/en/latest/usage/"));
+        worldEditMessage = worldEditMessage.clickEvent(ClickEvent.openUrl("https://worldedit.enginehub.org/en/latest/usage/"));
         p.sendMessage(worldEditMessage);
+    }
+
+    @Override
+    public String getLabel() {
+        return "help";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Help menu for information on commands and server features.";
     }
 }

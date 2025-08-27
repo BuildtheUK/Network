@@ -20,14 +20,16 @@ public class Msg extends AbstractCommand {
     private static final Component ERROR = ChatUtils.error("/msg [player] <message>");
 
     private final Network instance;
+    private final String commandName;
 
-    public Msg(Network instance) {
+    public Msg(Network instance, String commandName) {
         this.instance = instance;
+        this.commandName = commandName;
         setTabCompleter(new PlayerSelector());
     }
 
     @Override
-    public void execute(@NotNull CommandSourceStack stack, @NotNull String[] args) {
+    public void execute(@NotNull CommandSourceStack stack, String @NotNull [] args) {
 
         // Check if the sender is a player.
         Player player = getPlayer(stack);
@@ -41,31 +43,23 @@ public class Msg extends AbstractCommand {
             return;
         }
 
-        /*
-        // Search for the uuid of the player.
-        // Also retrieve the name, as it is possible the cases aren't correct.
-        String uuid = instance.getGlobalSQL().getString("SELECT uuid FROM player_data WHERE name='" + args[0] + "';");
-        String name = instance.getGlobalSQL().getString("SELECT name FROM player_data WHERE name='" + args[0] + "';");
-        if (uuid == null) {
-            player.sendMessage(ERROR);
-            return;
-        }
-
-        if (isMuted(player.getUniqueId().toString())) {
-            try {
-                // Send message and cancel command.
-                player.sendMessage(getMutedComponent(player.getUniqueId().toString()));
-                return;
-            } catch (NotMutedException ex) {
-                // Ignored
-            }
-        }
-
-         */
-        // Send direct message, the message is created using all other command arguments.
+        // Send a direct message, the message is created using all other command arguments.
         String message = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
-        //DirectMessage directMessage = getDirectMessage(message, player.getName(), player.getUniqueId().toString(),name, uuid, ChatChannels.GLOBAL);
         PrivateMessage privateMessage = new PrivateMessage(ChatChannels.GLOBAL.getChannelName(), player.getName(), args[0],message, false);
         instance.getChat().sendSocketMessage(privateMessage);
+    }
+
+    public static Msg of(Network instance, String label) {
+        return new Msg(instance, label);
+    }
+
+    @Override
+    public String getLabel() {
+        return commandName;
+    }
+
+    @Override
+    public String getDescription() {
+        return "Sends a direct message to a player.";
     }
 }

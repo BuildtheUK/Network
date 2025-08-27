@@ -16,7 +16,17 @@ public class GiveDebugStick extends GiveItem {
     }
 
     @Override
-    public void execute(@NotNull CommandSourceStack stack, @NotNull String[] args) {
+    public void execute(@NotNull CommandSourceStack stack, @NotNull String @NotNull [] args) {
         onCommand(stack, "uknet.debugstick", ItemStack.of(Material.DEBUG_STICK), "Debug Stick");
+    }
+
+    @Override
+    public String getLabel() {
+        return "debugstick";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Get the debug stick.";
     }
 }

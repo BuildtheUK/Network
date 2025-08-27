@@ -18,6 +18,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.List;
 
 @Log
 public class GlobalSQL extends AbstractSQL {
@@ -263,5 +264,25 @@ public class GlobalSQL extends AbstractSQL {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public List<String> getOfflineMessages(String uuid) {
+        List<String> messages = new ArrayList<>();
+        try (
+                Connection conn = conn();
+                PreparedStatement statement = conn.prepareStatement(
+                        "SELECT message FROM messages WHERE recipient=?;"
+                )
+        ) {
+            statement.setString(1, uuid);
+            ResultSet results = statement.executeQuery();
+
+            while (results.next()) {
+                messages.add(results.getString(1));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return messages;
     }
 }

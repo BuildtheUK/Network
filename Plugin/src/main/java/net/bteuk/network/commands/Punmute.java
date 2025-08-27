@@ -7,7 +7,7 @@ import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Command for personal muting, allows you to mute any player for the current session.
+ * Command for personal muting; allows you to mute any player for the current session.
  */
 public class Punmute extends PmuteAction {
 
@@ -18,7 +18,17 @@ public class Punmute extends PmuteAction {
     }
 
     @Override
-    public void execute(@NotNull CommandSourceStack stack, @NotNull String[] args) {
+    public void execute(@NotNull CommandSourceStack stack, String @NotNull [] args) {
         onCommand(stack, args, false);
+    }
+
+    @Override
+    public String getLabel() {
+        return "punmute";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Unmute a player";
     }
 }

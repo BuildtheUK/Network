@@ -14,6 +14,8 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+
 @Log
 public class BuildingCompanionCommand extends AbstractCommand {
 
@@ -46,7 +48,7 @@ public class BuildingCompanionCommand extends AbstractCommand {
     }
 
     @Override
-    public void execute(@NotNull CommandSourceStack stack, @NotNull String[] args) {
+    public void execute(@NotNull CommandSourceStack stack, String @NotNull [] args) {
 
         // Check if the sender is a player.
         Player player = getPlayer(stack);
@@ -117,5 +119,20 @@ public class BuildingCompanionCommand extends AbstractCommand {
 
     private void createWalls(NetworkUser user, String[] args) {
 
+    }
+
+    @Override
+    public String getLabel() {
+        return "buildingcompanion";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Toggle the building companion.";
+    }
+
+    @Override
+    public List<String> getAliases() {
+        return List.of("bc", "companion");
     }
 }

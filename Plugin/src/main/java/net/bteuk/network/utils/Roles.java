@@ -41,12 +41,10 @@ public final class Roles {
     private static Set<Role> ROLES;
 
     private final Network instance;
-    private final CustomChat customChat;
     private final PlotSQL plotSQL;
 
-    public Roles(Network instance, CustomChat customChat, PlotSQL plotSQL) {
+    public Roles(Network instance, PlotSQL plotSQL) {
         this.instance = instance;
-        this.customChat = customChat;
         this.plotSQL = plotSQL;
     }
 
@@ -174,7 +172,7 @@ public final class Roles {
      * @return {@link CompletableFuture} completableFuture with {@link Component} message.
      */
     public CompletableFuture<Component> alterRole(String uuid, String name, String roleId, boolean remove,
-                                                         boolean announce) {
+                                                         boolean announce, CustomChat customChat) {
 
         // Get the configured group.
         Role role = getRoleById(roleId);
@@ -225,11 +223,11 @@ public final class Roles {
             customChat.sendSocketMessage(discordRole);
 
             if (announce && !remove) {
-                sendPromotionChatMessage(name, role);
+                sendPromotionChatMessage(name, role, customChat);
             }
 
             if (!remove) {
-                sendPromotionDirectMessage(uuid, role);
+                sendPromotionDirectMessage(uuid, role, customChat);
             }
 
             if (remove) {
@@ -240,7 +238,7 @@ public final class Roles {
         });
     }
 
-    private void sendPromotionChatMessage(String name, Role role) {
+    private void sendPromotionChatMessage(String name, Role role, CustomChat customChat) {
         Component message = Component.text(name)
                 .append(PROMOTION_TEMPLATE)
                 .append(role.getColouredRoleName())
@@ -248,7 +246,7 @@ public final class Roles {
         customChat.sendChatMessage(new ChatMessage(GLOBAL.getChannelName(), "server", message));
     }
 
-    private void sendPromotionDirectMessage(String uuid, Role role) {
+    private void sendPromotionDirectMessage(String uuid, Role role, CustomChat customChat) {
         Component message = PROMOTION_SELF
                 .append(role.getColouredRoleName())
                 .decorate(TextDecoration.BOLD);

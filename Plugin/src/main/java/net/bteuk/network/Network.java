@@ -129,13 +129,13 @@ public final class Network extends JavaPlugin implements NetworkAPI {
     // Movement listeners.
     public NetworkMoveListener moveListener;
     public NetworkTeleportListener teleportListener;
-    // Return an instance of the regionManager.
+    // Return an this of the regionManager.
     // RegionManager
     @Getter
     private RegionManager regionManager;
     // List of users connected to the network.
     @Getter
-    private HashSet<OnlineUser> onlineUsers; // TODO: Populate this list on a standalone server using the join/leave events.
+    private HashSet<OnlineUser> onlineUsers;
     // Server User List
     private ArrayList<NetworkUser> networkUsers;
     // SQL
@@ -198,8 +198,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         if (!networkConfig.getConfig().getBoolean("enabled")) {
 
             getLogger().warning("The config must be configured before the plugin can be enabled!");
-            getLogger().warning("Please edit the database values in the config, give the server a unique name and " +
-                    "then set 'enabled: true'");
+            getLogger().warning("Please edit the database values in the config, give the server a unique name and " + "then set 'enabled: true'");
             getLogger().warning("Also make sure to set the server to the correct type.");
             return;
         }
@@ -233,8 +232,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
                 plotSQL = new PlotSQL(plot_dataSource);
             }
         } catch (SQLException | RuntimeException e) {
-            getLogger().severe("Failed to connect to the database, please check that you have set the config values " +
-                    "correctly.");
+            getLogger().severe("Failed to connect to the database, please check that you have set the config values " + "correctly.");
             getLogger().severe("Disabling Network");
             return;
         }
@@ -256,8 +254,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
             // Attempt to connect to the DB
             if (!tutorialsDBConnection.connect()) {
-                getLogger().severe("Failed to connect to the Tutorials database, please check that you have set the " +
-                        "config values correctly.");
+                getLogger().severe("Failed to connect to the Tutorials database, please check that you have set the " + "config values correctly.");
                 getLogger().severe("Disabling Network");
                 return;
             }
@@ -266,9 +263,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         if (!globalSQL.hasRow("SELECT name FROM server_data WHERE name='" + constants.serverName() + "';")) {
 
             // Add server to database and enable server.
-            if (globalSQL.update(
-                    "INSERT INTO server_data(name,type) VALUES('" + constants.serverName() + "','" + constants.serverType() + "');"
-            )) {
+            if (globalSQL.update("INSERT INTO server_data(name,type) VALUES('" + constants.serverName() + "','" + constants.serverType() + "');")) {
 
                 // Enable plugin.
                 getLogger().info("Server added to database with name " + constants.serverName() + " and type " + constants.serverType());
@@ -300,7 +295,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         EventManager eventManager = new EventManager(globalSQL);
         WorldGuardAPI worldGuardAPI = new WorldGuard();
 
-        Roles roles = new Roles(this, chat, plotSQL);
+        Roles roles = new Roles(this, plotSQL);
 
         if (!constants.standalone()) {
             serverAPI = new SwitchServer(constants);
@@ -320,15 +315,15 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
         // Setup connect, this handles all connections to the server.
         // Listener and manager of server connections.
-        Connect connect = new Connect(this, constants, tab, roles);
+        Connect connect = new Connect(this, constants, tab, roles, globalSQL);
+
+        Moderation moderation = new Moderation(this, eventManager);
 
         // Enables chat, both global chat and normal chat are handled through it.
-        chat = new CustomChat(this, constants, afk, globalSQL, connect);
+        chat = new CustomChat(this, constants, afk, globalSQL, connect, moderation, tab, roles);
 
         // Create the navigator.
         navigatorItem = Utils.createItem(Material.NETHER_STAR, 1, Utils.title("Navigator"), Utils.line("Click to open the navigator."));
-
-        Moderation moderation = new Moderation(this, eventManager);
 
         // Register events.
         new PreJoinServer(this, constants, moderation);
@@ -428,43 +423,52 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         commandManager.registerCommand(new Buildings(this, constants));
         if (!constants.standalone()) {
             commandManager.registerCommand(new Discord(this, chat, roles, constants));
-            commands.register("focus", "Toggle focus mode, hides chat and players.", List.of("focusmode", "fm"), new Focus());
+            commandManager.registerCommand(new Focus(this, constants));
         }
-        commands.register("nightvision", "Toggle nightvision.", List.of("nv"), new Nightvision());
-        commands.register("speed", "Sets the players speed, value up to 10.", new Speed());
-        commands.register("help", "Help menu for information on commands and server features.", new Help());
-        commands.register("rules", "Get rules book.", new Rules());
-        commands.register("clear", "Clears your inventory.", new Clear());
-        commands.register("debugstick", "Get the debug stick.", new GiveDebugStick(instance));
-        commands.register("light", "Get a light block.", new GiveLight(instance));
-        commands.register("barrier", "Get a barrier block.", new GiveBarrier(instance));
-        commands.register("gamemode", "Switch gamemode.", List.of("gm"), new Gamemode());
-        commands.register("phead", "Get the player head of someone who has connected to the server.", new Phead());
-        commands.register("hdb", "Added so it can be routed to /skulls", new Hdb());
+
+        commandManager.registerCommand(new Nightvision(this));
+        commandManager.registerCommand(new Speed());
+        commandManager.registerCommand(new Help(constants, roles));
+        commandManager.registerCommand(new Rules(lobby));
+        commandManager.registerCommand(new Clear());
+        commandManager.registerCommand(new GiveDebugStick(this));
+        commandManager.registerCommand(new GiveLight(this));
+        commandManager.registerCommand(new GiveBarrier(this));
+        commandManager.registerCommand(new Gamemode(constants));
+        commandManager.registerCommand(new Phead(globalSQL));
+        if (constants.skullsEnabled()) {
+            commandManager.registerCommand(new Hdb());
+        }
         if (constants.progressMap()) {
-            commands.register("progressmap", "Sends a link of the progress map", List.of("progress"), new ProgressMap());
+            commandManager.registerCommand(new ProgressMap(constants));
         }
         if (constants.tips()) {
-            commands.register("tips", "Toggles tips in chat.", List.of("toggletips", "tipstoggle"), new TipsToggle());
+            commandManager.registerCommand(new TipsToggle(this));
         }
-        commands.register("ptime", "Sets the time of day for the player", new Ptime());
-        commands.register("pweather", "Sets the weather for the player", new Pweather());
+        commandManager.registerCommand(new Ptime());
+        commandManager.registerCommand(new Pweather());
         // commands.register("season", "Command for creating, starting and ending seasons.", List.of("seasons"), new Season());
         // commands.register("exp", "Test command for adding exp.", new Exp());
-        commands.register("buildingcompanion", "Toggle the building companion.", List.of("bc", "companion"), new BuildingCompanionCommand(instance, constants, regionManager));
-        commands.register("pmute", "Mute a player", new Pmute(instance));
-        commands.register("punmute", "Unmute a player", new Punmute(instance));
-        Msg msgCommand = new Msg(instance);
-        commands.register("msg", "Sends a direct message to a player.", msgCommand);
-        commands.register("w", "Sends a direct message to a player.", msgCommand);
-        commands.register("tell", "Sends a direct message to a player.", msgCommand);
-        commands.register("r", "sends a direct message to the last player you messaged", List.of("reply"), new Reply(msgCommand));
-        commands.register("promote", "Add a role to a player.", new Promote(instance));
-        commands.register("demote", "Remove a role from a player.", new Demote(instance));
-        commands.register("me", "Disabled", new Me());
+        commandManager.registerCommand(new BuildingCompanionCommand(this, constants, regionManager));
 
-        // Register commandpreprocess to make sure /network:region runs and not that of another plugin.
-        new CommandPreProcess(this);
+        if (!constants.standalone()) {
+            commandManager.registerCommand(new Pmute(this));
+            commandManager.registerCommand(new Punmute(this));
+
+            commandManager.registerCommand(Msg.of(this, "msg"));
+            commandManager.registerCommand(Msg.of(this, "w"));
+            commandManager.registerCommand(Msg.of(this, "tell"));
+
+            commandManager.registerCommand(new Reply(chat));
+        }
+
+        commandManager.registerCommand(new Promote(this, roles));
+        commandManager.registerCommand(new Demote(this, roles));
+
+        commandManager.registerCommand(new Me());
+
+        // Register command pre-process to make sure network versions of commands run and not that of another plugin.
+        new CommandPreProcess(this, constants, afk, connect, serverAPI);
 
         commandManager.enableCommands();
 
@@ -483,9 +487,8 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         if (constants.tutorials()) {
             try {
                 Class.forName("net.bteuk.teachingtutorials.services.PromotionService");
-                PromotionService promotionService = new NetworkPromotionService();
-                this.getServer().getServicesManager().register(PromotionService.class, promotionService, this,
-                        ServicePriority.High);
+                PromotionService promotionService = new NetworkPromotionService(roles, chat);
+                this.getServer().getServicesManager().register(PromotionService.class, promotionService, this, ServicePriority.High);
                 log.info("Registered Network Promotion Service");
             } catch (ClassNotFoundException e) {
                 // Only load the PromotionService if the class exists.
@@ -524,8 +527,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
                 plotSQL.update("DELETE FROM zone_invites WHERE uuid='" + uuid + "';");
 
                 // Set last_online time in playerdata.
-                globalSQL.update("UPDATE player_data SET last_online=" + Time.currentTime() + " WHERE " +
-                        "UUID='" + uuid + "';");
+                globalSQL.update("UPDATE player_data SET last_online=" + Time.currentTime() + " WHERE " + "UUID='" + uuid + "';");
 
                 // Reset last logged time.
                 if (u.isAfk()) {
@@ -575,10 +577,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
     }
 
     public void handleOnlineUserRemove(OnlineUserRemove onlineUserRemove) {
-        Optional<OnlineUser> optionalOnlineUser =
-                onlineUsers.stream().filter(onlineUser -> onlineUser.getUuid().equals(onlineUserRemove.getUuid()))
-                        .findFirst();
-        optionalOnlineUser.ifPresent(onlineUser -> onlineUsers.remove(onlineUser));
+        onlineUsers.stream().filter(onlineUser -> onlineUser.getUuid().equals(onlineUserRemove.getUuid())).findFirst().ifPresent(onlineUser -> onlineUsers.remove(onlineUser));
     }
 
     public boolean isOnlineOnNetwork(String uuid) {

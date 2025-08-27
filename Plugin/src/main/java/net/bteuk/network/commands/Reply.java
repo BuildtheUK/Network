@@ -1,7 +1,7 @@
 package net.bteuk.network.commands;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
-import net.bteuk.network.Network;
+import net.bteuk.network.CustomChat;
 import net.bteuk.network.lib.dto.ReplyMessage;
 import net.bteuk.network.lib.enums.ChatChannels;
 import net.bteuk.network.lib.utils.ChatUtils;
@@ -9,16 +9,17 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.List;
 
-public class Reply  extends AbstractCommand {
+public class Reply extends AbstractCommand {
+    private static final String ERROR = "/r [message]";
+    private final CustomChat chat;
 
-    private final Msg msgCommand;
-    private final String ERROR = "Usage: /r [message]";
-    private final Network instance = Network.getInstance();
-    public Reply(Msg msgCommand) {
-        this.msgCommand = msgCommand;
+    public Reply(CustomChat chat) {
+        this.chat = chat;
     }
-    public void execute(@NotNull CommandSourceStack stack, @NotNull String[] args) {
+
+    public void execute(@NotNull CommandSourceStack stack, String @NotNull [] args) {
 
         // Check if the sender is a player.
         Player player = getPlayer(stack);
@@ -33,8 +34,21 @@ public class Reply  extends AbstractCommand {
         }
         String message = String.join(" ", Arrays.copyOfRange(args, 0, args.length));
         ReplyMessage replymessage = new ReplyMessage(ChatChannels.GLOBAL.getChannelName(),player.getName(),message,false);
-        instance.getChat().sendSocketMessage(replymessage);
+        chat.sendSocketMessage(replymessage);
     }
 
+    @Override
+    public String getLabel() {
+        return "reply";
+    }
 
+    @Override
+    public String getDescription() {
+        return "sends a direct message to the last player you messaged";
+    }
+
+    @Override
+    public List<String> getAliases() {
+        return List.of("r");
+    }
 }

@@ -1,5 +1,6 @@
 package net.bteuk.network.commands;
 
+import net.bteuk.network.CustomChat;
 import net.bteuk.network.Network;
 import net.bteuk.network.commands.tabcompleters.FixedArgSelector;
 import net.bteuk.network.commands.tabcompleters.MultiArgSelector;
@@ -21,14 +22,17 @@ import java.util.stream.Collectors;
 public abstract class PromotionAction extends AbstractCommand {
 
     private final Component error;
-
+    private final Roles roles;
     private final Network instance;
+    private final CustomChat chat;
 
-    protected PromotionAction(Network instance, Component error) {
+    protected PromotionAction(Network instance, Roles roles, CustomChat customChat, Component error) {
         this.instance = instance;
+        this.roles = roles;
         this.error = error;
+        this.chat = customChat;
         setTabCompleter(new MultiArgSelector(List.of(new PlayerSelector(false),
-                new FixedArgSelector(Roles.getRoles().stream().map(Role::getId).collect(Collectors.toList()), 1))));
+                new FixedArgSelector(roles.getRoles().stream().map(Role::getId).collect(Collectors.toList()), 1))));
     }
 
     public void onCommand(CommandSender sender, String[] args, boolean demote) {
@@ -47,7 +51,7 @@ public abstract class PromotionAction extends AbstractCommand {
             return;
         }
 
-        CompletableFuture<Component> resultFuture = Roles.alterRole(uuid, name, args[1], demote, false);
+        CompletableFuture<Component> resultFuture = roles.alterRole(uuid, name, args[1], demote, false, chat);
         Executors.newSingleThreadExecutor().submit(() -> resultFuture.thenAcceptAsync(sender::sendMessage).join());
     }
 }
