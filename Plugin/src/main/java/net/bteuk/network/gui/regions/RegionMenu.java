@@ -1,9 +1,12 @@
 package net.bteuk.network.gui.regions;
 
-import net.bteuk.network.Network;
 import net.bteuk.network.gui.BuildGui;
 import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.NetworkRefreshableGui;
+import net.bteuk.network.regions.Region;
+import net.bteuk.network.regions.RegionMember;
+import net.bteuk.network.regions.RegionStatus;
+import net.bteuk.network.regions.sql.RegionSQL;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
 import net.kyori.adventure.text.Component;
@@ -25,21 +28,17 @@ public class RegionMenu extends NetworkRefreshableGui {
 
     public RegionMenu(GuiProvider provider, NetworkUser user) {
 
-        super(45, Component.text("Region Menu", NamedTextColor.AQUA, TextDecoration.BOLD));
+        super(provider, 45, Component.text("Region Menu", NamedTextColor.AQUA, TextDecoration.BOLD));
 
         this.user = user;
 
         page = 1;
 
-        regionSQL = Network.getInstance().regionSQL;
-
-        createGui();
+        this.regionSQL = provider.regionSQL();
     }
 
     private static ItemStack getGuiItem(RegionMember regionMember, RegionStatus regionStatus) {
-        return Utils.createItem(getMaterial(regionMember, regionStatus), 1,
-                Utils.title("Region " + regionMember.getTag()),
-                getLines(regionMember, regionStatus));
+        return Utils.createItem(getMaterial(regionMember, regionStatus), 1, Utils.title("Region " + regionMember.getTag()), getLines(regionMember, regionStatus));
     }
 
     private static Material getMaterial(RegionMember regionMember, RegionStatus regionStatus) {
@@ -54,8 +53,7 @@ public class RegionMenu extends NetworkRefreshableGui {
 
     private static Component[] getLines(RegionMember regionMember, RegionStatus regionStatus) {
         List<Component> lines = new ArrayList<>();
-        lines.add(regionMember.isOwner() ? Utils.line("You are the owner of this region.") : Utils.line("You are a " +
-                "member of this region."));
+        lines.add(regionMember.isOwner() ? Utils.line("You are the owner of this region.") : Utils.line("You are a " + "member of this region."));
         lines.add(Utils.line("Click to open the menu of this region."));
         if (regionStatus == RegionStatus.INACTIVE) {
             lines.add(Utils.line("This region is currently inactive."));
@@ -67,7 +65,7 @@ public class RegionMenu extends NetworkRefreshableGui {
         return lines.toArray(new Component[0]);
     }
 
-    private void createGui() {
+    protected void createGui() {
 
         // Get regions you are owner or member of.
         List<RegionMember> regionMembers = regionSQL.getRegionMembers(user.player.getUniqueId().toString());
@@ -80,18 +78,15 @@ public class RegionMenu extends NetworkRefreshableGui {
 
         // If page is greater than 1 add a previous page button.
         if (page > 1) {
-            setItem(18, Utils.createItem(Material.ARROW, 1,
-                            Utils.title("Previous Page"),
-                            Utils.line("Open the previous page of regions.")),
-                    (NetworkUser u) ->
+            setItem(18, Utils.createItem(Material.ARROW, 1, Utils.title("Previous Page"), Utils.line("Open the previous page of regions.")), (NetworkUser u) ->
 
-                    {
+            {
 
-                        // Update the gui.
-                        page--;
-                        this.refresh();
-                        this.updatePlayerInventory(u.player);
-                    });
+                // Update the gui.
+                page--;
+                this.refresh();
+                this.updatePlayerInventory(u.player);
+            });
         }
 
         // Make a button for each plot.
@@ -106,39 +101,34 @@ public class RegionMenu extends NetworkRefreshableGui {
             // If the slot is greater than the number that fit in a page, create a new page.
             if (slot > 34) {
 
-                setItem(26, Utils.createItem(Material.ARROW, 1,
-                                Utils.title("Next Page"),
-                                Utils.line("Open the next page of regions.")),
-                        (NetworkUser u) ->
+                setItem(26, Utils.createItem(Material.ARROW, 1, Utils.title("Next Page"), Utils.line("Open the next page of regions.")), (NetworkUser u) ->
 
-                        {
+                {
 
-                            // Update the gui.
-                            page++;
-                            this.refresh();
-                            u.player.getOpenInventory().getTopInventory()
-                                    .setContents(this.getInventory().getContents());
-                        });
+                    // Update the gui.
+                    page++;
+                    this.refresh();
+                    updatePlayerInventory(u.player);
+                });
 
                 // Stop iterating.
                 break;
             }
 
-            Region region = Network.getInstance().getRegionManager().getRegion(regionMember.region());
-            RegionStatus status = region.status();
+            Region region = provider.regionManager().getRegion(regionMember.region());
+            RegionStatus status = provider.regionManager().status(region);
 
-            setItem(slot, getGuiItem(regionMember, status),
-                    (NetworkUser u) -> {
+            setItem(slot, getGuiItem(regionMember, status), (NetworkUser u) -> {
 
-                        // Delete this gui.
-                        this.delete();
+                // Delete this gui.
+                this.delete();
 
-                        // Switch to region info.
-                        u.mainGui = new RegionInfo(region, u.player.getUniqueId().toString());
-                        u.mainGui.open(u.player);
-                    });
+                // Switch to region info.
+                u.mainGui = new RegionInfo(provider, region, u.player.getUniqueId().toString());
+                u.mainGui.open(u.player);
+            });
 
-            // Increase slot accordingly.
+            // Increase the slot accordingly.
             if (slot % 9 == 7) {
                 // Increase row, basically add 3.
                 slot += 3;
@@ -149,19 +139,16 @@ public class RegionMenu extends NetworkRefreshableGui {
         }
 
         // Check if you have any requests for regions you own.
-        if (regionSQL.hasRow("SELECT region FROM region_requests WHERE owner='" + user.player.getUniqueId() + "' AND " +
-                "owner_accept=0;")) {
+        if (regionSQL.hasRow("SELECT region FROM region_requests WHERE owner='" + user.player.getUniqueId() + "' AND " + "owner_accept=0;")) {
 
-            setItem(39, Utils.createItem(Material.LIME_STAINED_GLASS_PANE, 1,
-                            Utils.title("Review Region Requests"),
-                            Utils.line("View all region join requests for"),
+            setItem(39, Utils.createItem(Material.LIME_STAINED_GLASS_PANE, 1, Utils.title("Review Region Requests"), Utils.line("View all region join requests for"),
                             Utils.line("regions that you are the owner of.")),
 
                     (NetworkUser u) -> {
 
                         // Delete this gui and switch to review region requests.
                         this.delete();
-                        u.mainGui = new ReviewRegionRequests(false, u.player.getUniqueId().toString());
+                        u.mainGui = new ReviewRegionRequests(provider, false, u.player.getUniqueId().toString());
                         u.mainGui.open(u.player);
                     });
         }
@@ -169,39 +156,27 @@ public class RegionMenu extends NetworkRefreshableGui {
         // Check if the player has any active region requests.
         if (regionSQL.hasRow("SELECT region FROM region_requests WHERE uuid='" + user.player.getUniqueId() + "';")) {
 
-            setItem(40, Utils.createItem(Material.ORANGE_STAINED_GLASS, 1,
-                            Utils.title("Region Requests"),
-                            Utils.line("View active regions requests"),
-                            Utils.line("that you have made that have"),
-                            Utils.line("not yet been accepted.")),
+            setItem(40, Utils.createItem(Material.ORANGE_STAINED_GLASS, 1, Utils.title("Region Requests"), Utils.line("View active regions requests"),
+                            Utils.line("that you have made that have"), Utils.line("not yet been accepted.")),
 
                     (NetworkUser u) -> {
 
                         // Delete this gui and switch to region request menu.
                         this.delete();
-                        u.mainGui = new RegionRequestMenu(u);
+                        u.mainGui = new RegionRequestMenu(provider, u);
                         u.mainGui.open(u.player);
                     });
         }
 
         // Return
-        setItem(44, Utils.createItem(Material.SPRUCE_DOOR, 1,
-                        Utils.title("Return"),
-                        Utils.line("Open the building menu.")),
-                (NetworkUser u) -> {
+        setItem(44, Utils.createItem(Material.SPRUCE_DOOR, 1, Utils.title("Return"), Utils.line("Open the building menu.")), (NetworkUser u) -> {
 
-                    // Delete this gui.
-                    this.delete();
+            // Delete this gui.
+            this.delete();
 
-                    // Switch to plot info.
-                    u.mainGui = new BuildGui(u);
-                    u.mainGui.open(u.player);
-                });
-    }
-
-    public void refresh() {
-
-        this.clearGui();
-        createGui();
+            // Switch to plot info.
+            u.mainGui = new BuildGui(provider, u);
+            u.mainGui.open(u.player);
+        });
     }
 }

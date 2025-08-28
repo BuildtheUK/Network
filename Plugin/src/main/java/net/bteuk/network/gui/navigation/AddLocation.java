@@ -2,13 +2,14 @@ package net.bteuk.network.gui.navigation;
 
 import lombok.Getter;
 import lombok.Setter;
-import net.bteuk.network.Network;
 import net.bteuk.network.api.EventAPI;
 import net.bteuk.network.api.ServerAPI;
 import net.bteuk.network.commands.navigation.Back;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.ServerType;
 import net.bteuk.network.eventing.listeners.navigation.LocationNameListener;
+import net.bteuk.network.gui.GuiProvider;
+import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.gui.staff.LocationRequests;
 import net.bteuk.network.gui.staff.StaffGui;
 import net.bteuk.network.lib.dto.ChatMessage;
@@ -30,9 +31,7 @@ import java.util.Arrays;
 
 import static net.bteuk.network.lib.enums.ChatChannels.REVIEWER;
 
-public class AddLocation extends Gui {
-
-    private final Network instance;
+public class AddLocation extends NetworkRefreshableGui {
 
     @Getter
     private final AddLocationType type;
@@ -52,26 +51,21 @@ public class AddLocation extends Gui {
     private LocationNameListener locationNameListener;
     private GlobalSQL globalSQL;
 
-    public AddLocation(Network instance, AddLocationType type, Constants constants, Back back, EventAPI eventAPI, ServerAPI serverAPI) {
-        super(27, Component.text(type.label + " Location", NamedTextColor.AQUA, TextDecoration.BOLD));
+    public AddLocation(GuiProvider provider, AddLocationType type) {
+        super(provider, 27, Component.text(type.label + " Location", NamedTextColor.AQUA, TextDecoration.BOLD));
 
-        this.instance = instance;
         this.type = type;
-        this.constants = constants;
-        this.back = back;
-        this.eventAPI = eventAPI;
-        this.serverAPI = serverAPI;
-
-        createGui();
+        this.constants = provider.constants();
+        this.back = provider.back();
+        this.eventAPI = provider.eventAPI();
+        this.serverAPI = provider.serverAPI();
     }
 
     // This is used when location details need to be updated.
-    public AddLocation(Network instance, AddLocationType type, String name, int coordinate_id, Category category, String subcategory) {
-        super(27, Component.text(type.label + " Location", NamedTextColor.AQUA, TextDecoration.BOLD));
+    public AddLocation(GuiProvider provider, AddLocationType type, String name, int coordinate_id, Category category, String subcategory) {
+        super(provider, 27, Component.text(type.label + " Location", NamedTextColor.AQUA, TextDecoration.BOLD));
 
-        this.instance = instance;
-
-        // Set name.
+        // Set the name.
         this.old_name = name;
         this.name = name;
 
@@ -86,11 +80,13 @@ public class AddLocation extends Gui {
         }
 
         this.type = type;
-
-        createGui();
+        this.constants = provider.constants();
+        this.back = provider.back();
+        this.eventAPI = provider.eventAPI();
+        this.serverAPI = provider.serverAPI();
     }
 
-    private void createGui() {
+    protected void createGui() {
         // Set/edit name.
         if (name != null) {
             setItem(11, Utils.createItem(Material.SPRUCE_SIGN, 1, Utils.title("Update Location Name"), Utils.line("Edit the location name."),
@@ -157,7 +153,7 @@ public class AddLocation extends Gui {
                 (NetworkUser u) -> {
 
                     // Open select county menu.
-                    selectSubcategory = new SelectSubcategory(instance, this);
+                    selectSubcategory = new SelectSubcategory(provider, this);
                     selectSubcategory.open(u.player);
                 });
 
@@ -203,11 +199,11 @@ public class AddLocation extends Gui {
                     String worldName = u.player.getLocation().getWorld().getName();
 
                     // If location exists.
-                    if (instance.getPlotAPI().hasLocation(worldName)) {
+                    if (provider.plotAPI().hasLocation(worldName)) {
 
                         // Add coordinate transformation.
-                        l = new Location(l.getWorld(), l.getX() - instance.getPlotAPI().getXTransform(worldName), l.getY(),
-                                l.getZ() - instance.getPlotAPI().getZTransform(worldName), l.getYaw(), l.getPitch());
+                        l = new Location(l.getWorld(), l.getX() - provider.plotAPI().getXTransform(worldName), l.getY(), l.getZ() - provider.plotAPI().getZTransform(worldName),
+                                l.getYaw(), l.getPitch());
                     }
                 }
 
@@ -250,20 +246,19 @@ public class AddLocation extends Gui {
 
                             Location l = u.player.getLocation();
 
-                            // If server is plotsystem add the necessary coordinate transformation.
-                            if (SERVER_TYPE == ServerType.PLOT) {
+                            // If the server is the plot system, add the necessary coordinate transformation.
+                            if (constants.serverType() == ServerType.PLOT) {
 
                                 String worldName = u.player.getLocation().getWorld().getName();
 
                                 // If location exists.
-                                if (Network.getInstance().getPlotSQL().hasRow("SELECT name FROM location_data WHERE " + "name='" + worldName + "';")) {
+                                if (provider.plotSQL().hasRow("SELECT name FROM location_data WHERE " + "name='" + worldName + "';")) {
 
                                     // Add coordinate transformation.
                                     l = new Location(l.getWorld(),
-                                            l.getX() - Network.getInstance().getPlotSQL().getInt("SELECT xTransform " + "FROM location_data WHERE name='" + worldName + "';"),
-                                            l.getY(),
-                                            l.getZ() - Network.getInstance().getPlotSQL().getInt("SELECT zTransform " + "FROM location_data WHERE name='" + worldName + "';"),
-                                            l.getYaw(), l.getPitch());
+                                            l.getX() - provider.plotSQL().getInt("SELECT xTransform " + "FROM location_data WHERE name='" + worldName + "';"), l.getY(),
+                                            l.getZ() - provider.plotSQL().getInt("SELECT zTransform " + "FROM location_data WHERE name='" + worldName + "';"), l.getYaw(),
+                                            l.getPitch());
                                 }
                             }
 
@@ -303,21 +298,20 @@ public class AddLocation extends Gui {
                     });
         } else if (type == AddLocationType.REVIEW) {
 
-            // Accept request.
+            // Accept the request.
             setItem(3, Utils.createItem(Material.LIME_CONCRETE, 1, Utils.title("Accept Location Request"), Utils.line("Location will be added to"),
                     Utils.line("the exploration menu as well as"), Utils.line("the list of warps.")), (NetworkUser u) -> {
 
-                // Accept request.
                 acceptRequest(u);
 
                 // Delete gui and return to previous menu.
                 this.delete();
 
-                u.staffGui = new LocationRequests();
+                u.staffGui = new LocationRequests(provider);
                 u.staffGui.open(u.player);
             });
 
-            // Deny request.
+            // Deny the request.
             setItem(5, Utils.createItem(Material.RED_CONCRETE, 1, Utils.title("Deny Location Request"), Utils.line("Location request will be denied.")), (NetworkUser u) -> {
 
                 // Delete request.
@@ -329,21 +323,19 @@ public class AddLocation extends Gui {
                 // Delete gui and return to previous menu.
                 this.delete();
 
-                u.staffGui = new LocationRequests();
+                u.staffGui = new LocationRequests(provider);
                 u.staffGui.open(u.player);
             });
         }
 
         // Return
         if (type == AddLocationType.ADD) {
-            setItem(26, Utils.createItem(Material.SPRUCE_DOOR, 1, Utils.title("Return"), Utils.line("Open the explore" + " menu.")), (NetworkUser u) ->
-
-            {
+            setItem(26, Utils.createItem(Material.SPRUCE_DOOR, 1, Utils.title("Return"), Utils.line("Open the explore" + " menu.")), (NetworkUser u) -> {
 
                 // Delete this gui.
                 this.delete();
 
-                // Switch to navigation menu.
+                // Switch to the navigation menu.
                 u.mainGui = new ExploreGui(u);
                 u.mainGui.open(u.player);
             });
@@ -353,7 +345,7 @@ public class AddLocation extends Gui {
                 // Delete gui and return to previous menu.
                 this.delete();
 
-                u.staffGui = new LocationRequests();
+                u.staffGui = new LocationRequests(provider);
                 u.staffGui.open(u.player);
             });
         } else {
@@ -362,7 +354,7 @@ public class AddLocation extends Gui {
                 // Delete gui and return to previous menu.
                 this.delete();
 
-                u.staffGui = new StaffGui(u);
+                u.staffGui = new StaffGui(provider, u);
                 u.staffGui.open(u.player);
             });
         }
@@ -469,7 +461,7 @@ public class AddLocation extends Gui {
 
         // Notify reviewers.
         ChatMessage chatMessage = new ChatMessage(REVIEWER.getChannelName(), "server", ChatUtils.success("A new " + "location has been requested."));
-        Network.getInstance().getChat().sendSocketMessage(chatMessage);
+        provider.chatAPI().sendChatMessage(chatMessage);
 
         u.player.sendMessage(ChatUtils.success("Location %s requested.", name));
 
@@ -481,18 +473,12 @@ public class AddLocation extends Gui {
         u.player.closeInventory();
     }
 
-    public void refresh() {
-
-        this.clearGui();
-        createGui();
-    }
-
-    // Override delete method to make sure selectCounty is also deleted.
+    // Override the delete method to make sure selectSubcategory is also deleted.
     @Override
     public void delete() {
         super.delete();
 
-        // If selectCounty exists, delete it.
+        // If selectSubcategory exists, delete it.
         if (selectSubcategory != null) {
             selectSubcategory.delete();
             selectSubcategory = null;

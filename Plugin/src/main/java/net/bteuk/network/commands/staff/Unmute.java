@@ -49,30 +49,7 @@ public class Unmute extends AbstractCommand {
         String uuid = globalSQL.getString("SELECT uuid FROM player_data WHERE name='" + args[0] + "';");
         String name = globalSQL.getString("SELECT name FROM player_data WHERE name='" + args[0] + "';");
 
-        sender.sendMessage(unmutePlayer(name, uuid));
-    }
-
-    /**
-     * Unmute the player and return the feedback so the executor can be notified of success/failure.
-     *
-     * @param name Name of the muted player.
-     * @param uuid Uuid of the muted player.
-     * @return The Component to display to the executor.
-     */
-    public Component unmutePlayer(String name, String uuid) {
-
-        // Check if the player is currently muted.
-        if (moderation.isMuted(uuid)) {
-
-            // Unban the player.
-            moderation.unmute(uuid);
-
-            // Send feedback.
-            return (ChatUtils.success("Unmuted ")
-                    .append(Component.text(name, NamedTextColor.DARK_AQUA)));
-        } else {
-            return (ChatUtils.error(name + " is not currently muted."));
-        }
+        sender.sendMessage(moderation.unmutePlayer(name, uuid));
     }
 
     @Override

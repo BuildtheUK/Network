@@ -2,10 +2,12 @@ package net.bteuk.network.gui.staff;
 
 import lombok.Getter;
 import lombok.Setter;
-import net.bteuk.network.Network;
+import net.bteuk.network.core.Time;
 import net.bteuk.network.eventing.listeners.staff.ModerationReasonListener;
+import net.bteuk.network.gui.GuiProvider;
+import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.lib.utils.ChatUtils;
-import net.bteuk.network.utils.Time;
+import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
 import net.bteuk.network.utils.enums.ModerationType;
 import net.kyori.adventure.text.Component;
@@ -17,7 +19,7 @@ import java.util.Locale;
 
 import static net.bteuk.network.utils.enums.ModerationType.BAN;
 
-public class ModerationActionGui extends Gui {
+public class ModerationActionGui extends NetworkRefreshableGui {
 
     @Getter
     private final ModerationType type;
@@ -32,19 +34,16 @@ public class ModerationActionGui extends Gui {
     private int months = 0;
     private int years = 0;
 
-    public ModerationActionGui(ModerationType type, String uuid) {
-
-        super(9, Component.text(type.label + " Menu", NamedTextColor.AQUA, TextDecoration.BOLD));
+    public ModerationActionGui(GuiProvider provider, ModerationType type, String uuid) {
+        super(provider, 9, Component.text(type.label + " Menu", NamedTextColor.AQUA, TextDecoration.BOLD));
 
         this.type = type;
         this.uuid = uuid;
 
-        name = Network.getInstance().getGlobalSQL().getString("SELECT name FROM player_data WHERE uuid='" + uuid + "';");
-
-        createGui();
+        name = provider.globalSQL().getString("SELECT name FROM player_data WHERE uuid='" + uuid + "';");
     }
 
-    private void createGui() {
+    protected void createGui() {
 
         // Unregister the listener if it has not been already.
         if (reasonListener != null) {
@@ -57,37 +56,38 @@ public class ModerationActionGui extends Gui {
             case KICK ->
 
                 // Kick
-                    setItem(0, Utils.createItem(Material.REDSTONE_BLOCK, 1, Utils.title("Kick " + name), Utils.line("Kick the player with the specified reason.")), (NetworkUser u) -> {
+                    setItem(0, Utils.createItem(Material.REDSTONE_BLOCK, 1, Utils.title("Kick " + name), Utils.line("Kick the player with the specified reason.")),
+                            (NetworkUser u) -> {
 
-                        // If a reason has been set, kick the user, if they're still online.
-                        if (Network.getInstance().isOnlineOnNetwork(uuid)) {
-                            if (reason != null) {
+                                // If a reason has been set, kick the user, if they're still online.
+                                if (provider.instance().isOnlineOnNetwork(uuid)) {
+                                    if (reason != null) {
 
-                                // Kick the user.
-                                u.player.sendMessage(Network.getInstance().getKick().kickPlayer(name, uuid, reason));
+                                        // Kick the user.
+                                        u.player.sendMessage(provider.moderation().kickPlayer(name, uuid, reason));
 
-                                // Close inventory and clear gui (this means it'll open as a staff menu next
-                                // time).
-                                this.delete();
-                                u.staffGui = null;
+                                        // Close inventory and clear gui (this means it'll open as a staff menu next
+                                        // time).
+                                        this.delete();
+                                        u.staffGui = null;
 
-                                u.player.closeInventory();
-                            } else {
+                                        u.player.closeInventory();
+                                    } else {
 
-                                u.player.sendMessage(ChatUtils.error("You must provide a reason to kick someone."));
-                                u.player.closeInventory();
-                            }
-                        } else {
+                                        u.player.sendMessage(ChatUtils.error("You must provide a reason to kick someone."));
+                                        u.player.closeInventory();
+                                    }
+                                } else {
 
-                            u.player.sendMessage(Component.text(name, NamedTextColor.DARK_RED).append(ChatUtils.error(" is no longer online.")));
+                                    u.player.sendMessage(Component.text(name, NamedTextColor.DARK_RED).append(ChatUtils.error(" is no longer online.")));
 
-                            // Close inventory and clear gui (this means it'll open as a staff menu next time).
-                            this.delete();
-                            u.staffGui = null;
+                                    // Close inventory and clear gui (this means it'll open as a staff menu next time).
+                                    this.delete();
+                                    u.staffGui = null;
 
-                            u.player.closeInventory();
-                        }
-                    });
+                                    u.player.closeInventory();
+                                }
+                            });
 
             case BAN, MUTE -> {
 
@@ -97,7 +97,7 @@ public class ModerationActionGui extends Gui {
 
                     hours = (hours == 24) ? 0 : hours + 1;
                     this.refresh();
-                    u.player.getOpenInventory().getTopInventory().setContents(getInventory().getContents());
+                    updatePlayerInventory(u.player);
                 });
 
                 setItem(4, Utils.createItem((days == 0) ? Material.BARRIER : Material.CLOCK, (days == 0) ? 1 : days, Utils.title("Days"),
@@ -105,7 +105,7 @@ public class ModerationActionGui extends Gui {
 
                     days = (days == 30) ? 0 : days + 1;
                     this.refresh();
-                    u.player.getOpenInventory().getTopInventory().setContents(getInventory().getContents());
+                    updatePlayerInventory(u.player);
                 });
 
                 setItem(5, Utils.createItem((months == 0) ? Material.BARRIER : Material.CLOCK, (months == 0) ? 1 : months, Utils.title("Months"),
@@ -113,7 +113,7 @@ public class ModerationActionGui extends Gui {
 
                     months = (months == 12) ? 0 : months + 1;
                     this.refresh();
-                    u.player.getOpenInventory().getTopInventory().setContents(getInventory().getContents());
+                    updatePlayerInventory(u.player);
                 });
 
                 setItem(6, Utils.createItem((years == 0) ? Material.BARRIER : Material.CLOCK, (years == 0) ? 1 : years, Utils.title("Years"),
@@ -121,7 +121,7 @@ public class ModerationActionGui extends Gui {
 
                     years = (years == 5) ? 0 : years + 1;
                     this.refresh();
-                    u.player.getOpenInventory().getTopInventory().setContents(getInventory().getContents());
+                    updatePlayerInventory(u.player);
                 });
 
                 // Ban/Mute
@@ -140,11 +140,11 @@ public class ModerationActionGui extends Gui {
                             if (type == BAN) {
 
                                 // Ban the user.
-                                u.player.sendMessage(Network.getInstance().getBan().banPlayer(name, uuid, end_time, reason));
+                                u.player.sendMessage(provider.moderation().banPlayer(name, uuid, end_time, reason));
                             } else {
 
                                 // Mute the user.
-                                u.player.sendMessage(Network.getInstance().getMute().mutePlayer(name, uuid, end_time, reason));
+                                u.player.sendMessage(provider.moderation().mutePlayer(name, uuid, end_time, reason));
                             }
 
                             // Close inventory and clear gui (this means it'll open as a staff menu next time).
@@ -169,9 +169,7 @@ public class ModerationActionGui extends Gui {
         // Set reason
         setItem(2, Utils.createItem(Material.WRITABLE_BOOK, 1, Utils.title("Reason"), Utils.line("Click to write the reason in chat."),
                 Utils.line("Your first chat message will be set as reason."), Utils.line("If you don't type anything within 1 minute"),
-                Utils.line("the action gets " + "cancelled.")), (NetworkUser u) ->
-
-        {
+                Utils.line("the action gets " + "cancelled.")), (NetworkUser u) -> {
 
             // Prompt the user for a reason.
             reasonListener = new ModerationReasonListener(u, this);
@@ -180,21 +178,12 @@ public class ModerationActionGui extends Gui {
             u.player.sendMessage(ChatUtils.success("Please write the reason in chat, the first message counts" + "."));
         });
 
-        // Return to select user menu.
-        setItem(8, Utils.createItem(Material.SPRUCE_DOOR, 1, Utils.title("Previous Page"), Utils.line("Open the select user menu.")), (NetworkUser u) ->
+        setItem(8, Utils.createItem(Material.SPRUCE_DOOR, 1, Utils.title("Previous Page"), Utils.line("Open the select user menu.")), (NetworkUser u) -> {
 
-        {
-
-            // Return to request menu.
+            // Return to the select user menu.
             this.delete();
-            u.staffGui = new SelectUser(type);
+            u.staffGui = new SelectUser(provider, type);
             u.staffGui.open(u.player);
         });
-    }
-
-    public void refresh() {
-
-        this.clearGui();
-        createGui();
     }
 }

@@ -50,30 +50,7 @@ public class Unban extends AbstractCommand {
         String uuid = globalSQL.getString("SELECT uuid FROM player_data WHERE name='" + args[0] + "';");
         String name = globalSQL.getString("SELECT name FROM player_data WHERE name='" + args[0] + "';");
 
-        sender.sendMessage(unbanPlayer(name, uuid));
-    }
-
-    /**
-     * Unban the player and return the feedback so the executor can be notified of success/failure.
-     *
-     * @param name Name of the banned player.
-     * @param uuid Uuid of the banned player.
-     * @return The Component to display to the executor.
-     */
-    public Component unbanPlayer(String name, String uuid) {
-
-        // Check if the player is currently banned.
-        if (moderation.isBanned(uuid)) {
-
-            // Unban the player.
-            moderation.unban(uuid);
-
-            // Send feedback.
-            return (ChatUtils.success("Unbanned ")
-                    .append(Component.text(name, NamedTextColor.DARK_AQUA)));
-        } else {
-            return (ChatUtils.error(name + " is not currently banned."));
-        }
+        sender.sendMessage(moderation.unbanPlayer(name, uuid));
     }
 
     @Override

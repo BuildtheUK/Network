@@ -1,9 +1,11 @@
 package net.bteuk.network.gui.staff;
 
-import net.bteuk.network.Network;
+import net.bteuk.network.core.Time;
+import net.bteuk.network.gui.GuiProvider;
+import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.lib.dto.OnlineUser;
 import net.bteuk.network.sql.GlobalSQL;
-import net.bteuk.network.utils.Time;
+import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
 import net.bteuk.network.utils.enums.ModerationType;
 import net.kyori.adventure.text.Component;
@@ -15,51 +17,40 @@ import java.util.List;
 import java.util.Locale;
 
 import static net.bteuk.network.utils.enums.ModerationType.UNBAN;
-import static net.bteuk.network.utils.enums.ModerationType.UNMUTE;
 
-public class SelectUser extends Gui {
+public class SelectUser extends NetworkRefreshableGui {
 
-    List<String> users;
+    private List<String> users;
 
-    ModerationType type;
+    private final ModerationType type;
 
-    int page;
+    private int page;
 
-    GlobalSQL globalSQL;
+    private final GlobalSQL globalSQL;
 
-    public SelectUser(ModerationType type) {
+    public SelectUser(GuiProvider provider, ModerationType type) {
 
-        super(45, Component.text("Select User for " + type.label, NamedTextColor.AQUA, TextDecoration.BOLD));
+        super(provider, 45, Component.text("Select User for " + type.label, NamedTextColor.AQUA, TextDecoration.BOLD));
 
         this.type = type;
-
-        globalSQL = Network.getInstance().getGlobalSQL();
+        this.globalSQL = provider.globalSQL();
 
         // Select all the players to show in the menu depending on the ModerationType.
         switch (type) {
 
             case BAN, MUTE, KICK ->
-
                 // Get online users.
-                    users = Network.getInstance().getOnlineUsers().stream().map(OnlineUser::getUuid).toList();
-
+                    users = provider.instance().getOnlineUsers().stream().map(OnlineUser::getUuid).toList();
             case UNBAN ->
-
                 // Get banned users.
-                    users = globalSQL.getStringList(
-                            "SELECT uuid FROM moderation WHERE end_time>" + Time.currentTime() + " AND type='ban'");
-
+                    users = globalSQL.getStringList("SELECT uuid FROM moderation WHERE end_time>" + Time.currentTime() + " AND type='ban'");
             case UNMUTE ->
-
                 // Get muted users.
-                    users = globalSQL.getStringList(
-                            "SELECT uuid FROM moderation WHERE end_time>" + Time.currentTime() + " AND type='mute'");
+                    users = globalSQL.getStringList("SELECT uuid FROM moderation WHERE end_time>" + Time.currentTime() + " AND type='mute'");
         }
-
-        createGui();
     }
 
-    private void createGui() {
+    protected void createGui() {
 
         // Slot count.
         int slot = 10;
@@ -67,20 +58,15 @@ public class SelectUser extends Gui {
         // Skip count.
         int skip = 21 * (page - 1);
 
-        // If page is greater than 1 add a previous page button.
+        // If the page is greater than 1, add a previous page button.
         if (page > 1) {
-            setItem(18, Utils.createItem(Material.ARROW, 1,
-                            Utils.title("Previous Page"),
-                            Utils.line("Open the previous page of regions.")),
-                    (NetworkUser u) ->
+            setItem(18, Utils.createItem(Material.ARROW, 1, Utils.title("Previous Page"), Utils.line("Open the previous page of regions.")), (NetworkUser u) -> {
 
-                    {
-
-                        // Update the gui.
-                        page--;
-                        this.refresh();
-                        this.updatePlayerInventory(u.player);
-                    });
+                // Update the gui.
+                page--;
+                this.refresh();
+                this.updatePlayerInventory(u.player);
+            });
         }
 
         // Make a button for each user.
@@ -95,19 +81,13 @@ public class SelectUser extends Gui {
             // If the slot is greater than the number that fit in a page, create a new page.
             if (slot > 34) {
 
-                setItem(26, Utils.createItem(Material.ARROW, 1,
-                                Utils.title("Next Page"),
-                                Utils.line("Open the next page of users.")),
-                        (NetworkUser u) ->
+                setItem(26, Utils.createItem(Material.ARROW, 1, Utils.title("Next Page"), Utils.line("Open the next page of users.")), (NetworkUser u) -> {
 
-                        {
-
-                            // Update the gui.
-                            page++;
-                            this.refresh();
-                            u.player.getOpenInventory().getTopInventory()
-                                    .setContents(this.getInventory().getContents());
-                        });
+                    // Update the gui.
+                    page++;
+                    this.refresh();
+                    this.updatePlayerInventory(u.player);
+                });
 
                 // Stop iterating.
                 break;
@@ -123,23 +103,19 @@ public class SelectUser extends Gui {
             switch (type) {
 
                 case BAN, MUTE, KICK -> // Ban/mute/kick the player.
-                        setItem(slot, Utils.createCustomSkullWithFallback(player_skin, Material.RED_CONCRETE, 1,
-                                        Utils.title(type.label + " " + name),
-                                        Utils.line("Opens the " + type.label.toLowerCase(Locale.ROOT) + " menu to set" +
-                                                " the parameters.")),
-                                (NetworkUser u) ->
+                        setItem(slot, Utils.createCustomSkullWithFallback(player_skin, Material.RED_CONCRETE, 1, Utils.title(type.label + " " + name),
+                                Utils.line("Opens the " + type.label.toLowerCase(Locale.ROOT) + " menu to set" + " the parameters.")), (NetworkUser u) ->
 
-                                {
+                        {
 
-                                    // Open the kick menu.
-                                    this.delete();
-                                    u.staffGui = new ModerationActionGui(type, uuid);
-                                    u.staffGui.open(u.player);
-                                });
+                            // Open the kick menu.
+                            this.delete();
+                            u.staffGui = new ModerationActionGui(provider, type, uuid);
+                            u.staffGui.open(u.player);
+                        });
 
                 case UNBAN, UNMUTE -> // Unban/unmute the player.
-                        setItem(slot, Utils.createCustomSkullWithFallback(player_skin, Material.LIME_CONCRETE, 1,
-                                        Utils.title(type.label + " " + name),
+                        setItem(slot, Utils.createCustomSkullWithFallback(player_skin, Material.LIME_CONCRETE, 1, Utils.title(type.label + " " + name),
                                         Utils.line(type.label + " the player immediately.")),
 
                                 (NetworkUser u) -> {
@@ -147,14 +123,11 @@ public class SelectUser extends Gui {
                                     u.player.closeInventory();
 
                                     if (type == UNBAN) {
-
                                         // Unban the player.
-                                        u.player.sendMessage(Network.getInstance().getUnban().unbanPlayer(name, uuid));
-                                    } else if (type == UNMUTE) {
-
+                                        u.player.sendMessage(provider.moderation().unbanPlayer(name, uuid));
+                                    } else {
                                         // Unmute the player.
-                                        u.player.sendMessage(Network.getInstance().getUnmute().unmutePlayer(name,
-                                                uuid));
+                                        u.player.sendMessage(provider.moderation().unmutePlayer(name, uuid));
                                     }
 
                                     // Delete the gui and remove it from the user.
@@ -163,7 +136,7 @@ public class SelectUser extends Gui {
                                 });
             }
 
-            // Increase slot accordingly.
+            // Increase the slot accordingly.
             if (slot % 9 == 7) {
                 // Increase row, basically add 3.
                 slot += 3;
@@ -173,25 +146,14 @@ public class SelectUser extends Gui {
             }
         }
 
-        setItem(44, Utils.createItem(Material.SPRUCE_DOOR, 1,
-                        Utils.title("Previous Page"),
-                        Utils.line("Open the moderation menu.")),
-                (NetworkUser u) ->
+        setItem(44, Utils.createItem(Material.SPRUCE_DOOR, 1, Utils.title("Previous Page"), Utils.line("Open the moderation menu.")), (NetworkUser u) -> {
 
-                {
+            // Return to the moderation menu.
+            this.delete();
+            u.staffGui = null;
 
-                    // Return to request menu.
-                    this.delete();
-                    u.staffGui = null;
-
-                    u.staffGui = new ModerationGui();
-                    u.staffGui.open(u.player);
-                });
-    }
-
-    public void refresh() {
-
-        this.clearGui();
-        createGui();
+            u.staffGui = new ModerationGui(provider);
+            u.staffGui.open(u.player);
+        });
     }
 }

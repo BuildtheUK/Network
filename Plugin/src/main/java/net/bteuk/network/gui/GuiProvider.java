@@ -2,6 +2,7 @@ package net.bteuk.network.gui;
 
 import net.bteuk.minecraft.gui.GuiManager;
 import net.bteuk.network.Network;
+import net.bteuk.network.api.ChatAPI;
 import net.bteuk.network.api.EventAPI;
 import net.bteuk.network.api.PlotAPI;
 import net.bteuk.network.api.ServerAPI;
@@ -15,6 +16,7 @@ import net.bteuk.network.regions.sql.RegionSQL;
 import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.sql.PlotSQL;
 import net.bteuk.network.utils.Roles;
+import net.bteuk.network.utils.staff.Moderation;
 import teachingtutorials.utils.DBConnection;
 
 /**
@@ -22,5 +24,5 @@ import teachingtutorials.utils.DBConnection;
  */
 public record GuiProvider(Network instance, GuiManager manager, Constants constants, GlobalSQL globalSQL, RegionSQL regionSQL, RegionManager regionManager, PlotSQL plotSQL,
                           PlotAPI plotAPI, Lobby lobby, Back back, EventAPI eventAPI, ServerAPI serverAPI, Nightvision nightvision, Navigator navigator, Roles roles,
-                          DBConnection tutorialsDBConnection) {
+                          DBConnection tutorialsDBConnection, ChatAPI chatAPI, Moderation moderation) {
 }

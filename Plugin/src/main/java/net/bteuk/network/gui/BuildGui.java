@@ -158,7 +158,7 @@ public class BuildGui extends NetworkRefreshableGui {
                     // Delete this gui.
                     this.delete();
 
-                    // Switch to plot menu.
+                    // Switch to the zone menu.
                     u.mainGui = new ZoneMenu(provider, u);
                     u.mainGui.open(u.player);
                 } else {
@@ -222,7 +222,7 @@ public class BuildGui extends NetworkRefreshableGui {
                         this.delete();
 
                         // Switch to region info.
-                        u.mainGui = new RegionInfo(region, u.player.getUniqueId().toString());
+                        u.mainGui = new RegionInfo(provider, region, u.player.getUniqueId().toString());
                         u.mainGui.open(u.player);
                     });
                 } else if (regionManager.isMember(region, user.player.getUniqueId().toString())) {
@@ -234,7 +234,7 @@ public class BuildGui extends NetworkRefreshableGui {
                         this.delete();
 
                         // Switch to plot info.
-                        u.mainGui = new RegionInfo(region, u.player.getUniqueId().toString());
+                        u.mainGui = new RegionInfo(provider, region, u.player.getUniqueId().toString());
                         u.mainGui.open(u.player);
                     });
                 } else if (regionManager.hasRequest(region, user.getUuid())) {
@@ -251,7 +251,7 @@ public class BuildGui extends NetworkRefreshableGui {
                             });
                 } else if (user.player.hasPermission("uknet.regions.join")) {
 
-                    // Check if region is claimable.
+                    // Check if the region is claimable.
                     if (regionManager.isClaimable(region)) {
 
                         // If the region has an owner.

@@ -6,7 +6,6 @@ import net.bteuk.network.api.SQLAPI;
 import net.bteuk.network.commands.AbstractCommand;
 import net.bteuk.network.core.Time;
 import net.bteuk.network.exceptions.DurationFormatException;
-import net.bteuk.network.exceptions.NotMutedException;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.staff.Moderation;
 import net.kyori.adventure.text.Component;
@@ -72,32 +71,7 @@ public class Mute extends AbstractCommand {
         // Combine all remaining args to create a reason.
         String reason = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
 
-        sender.sendMessage(mutePlayer(name, uuid, end_time, reason));
-    }
-
-    /**
-     * Mute the player and return the feedback so the executor can be notified of success/failure.
-     *
-     * @param name     Name of the player to mute.
-     * @param uuid     Uuid of the player to mute.
-     * @param end_time Time for the mute to end in milliseconds.
-     * @param reason   Reason for muting the player.
-     * @return The Component to display to the executor.
-     */
-    public Component mutePlayer(String name, String uuid, long end_time, String reason) {
-
-        try {
-            moderation.mute(uuid, end_time, reason);
-        } catch (NotMutedException e) {
-            return ChatUtils.error("An error occurred while muting this player, please contact an admin for support.");
-        }
-
-        return ChatUtils.success("Muted ")
-                .append(Component.text(name, NamedTextColor.DARK_AQUA))
-                .append(ChatUtils.success(" until "))
-                .append(Component.text(Time.getDateTime(end_time), NamedTextColor.DARK_AQUA))
-                .append(ChatUtils.success(" for reason: "))
-                .append(Component.text(reason, NamedTextColor.DARK_AQUA));
+        sender.sendMessage(moderation.mutePlayer(name, uuid, end_time, reason));
     }
 
     @Override

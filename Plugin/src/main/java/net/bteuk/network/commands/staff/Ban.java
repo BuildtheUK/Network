@@ -6,11 +6,8 @@ import net.bteuk.network.api.SQLAPI;
 import net.bteuk.network.commands.AbstractCommand;
 import net.bteuk.network.core.Time;
 import net.bteuk.network.exceptions.DurationFormatException;
-import net.bteuk.network.exceptions.NotBannedException;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.staff.Moderation;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -70,32 +67,7 @@ public class Ban extends AbstractCommand {
         // Combine all remaining args to create a reason.
         String reason = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
 
-        sender.sendMessage(banPlayer(name, uuid, end_time, reason));
-    }
-
-    /**
-     * Ban the player and return the feedback so the executor can be notified of success/failure.
-     *
-     * @param name     Name of the player to ban.
-     * @param uuid     Uuid of the player to ban.
-     * @param end_time Time for the ban to end in milliseconds.
-     * @param reason   Reason for banning the player.
-     * @return The Component to display to the executor.
-     */
-    public Component banPlayer(String name, String uuid, long end_time, String reason) {
-
-        try {
-            moderation.ban(uuid, end_time, reason);
-        } catch (NotBannedException e) {
-            return ChatUtils.error("An error occurred while banning this player, please contact an admin for support.");
-        }
-
-        return ChatUtils.success("Banned ")
-                .append(Component.text(name, NamedTextColor.DARK_AQUA))
-                .append(ChatUtils.success(" until "))
-                .append(Component.text(Time.getDateTime(end_time), NamedTextColor.DARK_AQUA))
-                .append(ChatUtils.success(" for reason: "))
-                .append(Component.text(reason, NamedTextColor.DARK_AQUA));
+        sender.sendMessage(moderation.banPlayer(name, uuid, end_time, reason));
     }
 
     @Override

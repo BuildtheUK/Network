@@ -2,10 +2,12 @@ package net.bteuk.network.eventing.listeners.regions;
 
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.bteuk.network.Network;
+import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.regions.RegionInfo;
 import net.bteuk.network.lib.utils.ChatUtils;
+import net.bteuk.network.regions.Region;
+import net.bteuk.network.regions.RegionManager;
 import net.bteuk.network.utils.NetworkUser;
-import net.bteuk.network.utils.regions.Region;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
@@ -23,16 +25,22 @@ public class RegionTagListener implements Listener {
     private final Region region;
 
     private final BukkitTask task;
+    private final RegionManager regionManager;
+    private final Network instance;
+    private final GuiProvider provider;
 
-    public RegionTagListener(Player p, Region region) {
+    public RegionTagListener(GuiProvider provider, Player p, Region region) {
 
+        this.provider = provider;
+        this.instance = provider.instance();
+        this.regionManager = provider.regionManager();
         this.p = p;
         this.region = region;
 
-        Bukkit.getServer().getPluginManager().registerEvents(this, Network.getInstance());
+        Bukkit.getServer().getPluginManager().registerEvents(this, instance);
 
         // Start timer to automatically close the listener.
-        task = Bukkit.getScheduler().runTaskLater(Network.getInstance(), () -> {
+        task = Bukkit.getScheduler().runTaskLater(instance, () -> {
             // Send message to player telling them it's been timer out.
             if (p != null) {
                 p.sendMessage(ChatUtils.error("'Set Region Tag' cancelled."));
@@ -55,7 +63,7 @@ public class RegionTagListener implements Listener {
             } else {
 
                 // Set region tag.
-                region.setTag(p.getUniqueId().toString(),
+                regionManager.setTag(region, p.getUniqueId().toString(),
                         PlainTextComponentSerializer.plainText().serialize(e.message()));
 
                 // Send message to player.
@@ -69,9 +77,9 @@ public class RegionTagListener implements Listener {
                 unregister();
 
                 // Reset the regionInfo gui
-                NetworkUser u = Network.getInstance().getUser(p);
+                NetworkUser u = instance.getUser(p);
                 Objects.requireNonNull(u).mainGui.delete();
-                u.mainGui = new RegionInfo(region, p.getUniqueId().toString());
+                u.mainGui = new RegionInfo(provider, region, p.getUniqueId().toString());
             }
         }
     }

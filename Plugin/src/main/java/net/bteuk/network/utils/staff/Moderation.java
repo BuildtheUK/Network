@@ -289,4 +289,106 @@ public class Moderation {
             return time;
         }
     }
+
+    public Component kickPlayer(String name, String uuid, String reason) {
+        kick(uuid, reason);
+        return (ChatUtils.success("Kicked ")
+                .append(Component.text(name, NamedTextColor.DARK_AQUA))
+                .append(ChatUtils.success(" for reason: "))
+                .append(Component.text(reason, NamedTextColor.DARK_AQUA)));
+    }
+
+    /**
+     * Ban the player and return the feedback so the executor can be notified of success/failure.
+     *
+     * @param name     Name of the player to ban.
+     * @param uuid     Uuid of the player to ban.
+     * @param end_time Time for the ban to end in milliseconds.
+     * @param reason   Reason for banning the player.
+     * @return The Component to display to the executor.
+     */
+    public Component banPlayer(String name, String uuid, long end_time, String reason) {
+        try {
+            ban(uuid, end_time, reason);
+        } catch (NotBannedException e) {
+            return ChatUtils.error("An error occurred while banning this player, please contact an admin for support.");
+        }
+
+        return ChatUtils.success("Banned ")
+                .append(Component.text(name, NamedTextColor.DARK_AQUA))
+                .append(ChatUtils.success(" until "))
+                .append(Component.text(Time.getDateTime(end_time), NamedTextColor.DARK_AQUA))
+                .append(ChatUtils.success(" for reason: "))
+                .append(Component.text(reason, NamedTextColor.DARK_AQUA));
+    }
+
+    /**
+     * Mute the player and return the feedback so the executor can be notified of success/failure.
+     *
+     * @param name     Name of the player to mute.
+     * @param uuid     Uuid of the player to mute.
+     * @param end_time Time for the mute to end in milliseconds.
+     * @param reason   Reason for muting the player.
+     * @return The Component to display to the executor.
+     */
+    public Component mutePlayer(String name, String uuid, long end_time, String reason) {
+        try {
+            mute(uuid, end_time, reason);
+        } catch (NotMutedException e) {
+            return ChatUtils.error("An error occurred while muting this player, please contact an admin for support.");
+        }
+
+        return ChatUtils.success("Muted ")
+                .append(Component.text(name, NamedTextColor.DARK_AQUA))
+                .append(ChatUtils.success(" until "))
+                .append(Component.text(Time.getDateTime(end_time), NamedTextColor.DARK_AQUA))
+                .append(ChatUtils.success(" for reason: "))
+                .append(Component.text(reason, NamedTextColor.DARK_AQUA));
+    }
+
+    /**
+     * Unban the player and return the feedback so the executor can be notified of success/failure.
+     *
+     * @param name Name of the banned player.
+     * @param uuid Uuid of the banned player.
+     * @return The Component to display to the executor.
+     */
+    public Component unbanPlayer(String name, String uuid) {
+
+        // Check if the player is currently banned.
+        if (isBanned(uuid)) {
+
+            // Unban the player.
+            unban(uuid);
+
+            // Send feedback.
+            return (ChatUtils.success("Unbanned ")
+                    .append(Component.text(name, NamedTextColor.DARK_AQUA)));
+        } else {
+            return (ChatUtils.error(name + " is not currently banned."));
+        }
+    }
+
+    /**
+     * Unmute the player and return the feedback so the executor can be notified of success/failure.
+     *
+     * @param name Name of the muted player.
+     * @param uuid Uuid of the muted player.
+     * @return The Component to display to the executor.
+     */
+    public Component unmutePlayer(String name, String uuid) {
+
+        // Check if the player is currently muted.
+        if (isMuted(uuid)) {
+
+            // Unmute the player.
+            unmute(uuid);
+
+            // Send feedback.
+            return (ChatUtils.success("Unmuted ")
+                    .append(Component.text(name, NamedTextColor.DARK_AQUA)));
+        } else {
+            return (ChatUtils.error(name + " is not currently muted."));
+        }
+    }
 }

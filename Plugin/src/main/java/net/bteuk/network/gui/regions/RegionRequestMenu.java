@@ -1,8 +1,9 @@
 package net.bteuk.network.gui.regions;
 
-import net.bteuk.network.Network;
+import net.bteuk.network.gui.GuiProvider;
+import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.lib.utils.ChatUtils;
-import net.bteuk.network.sql.RegionSQL;
+import net.bteuk.network.regions.sql.RegionSQL;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
 import net.kyori.adventure.text.Component;
@@ -15,7 +16,7 @@ import java.util.ArrayList;
 /**
  * Lists all region requests made by this player.
  */
-public class RegionRequestMenu extends Gui {
+public class RegionRequestMenu extends NetworkRefreshableGui {
 
     private final RegionSQL regionSQL;
     private final NetworkUser u;
@@ -27,23 +28,20 @@ public class RegionRequestMenu extends Gui {
      * @param u {@link NetworkUser} for whom the gui should be created.
      *          This parameter is needed to find the region requests that the player has.
      */
-    public RegionRequestMenu(NetworkUser u) {
-
-        super(45, Component.text("Region Requests", NamedTextColor.AQUA, TextDecoration.BOLD));
+    public RegionRequestMenu(GuiProvider provider, NetworkUser u) {
+        super(provider, 45, Component.text("Region Requests", NamedTextColor.AQUA, TextDecoration.BOLD));
 
         page = 1;
 
         this.u = u;
 
-        regionSQL = Network.getInstance().regionSQL;
-
-        createGui();
+        this.regionSQL = provider.regionSQL();
     }
 
     /**
      * Populates the gui with content.
      */
-    private void createGui() {
+    protected void createGui() {
 
         // Get all regions with uuid.
         ArrayList<String> requests =
@@ -107,7 +105,7 @@ public class RegionRequestMenu extends Gui {
                                     (regionSQL.hasRow("SELECT region FROM region_requests WHERE region='" + requests.get(
                                             i) + "' AND uuid='" + u.player.getUniqueId() + "' AND staff_accept=0;"))
                                             ? "a reviewer"
-                                            : Network.getInstance().getGlobalSQL().getString("SELECT name FROM " +
+                                            : provider.globalSQL().getString("SELECT name FROM " +
                                             "player_data WHERE uuid='" +
                                             regionSQL.getString(
                                                     "SELECT owner FROM region_requests WHERE region='" + requests.get(
@@ -129,7 +127,7 @@ public class RegionRequestMenu extends Gui {
                                 .append(Component.text(requests.get(finalI), NamedTextColor.DARK_AQUA)));
                     });
 
-            // Increase slot accordingly.
+            // Increase the slot accordingly.
             if (slot % 9 == 7) {
                 // Increase row, basically add 3.
                 slot += 3;
@@ -148,14 +146,8 @@ public class RegionRequestMenu extends Gui {
             this.delete();
 
             // Switch to region menu.
-            u.mainGui = new RegionMenu(u);
+            u.mainGui = new RegionMenu(provider, u);
             u.mainGui.open(u.player);
         });
-    }
-
-    public void refresh() {
-
-        this.clearGui();
-        createGui();
     }
 }

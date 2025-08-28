@@ -54,7 +54,7 @@ public class Kick extends AbstractCommand {
         String uuid = globalSQL.getString("SELECT uuid FROM player_data WHERE name='" + args[0] + "';");
         String name = globalSQL.getString("SELECT name FROM player_data WHERE name='" + args[0] + "';");
 
-        // Check if player is online.
+        // Check if the player is online.
         if (!instance.isOnlineOnNetwork(uuid)) {
             sender.sendMessage(Component.text(name, NamedTextColor.DARK_RED)
                     .append(ChatUtils.error(" is not online.")));
@@ -64,17 +64,7 @@ public class Kick extends AbstractCommand {
         // Combine all remaining args to create a reason.
         String reason = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
 
-        sender.sendMessage(kickPlayer(name, uuid, reason));
-    }
-
-    public Component kickPlayer(String name, String uuid, String reason) {
-
-        moderation.kick(uuid, reason);
-
-        return (ChatUtils.success("Kicked ")
-                .append(Component.text(name, NamedTextColor.DARK_AQUA))
-                .append(ChatUtils.success(" for reason: "))
-                .append(Component.text(reason, NamedTextColor.DARK_AQUA)));
+        sender.sendMessage(moderation.kickPlayer(name, uuid, reason));
     }
 
     @Override
