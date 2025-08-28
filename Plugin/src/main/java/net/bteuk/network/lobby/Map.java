@@ -306,7 +306,7 @@ public class Map extends AbstractReloadableComponent {
         }
 
         // Create the click action.
-        HologramClickAction clickAction = u -> teleportToLocation(u, name);
+        HologramClickAction clickAction = (NetworkUser u) -> teleportToLocation(u, name);
         holograms.put(hologram, clickAction);
     }
 
@@ -331,7 +331,7 @@ public class Map extends AbstractReloadableComponent {
         }
 
         // Create the click action.
-        HologramClickAction clickAction = u -> Bukkit.getScheduler().runTask(instance, () -> openSubcategoryMenu(u,
+        HologramClickAction clickAction = (NetworkUser u) -> Bukkit.getScheduler().runTask(instance, () -> openSubcategoryMenu(u,
                 subcategory));
         holograms.put(hologram, clickAction);
     }

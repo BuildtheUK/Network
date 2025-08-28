@@ -1,7 +1,7 @@
 package net.bteuk.network.gui.plotsystem;
 
-import net.bteuk.network.Network;
 import net.bteuk.network.gui.BuildGui;
+import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.sql.PlotSQL;
 import net.bteuk.network.utils.NetworkUser;
@@ -18,17 +18,15 @@ public class PlotMenu extends NetworkRefreshableGui {
     private final NetworkUser user;
     private final PlotSQL plotSQL;
 
-    public PlotMenu(NetworkUser user) {
+    public PlotMenu(GuiProvider provider, NetworkUser user) {
 
-        super(45, Component.text("Plot Menu", NamedTextColor.AQUA, TextDecoration.BOLD));
+        super(provider, 45, Component.text("Plot Menu", NamedTextColor.AQUA, TextDecoration.BOLD));
 
         this.user = user;
-        plotSQL = Network.getInstance().getPlotSQL();
-
-        createGui();
+        this.plotSQL = provider.plotSQL();
     }
 
-    private void createGui() {
+    protected void createGui() {
 
         ArrayList<Integer> plots =
                 plotSQL.getIntList("SELECT id FROM plot_members WHERE uuid='" + user.player.getUniqueId() + "' ORDER " +
@@ -59,7 +57,7 @@ public class PlotMenu extends NetworkRefreshableGui {
                         u.mainGui = null;
 
                         // Switch to plot info.
-                        u.mainGui = new PlotInfo(u, plots.get(finalI));
+                        u.mainGui = new PlotInfo(provider, u, plots.get(finalI));
                         u.mainGui.open(u.player);
                     });
 
@@ -85,7 +83,7 @@ public class PlotMenu extends NetworkRefreshableGui {
                         this.delete();
                         u.mainGui = null;
 
-                        u.mainGui = new VerificationMenu(u);
+                        u.mainGui = new VerificationMenu(provider, u);
                         u.mainGui.open(u.player);
                     });
         }
@@ -100,7 +98,7 @@ public class PlotMenu extends NetworkRefreshableGui {
                     u.mainGui = null;
 
                     // Switch to plot info.
-                    u.mainGui = new AcceptedPlotMenu(u);
+                    u.mainGui = new AcceptedPlotMenu(provider, u);
                     u.mainGui.open(u.player);
                 });
 
@@ -111,17 +109,10 @@ public class PlotMenu extends NetworkRefreshableGui {
                 (NetworkUser u) -> {
                     // Delete this gui.
                     this.delete();
-                    u.mainGui = null;
 
                     // Switch to plot info.
-                    u.mainGui = new BuildGui(u);
+                    u.mainGui = new BuildGui(provider, u);
                     u.mainGui.open(u.player);
                 });
-    }
-
-    public void refresh() {
-
-        this.clearGui();
-        createGui();
     }
 }

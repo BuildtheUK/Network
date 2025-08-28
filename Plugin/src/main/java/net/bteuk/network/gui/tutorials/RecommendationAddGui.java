@@ -1,6 +1,8 @@
 package net.bteuk.network.gui.tutorials;
 
-import net.bteuk.network.Network;
+import lombok.extern.java.Log;
+import net.bteuk.network.gui.GuiProvider;
+import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
@@ -17,10 +19,9 @@ import teachingtutorials.utils.Display;
 
 import java.util.UUID;
 
-import static net.bteuk.network.utils.Constants.LOGGER;
-
-public class RecommendationAddGui extends Gui {
-    private final Gui parentGui;
+@Log
+public class RecommendationAddGui extends NetworkRefreshableGui {
+    private final NetworkRefreshableGui parentGui;
 
     private final int iPlotID;
 
@@ -37,7 +38,7 @@ public class RecommendationAddGui extends Gui {
 
     private final TextEditorBookListener reasonEditor;
 
-    private Tutorial[] allTutorials;
+    private final Tutorial[] allTutorials;
 
     /**
      * The number of pages in this menu
@@ -49,8 +50,9 @@ public class RecommendationAddGui extends Gui {
      */
     private int iPage;
 
-    public RecommendationAddGui(Gui parentGui, NetworkUser user, int iPlotID, UUID ownerUUID, net.bteuk.network.utils.TutorialRecommendation[] currentRecommendations) {
-        super(54, Utils.title("Tutorial Recommendation"));
+    public RecommendationAddGui(GuiProvider provider, NetworkRefreshableGui parentGui, NetworkUser user, int iPlotID, UUID ownerUUID,
+                                net.bteuk.network.utils.TutorialRecommendation[] currentRecommendations) {
+        super(provider, 54, Utils.title("Tutorial Recommendation"));
         this.parentGui = parentGui;
         this.user = user;
         this.iPlotID = iPlotID;
@@ -58,12 +60,12 @@ public class RecommendationAddGui extends Gui {
         this.currentRecommendations = currentRecommendations;
 
         // Fetches all in use tutorials
-        allTutorials = Tutorial.fetchAll(true, false, null, Network.getInstance().getTutorialsDBConnection(), LOGGER);
+        allTutorials = Tutorial.fetchAll(true, false, null, provider.tutorialsDBConnection(), log);
 
         this.iPages = ((allTutorials.length - 1) / 45) + 1;
         this.iPage = 1;
 
-        reasonEditor = new TextEditorBookListener(Network.getInstance(), user, this, "Reason Editor",
+        reasonEditor = new TextEditorBookListener(provider.instance(), user, this, "Reason Editor",
                 new BookCloseAction() {
                     @Override
                     public boolean runBookClose(BookMeta oldBookMeta, BookMeta newBookMeta, TextEditorBookListener textEditorBookListener, String szNewContent) {
@@ -84,15 +86,15 @@ public class RecommendationAddGui extends Gui {
 
                     @Override
                     public void runPostClose() {
-                        open(user);
+                        open(user.player);
                     }
                 }
                 , "");
 
-        addItems();
+        createGui();
     }
 
-    private void addItems() {
+    protected void createGui() {
         // Back button
         setItem(53, Utils.createItem(Material.BARRIER, 1,
                         ChatUtils.title("Delete"),
@@ -127,7 +129,7 @@ public class RecommendationAddGui extends Gui {
                         if (bTutorialAlreadyRecommendedAndNotComplete) {
                             user.player.sendMessage(ChatUtils.error("This tutorial is already recommended and has not been completed"));
                         } else {
-                            int iRecommendationID = TutorialRecommendation.addRecommendation(Network.getInstance().getTutorialsDBConnection(), LOGGER,
+                            int iRecommendationID = TutorialRecommendation.addRecommendation(provider.tutorialsDBConnection(), log,
                                     ownerUUID, user.player.getUniqueId(), iTutorialID, -1,
                                     ((TextComponent) ((BookMeta) reasonEditor.getBook().getItemMeta()).page(1)).content());
 
@@ -164,13 +166,10 @@ public class RecommendationAddGui extends Gui {
             ItemStack pageBack = Utils.createCustomSkullWithFallback("4eff72715e6032e90f50a38f4892529493c9f555b9af0d5e77a6fa5cddff3cd2",
                     Material.ACACIA_BOAT, 1,
                     Utils.title("Page back"));
-            super.setItem(46, pageBack, new net.bteuk.network.gui.Gui.guiAction() {
-                @Override
-                public void click(NetworkUser u) {
-                    iPage--;
-                    refresh();
-                    open(user);
-                }
+            super.setItem(46, pageBack, (NetworkUser u) -> {
+                iPage--;
+                this.refresh();
+                this.updatePlayerInventory(u.player);
             });
         }
 
@@ -179,13 +178,10 @@ public class RecommendationAddGui extends Gui {
             ItemStack pageBack = Utils.createCustomSkullWithFallback("a7ba2aa14ae5b0b65573dc4971d3524e92a61dd779e4412e4642adabc2e56c44",
                     Material.ACACIA_BOAT, 1,
                     Utils.title("Page forwards"));
-            super.setItem(52, pageBack, new net.bteuk.network.gui.Gui.guiAction() {
-                @Override
-                public void click(NetworkUser u) {
-                    iPage++;
-                    refresh();
-                    open(user);
-                }
+            super.setItem(52, pageBack, (NetworkUser u) -> {
+                iPage++;
+                this.refresh();
+                this.updatePlayerInventory(u.player);
             });
         }
 
@@ -207,21 +203,11 @@ public class RecommendationAddGui extends Gui {
                     Utils.title(allTutorials[i].getTutorialName()),
                     Utils.line("By " + Bukkit.getOfflinePlayer(allTutorials[i].getUUIDOfAuthor()).getName()));
 
-            super.setItem(i - iStart, tutorial, new guiAction() {
-                @Override
-                public void click(NetworkUser u) {
-                    iTutorialID = allTutorials[finalI].getTutorialID();
-                    refresh();
-                    open(user);
-                }
+            super.setItem(i - iStart, tutorial, (NetworkUser u) -> {
+                iTutorialID = allTutorials[finalI].getTutorialID();
+                this.refresh();
+                this.updatePlayerInventory(u.player);
             });
         }
-    }
-
-    @Override
-    public void refresh() {
-        clearGui();
-
-        addItems();
     }
 }

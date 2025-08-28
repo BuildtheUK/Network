@@ -60,14 +60,14 @@ public class ReviewRegionRequests extends Gui {
         if (page > 1) {
             setItem(18, Utils.createItem(Material.ARROW, 1,
                     Utils.title("Previous Page"),
-                    Utils.line("Open the previous page of region requests.")), u ->
+                    Utils.line("Open the previous page of region requests.")), (NetworkUser u) ->
 
             {
 
                 // Update the gui.
                 page--;
                 this.refresh();
-                u.player.getOpenInventory().getTopInventory().setContents(this.getInventory().getContents());
+                this.updatePlayerInventory(u.player);
             });
         }
 
@@ -85,14 +85,14 @@ public class ReviewRegionRequests extends Gui {
 
                 setItem(26, Utils.createItem(Material.ARROW, 1,
                         Utils.title("Next Page"),
-                        Utils.line("Open the next page of regions requests.")), u ->
+                        Utils.line("Open the next page of regions requests.")), (NetworkUser u) ->
 
                 {
 
                     // Update the gui.
                     page++;
                     this.refresh();
-                    u.player.getOpenInventory().getTopInventory().setContents(this.getInventory().getContents());
+                    this.updatePlayerInventory(u.player);
                 });
 
                 // Stop iterating.
@@ -141,7 +141,7 @@ public class ReviewRegionRequests extends Gui {
 
             setItem(44, Utils.createItem(Material.SPRUCE_DOOR, 1,
                     Utils.title("Return"),
-                    Utils.line("Open the staff menu.")), u ->
+                    Utils.line("Open the staff menu.")), (NetworkUser u) ->
 
             {
 
@@ -157,7 +157,7 @@ public class ReviewRegionRequests extends Gui {
 
             setItem(44, Utils.createItem(Material.SPRUCE_DOOR, 1,
                     Utils.title("Return"),
-                    Utils.line("Open the region menu.")), u ->
+                    Utils.line("Open the region menu.")), (NetworkUser u) ->
 
             {
 

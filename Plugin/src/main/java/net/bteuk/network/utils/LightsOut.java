@@ -76,12 +76,12 @@ public class LightsOut extends NetworkRefreshableGui {
 
                     // Light is on.
                     setItem(i + j * 9, Utils.createItem(Material.SEA_LANTERN, 1, Component.empty()),
-                            u -> invertLights(finalI, finalJ));
+                            (NetworkUser u) -> invertLights(finalI, finalJ));
                 } else {
 
                     // Light is off.
                     setItem(i + j * 9, Utils.createItem(Material.REDSTONE_LAMP, 1, Component.empty()),
-                            u -> invertLights(finalI, finalJ));
+                            (NetworkUser u) -> invertLights(finalI, finalJ));
                 }
             }
         }

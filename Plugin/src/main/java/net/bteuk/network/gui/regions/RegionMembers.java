@@ -83,14 +83,14 @@ public class RegionMembers extends Gui {
             setItem(18, Utils.createItem(Material.ARROW, 1,
                             Utils.title("Previous Page"),
                             Utils.line("Open the previous page of region members.")),
-                    u ->
+                    (NetworkUser u) ->
 
                     {
 
                         // Update the gui.
                         page--;
                         this.refresh();
-                        u.player.getOpenInventory().getTopInventory().setContents(this.getInventory().getContents());
+                        this.updatePlayerInventory(u.player);
                     });
         }
 
@@ -108,7 +108,7 @@ public class RegionMembers extends Gui {
                 setItem(26, Utils.createItem(Material.ARROW, 1,
                                 Utils.title("Next Page"),
                                 Utils.line("Open the next page of region members.")),
-                        u ->
+                        (NetworkUser u) ->
 
                         {
 
@@ -138,7 +138,7 @@ public class RegionMembers extends Gui {
                                         "owner."),
                                 Utils.line("Most recently in this region at " + Time.getDateTime(region.lastActive(uuid))),
                                 Utils.line("You will be demoted to region member.")),
-                        u ->
+                        (NetworkUser u) ->
 
                         {
 
@@ -178,7 +178,7 @@ public class RegionMembers extends Gui {
                                         "region."),
                                 Utils.line("Most recently in this region at: ")
                                         .append(Component.text(Time.getDateTime(region.lastActive(uuid))))),
-                        u ->
+                        (NetworkUser u) ->
 
                         {
                             // Remove them from the region.
@@ -210,7 +210,7 @@ public class RegionMembers extends Gui {
                         Utils.title("Return"),
                         Utils.line("Return to the menu of region ")
                                 .append(Component.text(region.getTag(region.getOwner())))),
-                u ->
+                (NetworkUser u) ->
 
                 {
 

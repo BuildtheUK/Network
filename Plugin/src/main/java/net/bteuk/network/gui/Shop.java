@@ -29,7 +29,7 @@
 //         setItem(26, Utils.createItem(Material.SPRUCE_DOOR, 1,
 //                         Utils.title("Return"),
 //                         Utils.line("Open the navigator main menu.")),
-//                 u ->
+//                 (NetworkUser u) ->
 //
 //                 {
 //

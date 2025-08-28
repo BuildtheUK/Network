@@ -1,7 +1,5 @@
 package net.bteuk.network.gui;
 
-import net.bteuk.minecraft.gui.GuiManager;
-import net.bteuk.network.Network;
 import net.bteuk.network.api.EventAPI;
 import net.bteuk.network.api.ServerAPI;
 import net.bteuk.network.api.entity.NetworkLocation;
@@ -27,12 +25,20 @@ import org.bukkit.potion.PotionEffectType;
 
 public class NavigatorGui extends NetworkGui {
 
-    public NavigatorGui(Network instance, GuiManager guiManager, Constants constants, GlobalSQL globalSQL, Lobby lobby, Back back, EventAPI eventAPI, ServerAPI serverAPI, Nightvision nightvision) {
-        super(instance, guiManager, 27, Component.text("Navigator", NamedTextColor.AQUA, TextDecoration.BOLD));
+    public NavigatorGui(GuiProvider provider) {
+        super(provider, 27, Component.text("Navigator", NamedTextColor.AQUA, TextDecoration.BOLD));
+
+        Constants constants = provider.constants();
+        GlobalSQL globalSQL = provider.globalSQL();
+        Nightvision nightvision = provider.nightvision();
+        Lobby lobby = provider.lobby();
+        Back back = provider.back();
+        EventAPI eventAPI = provider.eventAPI();
+        ServerAPI serverAPI = provider.serverAPI();
 
         setItem(2, Utils.createItem(Material.DIAMOND_PICKAXE, 1, Utils.title("Build"), Utils.line("Click to open the build menu.")), (NetworkUser u) -> {
             // Switch to the build menu.
-            u.mainGui = new BuildGui(u);
+            u.mainGui = new BuildGui(provider, u);
             u.mainGui.open(u.player);
         });
 

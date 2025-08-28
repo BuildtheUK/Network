@@ -9,6 +9,7 @@ import net.bteuk.network.api.ServerAPI;
 import net.bteuk.network.commands.navigation.Back;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.gui.BuildGui;
+import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.NavigatorGui;
 import net.bteuk.network.gui.navigation.ExploreGui;
 import net.bteuk.network.gui.tutorials.TutorialsGui;
@@ -25,6 +26,7 @@ import static net.bteuk.network.core.ServerType.TUTORIAL;
 @Log
 public class Navigator extends AbstractCommand {
 
+    private final GuiProvider provider;
     private final Network instance;
     private final Constants constants;
     private final NavigatorGui navigator;
@@ -32,7 +34,10 @@ public class Navigator extends AbstractCommand {
     public Navigator(Network instance, GuiManager guiManager, Constants constants, Lobby lobby, Back back, EventAPI eventAPI, ServerAPI serverAPI, Nightvision nightvision) {
         this.instance = instance;
         this.constants = constants;
-        navigator = new NavigatorGui(instance, guiManager, constants, instance.getGlobalSQL(), lobby, back, eventAPI, serverAPI, nightvision);
+
+        this.provider = new GuiProvider(instance, guiManager, constants, ...);
+
+        navigator = new NavigatorGui(provider);
     }
 
     public void openNavigator(NetworkUser u) {
@@ -40,11 +45,15 @@ public class Navigator extends AbstractCommand {
         // If not then open it after refreshing its contents.
         // If no gui exists open the navigator.
         if (u.mainGui != null) {
-            u.mainGui.refresh();
             u.mainGui.open(u.player);
         } else {
-            navigator.open(u.player);
+            openMainMenu(u);
         }
+    }
+
+    public void openMainMenu(NetworkUser u) {
+        u.mainGui = null;
+        navigator.open(u.player);
     }
 
     @Override
@@ -95,7 +104,7 @@ public class Navigator extends AbstractCommand {
         if (u.mainGui != null) {
             u.mainGui.delete();
         }
-        u.mainGui = new BuildGui(u);
+        u.mainGui = new BuildGui(provider, u);
         u.mainGui.open(u.player);
     }
 

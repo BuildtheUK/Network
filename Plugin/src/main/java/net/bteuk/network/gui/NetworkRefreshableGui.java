@@ -1,14 +1,12 @@
 package net.bteuk.network.gui;
 
-import net.bteuk.minecraft.gui.GuiManager;
-import net.bteuk.network.Network;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 
 public abstract class NetworkRefreshableGui extends NetworkGui implements RefreshableGui {
 
-    public NetworkRefreshableGui(Network instance, GuiManager manager, int inventorySize, Component inventoryName) {
-        super(instance, manager, inventorySize, inventoryName);
+    public NetworkRefreshableGui(GuiProvider provider, int inventorySize, Component inventoryName) {
+        super(provider, inventorySize, inventoryName);
     }
 
     protected abstract void createGui();

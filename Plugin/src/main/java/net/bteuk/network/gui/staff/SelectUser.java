@@ -72,14 +72,14 @@ public class SelectUser extends Gui {
             setItem(18, Utils.createItem(Material.ARROW, 1,
                             Utils.title("Previous Page"),
                             Utils.line("Open the previous page of regions.")),
-                    u ->
+                    (NetworkUser u) ->
 
                     {
 
                         // Update the gui.
                         page--;
                         this.refresh();
-                        u.player.getOpenInventory().getTopInventory().setContents(this.getInventory().getContents());
+                        this.updatePlayerInventory(u.player);
                     });
         }
 
@@ -98,7 +98,7 @@ public class SelectUser extends Gui {
                 setItem(26, Utils.createItem(Material.ARROW, 1,
                                 Utils.title("Next Page"),
                                 Utils.line("Open the next page of users.")),
-                        u ->
+                        (NetworkUser u) ->
 
                         {
 
@@ -127,7 +127,7 @@ public class SelectUser extends Gui {
                                         Utils.title(type.label + " " + name),
                                         Utils.line("Opens the " + type.label.toLowerCase(Locale.ROOT) + " menu to set" +
                                                 " the parameters.")),
-                                u ->
+                                (NetworkUser u) ->
 
                                 {
 
@@ -176,7 +176,7 @@ public class SelectUser extends Gui {
         setItem(44, Utils.createItem(Material.SPRUCE_DOOR, 1,
                         Utils.title("Previous Page"),
                         Utils.line("Open the moderation menu.")),
-                u ->
+                (NetworkUser u) ->
 
                 {
 

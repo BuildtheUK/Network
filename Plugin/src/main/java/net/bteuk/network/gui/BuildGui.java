@@ -1,11 +1,10 @@
 package net.bteuk.network.gui;
 
 import me.bteuk.progressmapper.guis.LocalFeaturesMenu;
-import net.bteuk.minecraft.gui.GuiManager;
-import net.bteuk.network.Network;
 import net.bteuk.network.api.EventAPI;
 import net.bteuk.network.api.ServerAPI;
 import net.bteuk.network.api.entity.NetworkLocation;
+import net.bteuk.network.commands.Navigator;
 import net.bteuk.network.commands.navigation.Back;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.ServerType;
@@ -42,16 +41,18 @@ public class BuildGui extends NetworkRefreshableGui {
     private final EventAPI eventAPI;
     private final ServerAPI serverAPI;
     private final RegionManager regionManager;
+    private final Navigator navigator;
 
-    public BuildGui(Network instance, GuiManager guiManager, NetworkUser user, PlotSQL plotSQL, Constants constants, Back back, EventAPI eventAPI, ServerAPI serverAPI, RegionManager regionManager) {
-        super(instance, guiManager, 27, Component.text("Building Menu", NamedTextColor.AQUA, TextDecoration.BOLD));
+    public BuildGui(GuiProvider provider, NetworkUser user) {
+        super(provider, 27, Component.text("Building Menu", NamedTextColor.AQUA, TextDecoration.BOLD));
         this.user = user;
-        this.plotSQL = plotSQL;
-        this.constants = constants;
-        this.back = back;
-        this.eventAPI = eventAPI;
-        this.serverAPI = serverAPI;
-        this.regionManager = regionManager;
+        this.plotSQL = provider.plotSQL();
+        this.constants = provider.constants();
+        this.back = provider.back();
+        this.eventAPI = provider.eventAPI();
+        this.serverAPI = provider.serverAPI();
+        this.regionManager = provider.regionManager();
+        this.navigator = provider.navigator();
     }
 
     protected void createGui() {
@@ -129,22 +130,23 @@ public class BuildGui extends NetworkRefreshableGui {
                     });
 
             // Choose location.
-            setItem(19, Utils.createItem(Material.DIAMOND_PICKAXE, 1, Utils.title("Plot Locations"), Utils.line("Click to choose a location to build a plot.")), (NetworkUser u) -> {
-                // Delete this gui.
-                this.delete();
+            setItem(19, Utils.createItem(Material.DIAMOND_PICKAXE, 1, Utils.title("Plot Locations"), Utils.line("Click to choose a location to build a plot.")),
+                    (NetworkUser u) -> {
+                        // Delete this gui.
+                        this.delete();
 
-                // Switch to the plot location gui.
-                u.mainGui = new PlotServerLocations(u);
-                u.mainGui.open(u.player);
-            });
+                        // Switch to the plot location gui.
+                        u.mainGui = new PlotServerLocations(provider, u);
+                        u.mainGui.open(u.player);
+                    });
 
             // Plot menu.
             setItem(21, Utils.createItem(Material.CHEST, 1, Utils.title("Plot Menu"), Utils.line("View all your active plots.")), (NetworkUser u) -> {
                 // Delete this gui.
                 this.delete();
 
-                // Switch to plot menu.
-                u.mainGui = new PlotMenu(u);
+                // Switch to the plot menu.
+                u.mainGui = new PlotMenu(provider, u);
                 u.mainGui.open(u.player);
             });
 
@@ -155,10 +157,9 @@ public class BuildGui extends NetworkRefreshableGui {
 
                     // Delete this gui.
                     this.delete();
-                    u.mainGui = null;
 
                     // Switch to plot menu.
-                    u.mainGui = new ZoneMenu(u);
+                    u.mainGui = new ZoneMenu(provider, u);
                     u.mainGui.open(u.player);
                 } else {
 
@@ -171,9 +172,8 @@ public class BuildGui extends NetworkRefreshableGui {
                     (NetworkUser u) -> {
 
                         this.delete();
-                        u.mainGui = null;
 
-                        u.mainGui = new PlotsystemLocations();
+                        u.mainGui = new PlotsystemLocations(provider);
                         u.mainGui.open(u.player);
                     });
         }
@@ -247,7 +247,7 @@ public class BuildGui extends NetworkRefreshableGui {
                                 u.player.closeInventory();
 
                                 // Cancel the request.
-                                regionManager.cancelRequest(region, u);
+                                regionManager.cancelRequest(region, u.player);
                             });
                 } else if (user.player.hasPermission("uknet.regions.join")) {
 
@@ -272,7 +272,7 @@ public class BuildGui extends NetworkRefreshableGui {
                                 // Join requires owner to approve request.
                                 setItem(4, Utils.createItem(Material.DARK_OAK_DOOR, 1, Utils.title("Join Region"),
                                         Utils.line("Click to request to join the region you are standing in."),
-                                        Utils.line("The region is owned by ").append(Component.text(user.region.ownerName(), NamedTextColor.GRAY)),
+                                        Utils.line("The region is owned by ").append(Component.text(regionManager.ownerName(region), NamedTextColor.GRAY)),
                                         Utils.line("They must accept the request for you to join.")), (NetworkUser u) -> {
 
                                     regionManager.requestRegion(region, u.player, false);
@@ -292,18 +292,17 @@ public class BuildGui extends NetworkRefreshableGui {
 
                                     // If staff approval is always required do that or if the region was
                                     // previously claimed.
-                                    if (CONFIG.getBoolean("staff_request.always") || u.region.wasClaimed()) {
-
-                                        u.region.requestRegion(u, true);
+                                    if (constants.regionStaffRequestAlways() || regionManager.wasClaimed(region)) {
+                                        regionManager.requestRegion(region, u.player, true);
                                         u.player.closeInventory();
                                     } else {
 
                                         // Get region coords.
-                                        int x = Integer.parseInt(u.region.regionName().split(",")[0]);
-                                        int z = Integer.parseInt(u.region.regionName().split(",")[1]);
+                                        int x = Integer.parseInt(region.regionName().split(",")[0]);
+                                        int z = Integer.parseInt(region.regionName().split(",")[1]);
 
                                         // Get the radius.
-                                        int radius = CONFIG.getInt("staff_request.radius");
+                                        int radius = constants.regionStaffRequestRadius();
 
                                         // For zero radius, skip.
                                         if (radius != 0) {
@@ -311,9 +310,6 @@ public class BuildGui extends NetworkRefreshableGui {
                                             // Subtract the config radius value.
                                             x -= radius;
                                             z -= radius;
-
-                                            // Get the region manager.
-                                            RegionManager regionManager = Network.getInstance().getRegionManager();
 
                                             // Iterate through all regions in the radius.
                                             for (int i = x; i <= x + radius * 2; i++) {
@@ -324,14 +320,11 @@ public class BuildGui extends NetworkRefreshableGui {
                                                     // If the region exists, check if it has an owner that is
                                                     // not the player.
                                                     if (regionManager.exists(regionName)) {
-
-                                                        Region region = regionManager.getRegion(regionName);
-
-                                                        if (region.hasOwner()) {
-                                                            if (!region.getOwner().equals(u.player.getUniqueId().toString())) {
-
+                                                        Region regionInRadius = regionManager.getRegion(regionName);
+                                                        if (regionManager.hasOwner(regionInRadius)) {
+                                                            if (!regionManager.getOwner(regionInRadius).equals(u.player.getUniqueId().toString())) {
                                                                 // Staff approval is required.
-                                                                u.region.requestRegion(u, true);
+                                                                regionManager.requestRegion(region, u.player, true);
                                                                 u.player.closeInventory();
                                                                 return;
                                                             }
@@ -341,19 +334,19 @@ public class BuildGui extends NetworkRefreshableGui {
                                             }
                                         }
 
-                                        u.region.joinRegion(u);
+                                        regionManager.joinRegion(region, u.player);
                                         u.player.closeInventory();
                                     }
                                 } else {
 
-                                    u.region.joinRegion(u);
+                                    regionManager.joinRegion(region, u.player);
                                     u.player.closeInventory();
                                 }
                             });
                     } else {
 
                         // If the region is open.
-                        if (user.region.status() == RegionStatus.OPEN) {
+                        if (regionManager.status(region) == RegionStatus.OPEN) {
                             setItem(4, Utils.createItem(Material.SPYGLASS, 1, Utils.title("Open Region"), Utils.line("This region is open to all Jr.Builder+."),
                                     Utils.line("You can build here without claiming.")));
                         } else {
@@ -375,66 +368,50 @@ public class BuildGui extends NetworkRefreshableGui {
                 setItem(4, Utils.createItem(Material.STRUCTURE_VOID, 1, Utils.title("No Region"), Utils.line("You are currently not standing in a valid region."),
                         Utils.line("This is likely due to being in a lobby.")));
             }
+
+            // Region menu.
+            setItem(24, Utils.createItem(Material.ORANGE_SHULKER_BOX, 1, Utils.title("Region Menu"), Utils.line("View all regions you can build in.")), (NetworkUser u) -> {
+                this.delete();
+
+                // Switch to the region menu.
+                u.mainGui = new RegionMenu(provider, u);
+                u.mainGui.open(u.player);
+            });
         }
-
-        // Region menu.
-        setItem(24, Utils.createItem(Material.ORANGE_SHULKER_BOX, 1, Utils.title("Region Menu"), Utils.line("View all regions you can build in.")), u ->
-
-        {
-
-            // Delete this gui.
-            this.delete();
-            u.mainGui = null;
-
-            // Switch to plot menu.
-            u.mainGui = new RegionMenu(u);
-            u.mainGui.open(u.player);
-        });
 
         // Building utils menu.
         setItem(8, Utils.createItem(Material.NETHERITE_AXE, 1, Utils.title("Building Utils"), Utils.line("Open the building utils menu.")), (NetworkUser u) -> {
-
             this.delete();
-            u.mainGui = null;
-
-            u.mainGui = new UtilsGui(instance, ); u.mainGui.open(u.player);
+            u.mainGui = new UtilsGui(provider);
+            u.mainGui.open(u.player);
         });
 
-        if (PROGRESS_MAP && user.player.hasPermission("uknet.progressmap.edit")) {
+        if (constants.progressMap() && user.player.hasPermission("uknet.progressmap.edit")) {
             // Progress map edit menu
             setItem(0, Utils.createItem(Material.MAP, 1, Utils.title("Progress Map"), Utils.line("Edit or add areas to the progress map")), (NetworkUser u) -> {
 
-                // Deletes this GUI
-                this.delete();
-                u.mainGui = null;
-
-                LocalFeaturesMenu localFeatures = new LocalFeaturesMenu(Network.getInstance().getConfig().getInt("ProgressMap.ProgressMapID"),
-                        Network.getInstance().getConfig().getString("ProgressMap.MapHubAPIKey"), u.player);
+                LocalFeaturesMenu localFeatures = new LocalFeaturesMenu(constants.progressMapID(), constants.mapHubAPIKey(), u.player);
 
                 // Check to see if the location could be established
                 if (localFeatures.getPlayerCoordinates() == null) {
-                    u.mainGui = this;
-                    u.mainGui.open(u.player);
                     u.player.sendMessage(ChatUtils.error("Could not locate you"));
                 } else {
-                    // Switch to local features menu
-                    u.mainGui = new LocalFeatureListGUI(localFeatures, Network.getInstance());
+                    this.delete();
+                    // Switch to the local features menu
+                    u.mainGui = new LocalFeatureListGUI(provider, localFeatures);
                     u.mainGui.open(u.player);
                 }
             });
         }
 
         // Return
-        setItem(26, Utils.createItem(Material.SPRUCE_DOOR, 1, Utils.title("Return"), Utils.line("Open the navigator main menu.")), u ->
-
-        {
+        setItem(26, Utils.createItem(Material.SPRUCE_DOOR, 1, Utils.title("Return"), Utils.line("Open the navigator main menu.")), (NetworkUser u) -> {
 
             // Delete this gui.
             this.delete();
-            u.mainGui = null;
 
-            // Switch to navigation menu.
-            Network.getInstance().navigatorGui.open(u.player);
+            // Switch to the navigation menu.
+            navigator.openMainMenu(u);
         });
     }
 }

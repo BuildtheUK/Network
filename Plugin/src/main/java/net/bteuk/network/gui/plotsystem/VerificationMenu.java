@@ -1,6 +1,7 @@
 package net.bteuk.network.gui.plotsystem;
 
-import net.bteuk.network.Network;
+import net.bteuk.network.gui.GuiProvider;
+import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.sql.PlotSQL;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
@@ -14,22 +15,20 @@ import java.util.ArrayList;
 /**
  * Menu to view previous reviews that have been verified.
  */
-public class VerificationMenu extends Gui {
+public class VerificationMenu extends NetworkRefreshableGui {
 
     private final NetworkUser user;
 
     private final PlotSQL plotSQL;
 
-    public VerificationMenu(NetworkUser user) {
-        super(45, Component.text("Verified Review Menu", NamedTextColor.AQUA, TextDecoration.BOLD));
+    public VerificationMenu(GuiProvider provider, NetworkUser user) {
+        super(provider, 45, Component.text("Verified Review Menu", NamedTextColor.AQUA, TextDecoration.BOLD));
 
         this.user = user;
-        plotSQL = Network.getInstance().getPlotSQL();
-
-        createGui();
+        this.plotSQL = provider.plotSQL();
     }
 
-    private void createGui() {
+    protected void createGui() {
 
         ArrayList<Integer> verifications = plotSQL.getIntList("SELECT id FROM plot_verification WHERE review_id IN " +
                 "(SELECT id FROM plot_review WHERE reviewer='" + user.getUuid() + "') ORDER BY id ASC;");
@@ -76,7 +75,7 @@ public class VerificationMenu extends Gui {
                         u.mainGui = null;
 
                         // Switch to plot info.
-                        u.mainGui = new VerificationInfo(verificationId);
+                        u.mainGui = new VerificationInfo(provider, verificationId);
                         u.mainGui.open(u.player);
                     });
 
@@ -99,14 +98,9 @@ public class VerificationMenu extends Gui {
                         u.mainGui = null;
 
                         // Switch to plot info.
-                        u.mainGui = new PlotMenu(u);
+                        u.mainGui = new PlotMenu(provider, u);
                         u.mainGui.open(u.player);
                     });
         }
-    }
-
-    public void refresh() {
-        this.clearGui();
-        createGui();
     }
 }

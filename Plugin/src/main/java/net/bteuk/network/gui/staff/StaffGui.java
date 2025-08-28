@@ -93,7 +93,7 @@ public class StaffGui extends Gui {
             setItem(3, Utils.createItem(Material.ANVIL, 1,
                             Utils.title("Manage Region " + user.region.regionName()),
                             Utils.line("Opens a menu to manage details of the region you are currently in.")),
-                    u ->
+                    (NetworkUser u) ->
 
                     {
 
@@ -242,7 +242,7 @@ public class StaffGui extends Gui {
                         Utils.title("Verify Plot"),
                         Utils.line("Click to verify a reviewed plot."),
                         plotVerifyMessage),
-                u ->
+                (NetworkUser u) ->
 
                 {
 
@@ -287,7 +287,7 @@ public class StaffGui extends Gui {
         setItem(5, Utils.createItem(Material.REDSTONE_BLOCK, 1,
                         Utils.title("Moderation Menu"),
                         Utils.line("Opens the moderation menu to deal with wrongdoers.")),
-                u ->
+                (NetworkUser u) ->
 
                 {
 

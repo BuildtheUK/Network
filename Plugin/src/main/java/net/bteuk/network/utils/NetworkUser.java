@@ -8,7 +8,6 @@ import net.bteuk.network.building_companion.BuildingCompanion;
 import net.bteuk.network.commands.Nightvision;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.Time;
-import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.lib.dto.FocusEvent;
 import net.bteuk.network.lib.dto.UserConnectReply;
 import net.bteuk.network.lib.dto.UserDisconnect;
@@ -35,7 +34,7 @@ public class NetworkUser {
 
     private final Constants constants;
     // Main gui, includes everything that is part of the navigator.
-    public NetworkRefreshableGui mainGui;
+    public Gui mainGui;
 
     // Lights out, a gui game.
     public LightsOut lightsOut;

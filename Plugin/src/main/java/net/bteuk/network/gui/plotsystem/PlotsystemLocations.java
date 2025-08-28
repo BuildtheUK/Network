@@ -1,12 +1,14 @@
 package net.bteuk.network.gui.plotsystem;
 
-import net.bteuk.network.Network;
-import net.bteuk.network.eventing.events.EventManager;
+import net.bteuk.network.api.entity.NetworkLocation;
 import net.bteuk.network.gui.BuildGui;
+import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.NetworkRefreshableGui;
+import net.bteuk.network.papercore.LocationAdapter;
+import net.bteuk.network.papercore.PlayerAdapter;
 import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.sql.PlotSQL;
-import net.bteuk.network.utils.SwitchServer;
+import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -18,8 +20,6 @@ import org.bukkit.World;
 import java.util.ArrayList;
 import java.util.Objects;
 
-import static net.bteuk.network.utils.Constants.SERVER_NAME;
-
 public class PlotsystemLocations extends NetworkRefreshableGui {
 
     private final PlotSQL plotSQL;
@@ -27,17 +27,15 @@ public class PlotsystemLocations extends NetworkRefreshableGui {
 
     private int counter;
 
-    public PlotsystemLocations() {
+    public PlotsystemLocations(GuiProvider provider) {
 
-        super(45, Component.text("Plotsystem Locations", NamedTextColor.AQUA, TextDecoration.BOLD));
+        super(provider, 45, Component.text("Plotsystem Locations", NamedTextColor.AQUA, TextDecoration.BOLD));
 
-        plotSQL = Network.getInstance().getPlotSQL();
-        globalSQL = Network.getInstance().getGlobalSQL();
-
-        createGui();
+        this.plotSQL = provider.plotSQL();
+        this.globalSQL = provider.globalSQL();
     }
 
-    private void createGui() {
+    protected void createGui() {
 
         counter = 0;
 
@@ -74,7 +72,8 @@ public class PlotsystemLocations extends NetworkRefreshableGui {
                         String server = plotSQL.getString("SELECT server FROM location_data WHERE name='" + name +
                                 "';");
 
-                        if (server.equals(SERVER_NAME)) {
+                        NetworkLocation location = LocationAdapter.adapt(u.player.getLocation());
+                        if (server.equals(provider.constants().serverName())) {
 
                             u.player.closeInventory();
 
@@ -83,23 +82,23 @@ public class PlotsystemLocations extends NetworkRefreshableGui {
                             double y = Objects.requireNonNull(world).getHighestBlockYAt((int) x, (int) z);
                             y++;
 
-                            EventManager.createTeleportEvent(false, u.player.getUniqueId().toString(), "network",
+                            provider.eventAPI().createTeleportEvent(false, u.player.getUniqueId().toString(), "network",
                                     "teleport " + name + " " + x + " " + y + " " + z + " "
                                             + u.player.getLocation().getYaw() + " " + u.player.getLocation().getPitch(),
                                     "&aTeleported to location &3" + plotSQL.getString("SELECT alias FROM " +
-                                            "location_data WHERE name='" + name + "';"), u.player.getLocation());
+                                            "location_data WHERE name='" + name + "';"), location);
                         } else {
 
                             // Set the server join event.
-                            EventManager.createTeleportEvent(true, u.player.getUniqueId().toString(), "network",
+                            provider.eventAPI().createTeleportEvent(true, u.player.getUniqueId().toString(), "network",
                                     "teleport " + name + " " + x + " " + z + " "
                                             + u.player.getLocation().getYaw() + " " + u.player.getLocation().getPitch(),
                                     "&aTeleported to location &3" + plotSQL.getString("SELECT alias FROM " +
-                                            "location_data WHERE name='" + name + "';"), u.player.getLocation());
+                                            "location_data WHERE name='" + name + "';"), location);
 
                             // Teleport them to another server.
                             this.delete();
-                            SwitchServer.switchServer(u.player, server);
+                            provider.serverAPI().switchServer(PlayerAdapter.adapt(u.player), server);
                         }
                     });
 
@@ -121,18 +120,11 @@ public class PlotsystemLocations extends NetworkRefreshableGui {
 
                     // Delete this gui.
                     this.delete();
-                    u.mainGui = null;
 
                     // Switch to plot info.
-                    u.mainGui = new BuildGui(u);
+                    u.mainGui = new BuildGui(provider, u);
                     u.mainGui.open(u.player);
                 });
-    }
-
-    public void refresh() {
-
-        this.clearGui();
-        createGui();
     }
 
     private Material nextIcon() {

@@ -1,12 +1,14 @@
 package net.bteuk.network.gui.plotsystem;
 
-import net.bteuk.network.Network;
-import net.bteuk.network.eventing.events.EventManager;
+import lombok.extern.java.Log;
+import net.bteuk.network.gui.GuiProvider;
+import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.lib.utils.ChatUtils;
+import net.bteuk.network.regions.RegionType;
 import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.sql.PlotSQL;
+import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
-import net.bteuk.network.utils.enums.RegionType;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -14,7 +16,8 @@ import org.bukkit.Material;
 
 import java.util.ArrayList;
 
-public class PlotsystemMembers extends Gui {
+@Log
+public class PlotsystemMembers extends NetworkRefreshableGui {
 
     private final int id;
     private final RegionType regionType;
@@ -22,22 +25,20 @@ public class PlotsystemMembers extends Gui {
     private final PlotSQL plotSQL;
     private int page;
 
-    public PlotsystemMembers(int id, RegionType regionType) {
+    public PlotsystemMembers(GuiProvider provider, int id, RegionType regionType) {
 
-        super(45, Component.text("Manage Members", NamedTextColor.AQUA, TextDecoration.BOLD));
+        super(provider, 45, Component.text("Manage Members", NamedTextColor.AQUA, TextDecoration.BOLD));
 
         this.id = id;
         this.regionType = regionType;
 
         page = 1;
 
-        globalSQL = Network.getInstance().getGlobalSQL();
-        plotSQL = Network.getInstance().getPlotSQL();
-
-        createGui();
+        this.globalSQL = provider.globalSQL();
+        this.plotSQL = provider.plotSQL();
     }
 
-    private void createGui() {
+    protected void createGui() {
 
         ArrayList<String> members;
 
@@ -50,8 +51,7 @@ public class PlotsystemMembers extends Gui {
             members = plotSQL.getStringList("SELECT uuid FROM zone_members WHERE id=" + id + " AND is_owner=0;");
         } else {
 
-            Network.getInstance().getLogger().warning("PlotsystemMembers has been created without a valid regionType " +
-                    "(PLOT or ZONE)!");
+            log.warning("PlotsystemMembers GUI has been created without a valid regionType (PLOT or ZONE)!");
             return;
         }
 
@@ -63,17 +63,13 @@ public class PlotsystemMembers extends Gui {
 
         // If page is greater than 1 add a previous page button.
         if (page > 1) {
-            setItem(18, Utils.createItem(Material.ARROW, 1,
-                            Utils.title("Previous Page"),
-                            Utils.line("Open the previous page of " + regionType.label + " members.")),
-                    u ->
-
-                    {
+            setItem(18, Utils.createItem(Material.ARROW, 1, Utils.title("Previous Page"), Utils.line("Open the previous page of " + regionType.label + " members.")),
+                    (NetworkUser u) -> {
 
                         // Update the gui.
                         page--;
                         this.refresh();
-                        u.player.getOpenInventory().getTopInventory().setContents(this.getInventory().getContents());
+                        this.updatePlayerInventory(u.player);
                     });
         }
 
@@ -84,18 +80,15 @@ public class PlotsystemMembers extends Gui {
                 // If the slot is greater than the number that fit in a page, create a new page.
                 if (slot > 34) {
 
-                    setItem(26, Utils.createItem(Material.ARROW, 1,
-                                    Utils.title("Next Page"),
-                                    Utils.line("Open the previous page of " + regionType.label + " members.")),
-                            u ->
+                    setItem(26, Utils.createItem(Material.ARROW, 1, Utils.title("Next Page"), Utils.line("Open the previous page of " + regionType.label + " members.")),
+                            (NetworkUser u) ->
 
                             {
 
                                 // Update the gui.
                                 page++;
                                 this.refresh();
-                                u.player.getOpenInventory().getTopInventory()
-                                        .setContents(this.getInventory().getContents());
+                                this.updatePlayerInventory(u.player);
                             });
 
                     // Stop iterating.
@@ -110,25 +103,20 @@ public class PlotsystemMembers extends Gui {
 
                 // Add player to gui.
                 setItem(slot, Utils.createPlayerSkull(uuid, 1,
-                                Utils.title("Kick " + globalSQL.getString(
-                                        "SELECT name FROM player_data WHERE uuid='" + uuid + "';") + " from your " + regionType.label + "."),
-                                Utils.line("Click to remove them as member of your " + regionType.label + "."),
-                                Utils.line("They will no longer be able to build in it.")),
-                        u ->
+                                Utils.title("Kick " + globalSQL.getString("SELECT name FROM player_data WHERE uuid='" + uuid + "';") + " from your " + regionType.label + "."),
+                                Utils.line("Click to remove them as member of your " + regionType.label + "."), Utils.line("They will no longer be able to build in it.")),
+                        (NetworkUser u) ->
 
                         {
 
                             if (regionType == RegionType.PLOT) {
 
-                                if (plotSQL.hasRow(
-                                        "SELECT id FROM plot_members WHERE id=" + id + " AND uuid='" + uuid + "';")) {
+                                if (plotSQL.hasRow("SELECT id FROM plot_members WHERE id=" + id + " AND uuid='" + uuid + "';")) {
 
                                     // Kick the member from the plot.
-                                    EventManager.createEvent(uuid, "plotsystem", plotSQL.getString("SELECT server " +
-                                                    "FROM location_data WHERE name='" +
-                                                    plotSQL.getString(
-                                                            "SELECT location FROM plot_data WHERE id=" + id + ";") +
-                                                    "';"),
+                                    provider.eventAPI().createEvent(uuid, "plotsystem", plotSQL.getString(
+                                                    "SELECT server " + "FROM location_data WHERE name='" + plotSQL.getString("SELECT location FROM plot_data WHERE id=" + id + ";"
+                                                    ) + "';"),
                                             "kick plot " + id);
 
                                     // Return to the previous menu, since otherwise the gui won't have updated.
@@ -136,28 +124,26 @@ public class PlotsystemMembers extends Gui {
                                     u.mainGui = null;
 
                                     // Switch back to plot info.
-                                    u.mainGui = new PlotInfo(u, id);
+                                    u.mainGui = new PlotInfo(provider, u, id);
                                     u.mainGui.open(u.player);
                                 } else {
                                     u.player.sendMessage(ChatUtils.error("This player is not a member of your Plot."));
                                 }
                             } else {
 
-                                if (plotSQL.hasRow(
-                                        "SELECT id FROM zone_members WHERE id=" + id + " AND uuid='" + uuid + "';")) {
+                                if (plotSQL.hasRow("SELECT id FROM zone_members WHERE id=" + id + " AND uuid='" + uuid + "';")) {
 
                                     // Kick the member from the plot.
-                                    EventManager.createEvent(uuid, "plotsystem", plotSQL.getString("SELECT server " +
-                                            "FROM location_data WHERE name='" +
-                                            plotSQL.getString("SELECT location FROM zones WHERE id=" + id + ";") +
-                                            "';"), "kick zone " + id);
+                                    provider.eventAPI().createEvent(uuid, "plotsystem", plotSQL.getString(
+                                                    "SELECT server " + "FROM location_data WHERE name='" + plotSQL.getString("SELECT location FROM zones WHERE id=" + id + ";") + "';"),
+                                            "kick zone " + id);
 
                                     // Return to the previous menu, since otherwise the gui won't have updated.
                                     this.delete();
                                     u.mainGui = null;
 
-                                    // Switch back to plot info.
-                                    u.mainGui = new ZoneInfo(u, id, u.player.getUniqueId().toString());
+                                    // Switch back to zone info.
+                                    u.mainGui = new ZoneInfo(provider, u, id, u.player.getUniqueId().toString());
                                     u.mainGui.open(u.player);
                                 } else {
                                     u.player.sendMessage(ChatUtils.error("This player is not a member of your Zone."));
@@ -177,9 +163,7 @@ public class PlotsystemMembers extends Gui {
         }
 
         // Return
-        setItem(44, Utils.createItem(Material.SPRUCE_DOOR, 1,
-                        Utils.title("Return"),
-                        Utils.line("Open the " + regionType.label + " info for this " + regionType.label + ".")),
+        setItem(44, Utils.createItem(Material.SPRUCE_DOOR, 1, Utils.title("Return"), Utils.line("Open the " + regionType.label + " info for this " + regionType.label + ".")),
                 (NetworkUser u) -> {
 
                     // Delete this gui.
@@ -189,19 +173,13 @@ public class PlotsystemMembers extends Gui {
                     // Switch back to plot info.
                     if (regionType == RegionType.PLOT) {
 
-                        u.mainGui = new PlotInfo(u, id);
+                        u.mainGui = new PlotInfo(provider, u, id);
                     } else {
 
-                        u.mainGui = new ZoneInfo(u, id, u.player.getUniqueId().toString());
+                        u.mainGui = new ZoneInfo(provider, u, id, u.player.getUniqueId().toString());
                     }
 
                     u.mainGui.open(u.player);
                 });
-    }
-
-    public void refresh() {
-
-        this.clearGui();
-        createGui();
     }
 }

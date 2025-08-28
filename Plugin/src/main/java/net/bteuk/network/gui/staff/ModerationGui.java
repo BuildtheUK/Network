@@ -83,7 +83,7 @@ public class ModerationGui extends Gui {
         setItem(26, Utils.createItem(Material.SPRUCE_DOOR, 1,
                         Utils.title("Previous Page"),
                         Utils.line("Open the staff menu.")),
-                u ->
+                (NetworkUser u) ->
 
                 {
 

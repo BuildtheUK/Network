@@ -1,20 +1,25 @@
 package net.bteuk.network.gui.plotsystem;
 
 import lombok.Setter;
-import net.bteuk.network.Network;
-import net.bteuk.network.eventing.events.EventManager;
+import net.bteuk.network.api.EventAPI;
+import net.bteuk.network.api.ServerAPI;
+import net.bteuk.network.api.entity.NetworkLocation;
+import net.bteuk.network.core.Constants;
+import net.bteuk.network.core.ServerType;
+import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.InviteMembers;
+import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.gui.tutorials.RecommendedTutorialsGui;
 import net.bteuk.network.lib.utils.ChatUtils;
+import net.bteuk.network.papercore.LocationAdapter;
+import net.bteuk.network.papercore.PlayerAdapter;
+import net.bteuk.network.regions.RegionType;
 import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.sql.PlotSQL;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.PlotValues;
-import net.bteuk.network.utils.SwitchServer;
 import net.bteuk.network.utils.Utils;
 import net.bteuk.network.utils.enums.PlotStatus;
-import net.bteuk.network.utils.enums.RegionType;
-import net.bteuk.network.utils.enums.ServerType;
 import net.bteuk.network.utils.enums.SubmittedStatus;
 import net.bteuk.network.utils.plotsystem.ReviewFeedback;
 import net.buildtheearth.terraminusminus.generator.EarthGeneratorSettings;
@@ -31,38 +36,33 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import static net.bteuk.network.utils.Constants.EARTH_WORLD;
-import static net.bteuk.network.utils.Constants.SERVER_NAME;
-import static net.bteuk.network.utils.Constants.SERVER_TYPE;
-
-public class PlotInfo extends Gui {
+public class PlotInfo extends NetworkRefreshableGui {
 
     private final int plotID;
     private final NetworkUser user;
-
     private final PlotSQL plotSQL;
     private final GlobalSQL globalSQL;
+    private final Constants constants;
+    private final EventAPI eventAPI;
+    private final ServerAPI serverAPI;
 
     private String plot_owner;
 
     @Setter
     private AcceptedPlotMenu acceptedPlotMenu;
 
-    public PlotInfo(NetworkUser user, int plotID) {
+    public PlotInfo(GuiProvider provider, NetworkUser user, int plotID) {
 
         // Create the menu.
-        super(27, Component.text("Plot " + plotID, NamedTextColor.AQUA, TextDecoration.BOLD));
+        super(provider, 27, Component.text("Plot " + plotID, NamedTextColor.AQUA, TextDecoration.BOLD));
 
         this.user = user;
         this.plotID = plotID;
-
-        // Get plot sql.
-        plotSQL = Network.getInstance().getPlotSQL();
-
-        // Get global sql.
-        globalSQL = Network.getInstance().getGlobalSQL();
-
-        createGui();
+        this.plotSQL = provider.plotSQL();
+        this.globalSQL = provider.globalSQL();
+        this.constants = provider.constants();
+        this.eventAPI = provider.eventAPI();
+        this.serverAPI = provider.serverAPI();
     }
 
     public void createGui() {
@@ -92,7 +92,7 @@ public class PlotInfo extends Gui {
         // Return
         setItem(26, Utils.createItem(Material.SPRUCE_DOOR, 1, Utils.title("Return"), Utils.line("Open the plot menu.")), (NetworkUser u) -> {
 
-            // Switch back to plot menu, or accepted plot menu.
+            // Switch back to the plot menu or the accepted plot menu.
             if (status == PlotStatus.COMPLETED && acceptedPlotMenu != null) {
                 this.deleteThis();
                 acceptedPlotMenu.setPlotInfo(null);
@@ -100,7 +100,7 @@ public class PlotInfo extends Gui {
             } else {
                 // Delete this gui.
                 this.delete();
-                u.mainGui = new PlotMenu(u);
+                u.mainGui = new PlotMenu(provider, u);
                 u.mainGui.open(u.player);
             }
         });
@@ -124,14 +124,15 @@ public class PlotInfo extends Gui {
 
             // If the plot is on the current server teleport them directly.
             // Else teleport them to the correct server and then teleport them to the plot.
-            if (server.equals(SERVER_NAME)) {
-                EventManager.createTeleportEvent(false, u.player.getUniqueId().toString(), "plotsystem", "teleport plot " + plotID, u.player.getLocation());
+            NetworkLocation location = LocationAdapter.adapt(u.player.getLocation());
+            if (server.equals(constants.serverName())) {
+                eventAPI.createTeleportEvent(false, u.player.getUniqueId().toString(), "plotsystem", "teleport plot " + plotID, location);
             } else {
                 // Set the server join event.
-                EventManager.createTeleportEvent(true, u.player.getUniqueId().toString(), "plotsystem", "teleport plot " + plotID, u.player.getLocation());
+                eventAPI.createTeleportEvent(true, u.player.getUniqueId().toString(), "plotsystem", "teleport plot " + plotID, location);
 
                 // Teleport them to another server.
-                SwitchServer.switchServer(u.player, server);
+                serverAPI.switchServer(PlayerAdapter.adapt(u.player), server);
             }
         });
 
@@ -177,23 +178,22 @@ public class PlotInfo extends Gui {
         if (plotInfoType == PLOT_INFO_TYPE.CLAIMED_OWNER || plotInfoType == PLOT_INFO_TYPE.CLAIMED_MEMBER) {
             setItem(18, Utils.createItem(Material.ORANGE_STAINED_GLASS, 1, Utils.title("Toggle Outlines"), Utils.line("Enable/disable the outlines"), Utils.line("for this plot."),
                     Utils.line("Rejoining the server"), Utils.line("will reset this to enabled.")), (NetworkUser u) -> {
-                EventManager.createEvent(u.player.getUniqueId().toString(), "plotsystem", SERVER_NAME, "outlines toggle " + plotID);
+                eventAPI.createEvent(u.player.getUniqueId().toString(), "plotsystem", constants.serverName(), "outlines toggle " + plotID);
                 u.player.closeInventory();
             });
         }
 
         // For the plot owner, add the manage and invite members options. (Slot 20 and 21)
         // As well as the submit/retract button. (Slot 2)
-        // If the plot is not under review allow it to be removed. (Slot 6)
+        // If the plot is not under review, allow it to be removed. (Slot 6)
         if (plotInfoType == PLOT_INFO_TYPE.CLAIMED_OWNER) {
             setItem(20, Utils.createItem(Material.PLAYER_HEAD, 1, Utils.title("Plot Members"), Utils.line("Manage the members of your plot.")), (NetworkUser u) -> {
 
                 // Delete this gui.
                 this.delete();
-                u.mainGui = null;
 
-                // Switch back to plot menu.
-                u.mainGui = new PlotsystemMembers(plotID, RegionType.PLOT);
+                // Switch back to the plot members menu.
+                u.mainGui = new PlotsystemMembers(provider, plotID, RegionType.PLOT);
                 u.mainGui.open(u.player);
             });
 
@@ -202,10 +202,9 @@ public class PlotInfo extends Gui {
 
                 // Delete this gui.
                 this.delete();
-                u.mainGui = null;
 
-                // Switch back to plot menu.
-                u.mainGui = new InviteMembers(plotID, RegionType.PLOT);
+                // Switch back to the plot invite menu.
+                u.mainGui = new InviteMembers(provider, plotID, RegionType.PLOT);
                 u.mainGui.open(u.player);
             });
 
@@ -224,15 +223,16 @@ public class PlotInfo extends Gui {
 
             // The plot can only be retracted if it is not yet under review.
             if (status == PlotStatus.SUBMITTED && submittedStatus == SubmittedStatus.SUBMITTED) {
-                setItem(2, Utils.createItem(Material.ORANGE_CONCRETE, 1, Utils.title("Retract Submission"), Utils.line("Your plot will no longer be submitted.")), (NetworkUser u) -> {
+                setItem(2, Utils.createItem(Material.ORANGE_CONCRETE, 1, Utils.title("Retract Submission"), Utils.line("Your plot will no longer be submitted.")),
+                        (NetworkUser u) -> {
 
-                    u.player.closeInventory();
+                            u.player.closeInventory();
 
-                    // Add server event to retract plot submission.
-                    globalSQL.update("INSERT INTO server_events(uuid,type,server,event) VALUES('" + u.player.getUniqueId() + "','plotsystem','" + plotSQL.getString(
-                            "SELECT server FROM location_data WHERE name='" + plotSQL.getString(
-                                    "SELECT location FROM plot_data WHERE id=" + plotID + ";") + "';") + "','retract plot " + plotID + "');");
-                });
+                            // Add server event to retract plot submission.
+                            globalSQL.update("INSERT INTO server_events(uuid,type,server,event) VALUES('" + u.player.getUniqueId() + "','plotsystem','" + plotSQL.getString(
+                                    "SELECT server FROM location_data WHERE name='" + plotSQL.getString(
+                                            "SELECT location FROM plot_data WHERE id=" + plotID + ";") + "';") + "','retract plot " + plotID + "');");
+                        });
             }
 
             // The plot can only be deleted if it is not yet submitted.
@@ -241,10 +241,9 @@ public class PlotInfo extends Gui {
 
                     // Delete this gui.
                     this.delete();
-                    u.mainGui = null;
 
                     // Switch back to plot menu.
-                    u.mainGui = new DeleteConfirm(plotID, RegionType.PLOT);
+                    u.mainGui = new DeleteConfirm(provider, plotID, RegionType.PLOT);
                     u.mainGui.open(u.player);
                 });
             }
@@ -252,23 +251,24 @@ public class PlotInfo extends Gui {
 
         // Members have the option to leave the plot (Slot 20)
         if (plotInfoType == PLOT_INFO_TYPE.CLAIMED_MEMBER) {
-            setItem(20, Utils.createItem(Material.RED_CONCRETE, 1, Utils.title("Leave Plot"), Utils.line("You will not be able to build in the plot once you leave.")), (NetworkUser u) -> {
+            setItem(20, Utils.createItem(Material.RED_CONCRETE, 1, Utils.title("Leave Plot"), Utils.line("You will not be able to build in the plot once you leave.")),
+                    (NetworkUser u) -> {
 
-                // Delete this gui.
-                this.delete();
-                u.mainGui = null;
+                        // Delete this gui.
+                        this.delete();
+                        u.mainGui = null;
 
-                // Switch back to plot menu.
-                Bukkit.getScheduler().scheduleSyncDelayedTask(Network.getInstance(), () -> {
-                    u.mainGui = new PlotMenu(u);
-                    u.mainGui.open(u.player);
-                }, 20L);
+                        // Switch back to plot menu.
+                        Bukkit.getScheduler().scheduleSyncDelayedTask(provider.instance(), () -> {
+                            u.mainGui = new PlotMenu(provider, u);
+                            u.mainGui.open(u.player);
+                        }, 20L);
 
-                // Add server event to leave plot.
-                globalSQL.update("INSERT INTO server_events(uuid,type,server,event) VALUES('" + u.player.getUniqueId() + "','plotsystem','" + plotSQL.getString(
-                        "SELECT server FROM location_data WHERE name='" + plotSQL.getString(
-                                "SELECT location FROM plot_data WHERE id=" + plotID + ";") + "';") + "','leave plot " + plotID + "');");
-            });
+                        // Add server event to leave plot.
+                        globalSQL.update("INSERT INTO server_events(uuid,type,server,event) VALUES('" + u.player.getUniqueId() + "','plotsystem','" + plotSQL.getString(
+                                "SELECT server FROM location_data WHERE name='" + plotSQL.getString(
+                                        "SELECT location FROM plot_data WHERE id=" + plotID + ";") + "';") + "','leave plot " + plotID + "');");
+                    });
         }
 
         // If this plot has feedback, add feedback for the plot owner and members (Slot 22)
@@ -283,7 +283,7 @@ public class PlotInfo extends Gui {
                         u.mainGui = null;
 
                         // Switch back to plot menu.
-                        u.mainGui = new DeniedPlotFeedback(plotID);
+                        u.mainGui = new DeniedPlotFeedback(provider, plotID);
                         u.mainGui.open(u.player);
                     });
             // If the plot is accepted and has feedback show for the owner (Slot 21)
@@ -302,28 +302,31 @@ public class PlotInfo extends Gui {
         // Tutorial recommendations
         switch (plotInfoType) {
             case CLAIMED_OWNER, CLAIMED_MEMBER, ACCEPTED_OWNER -> {
-                setItem(getRecommendationsSlot(plotInfoType), Utils.createItem(Material.LECTERN, 1, Utils.title("Tutorial Recommendations"),
-                        Utils.line("Click to see your"), Utils.line("recommended tutorials")), (NetworkUser u) -> {
-                    user.mainGui = new RecommendedTutorialsGui(this, plotID, user, plot_owner, false);
-                    user.mainGui.open(user);
-                });
+                setItem(getRecommendationsSlot(plotInfoType),
+                        Utils.createItem(Material.LECTERN, 1, Utils.title("Tutorial Recommendations"), Utils.line("Click to see your"), Utils.line("recommended tutorials")),
+                        (NetworkUser u) -> {
+                            user.mainGui = new RecommendedTutorialsGui(provider, this, plotID, user, plot_owner, false);
+                            user.mainGui.open(user.player);
+                        });
             }
             case SUBMITTED_REVIEWER, REVIEWED_REVIEWER, REVIEWING_REVIEWER, VERIFYING_REVIEWER -> {
-                setItem(getRecommendationsSlot(plotInfoType), Utils.createItem(Material.LECTERN, 1, Utils.title("Tutorial Recommendations"),
-                        Utils.line("Click to see the"), Utils.line("tutorial recommendations"), Utils.line("and add more")), (NetworkUser u) -> {
-                    user.mainGui = new RecommendedTutorialsGui(this, plotID, user, plot_owner, true);
-                    user.mainGui.open(user);
-                });
+                setItem(getRecommendationsSlot(plotInfoType),
+                        Utils.createItem(Material.LECTERN, 1, Utils.title("Tutorial Recommendations"), Utils.line("Click to see the"), Utils.line("tutorial recommendations"),
+                                Utils.line("and add more")), (NetworkUser u) -> {
+                            user.mainGui = new RecommendedTutorialsGui(provider, this, plotID, user, plot_owner, true);
+                            user.mainGui.open(user.player);
+                        });
             }
             case CLAIMED, ACCEPTED -> {
                 // Reviewers can always add recommendations to claimed and accepted plots
                 // Architects can always add recommendations to claimed plots
                 if (user.hasPermission("group.reviewer") || (user.hasPermission("group.architect") && plotInfoType.equals(PLOT_INFO_TYPE.CLAIMED))) {
-                    setItem(getRecommendationsSlot(plotInfoType), Utils.createItem(Material.LECTERN, 1, Utils.title("Tutorial Recommendations"),
-                            Utils.line("Click to see the"), Utils.line("tutorial recommendations"), Utils.line("and add more")), (NetworkUser u) -> {
-                        user.mainGui = new RecommendedTutorialsGui(this, plotID, user, plot_owner, true);
-                        user.mainGui.open(user);
-                    });
+                    setItem(getRecommendationsSlot(plotInfoType),
+                            Utils.createItem(Material.LECTERN, 1, Utils.title("Tutorial Recommendations"), Utils.line("Click to see the"), Utils.line("tutorial recommendations"),
+                                    Utils.line("and add more")), (NetworkUser u) -> {
+                                user.mainGui = new RecommendedTutorialsGui(provider, this, plotID, user, plot_owner, true);
+                                user.mainGui.open(user.player);
+                            });
                 }
             }
         }
@@ -333,23 +336,23 @@ public class PlotInfo extends Gui {
             setItem(20, Utils.createItem(Material.EMERALD, 1, Utils.title("Review Plot"), Utils.line("Click to start reviewing this plot.")), (NetworkUser u) -> {
                 // If you are not owner or member of the plot, start the review.
                 if (canReviewPlot()) {
-                    // Get server of plot.
-                    String server = Network.getInstance().getPlotSQL().getString("SELECT server FROM " + "location_data WHERE name='" + Network.getInstance().getPlotSQL()
-                            .getString("SELECT location FROM plot_data " + "WHERE id=" + plotID + ";") + "';");
+                    // Get the server of plot.
+                    String server = plotSQL.getString(
+                            "SELECT server FROM " + "location_data WHERE name='" + plotSQL.getString("SELECT location FROM plot_data " + "WHERE id=" + plotID + ";") + "';");
 
                     // If they are not in the same server as the plot teleport them to that server and start
                     // the reviewing process.
-                    if (server.equals(SERVER_NAME)) {
+                    if (server.equals(constants.serverName())) {
                         u.player.closeInventory();
-                        EventManager.createEvent(u.getUuid(), "plotsystem", SERVER_NAME, "review plot " + plotID);
+                        eventAPI.createEvent(u.getUuid(), "plotsystem", constants.serverName(), "review plot " + plotID);
                     } else {
                         // Player is not on the current server.
                         // Set the server join event.
-                        EventManager.createJoinEvent(u.getUuid(), "plotsystem", "review plot " + plotID);
+                        eventAPI.createJoinEvent(u.getUuid(), "plotsystem", "review plot " + plotID);
 
                         // Teleport them to the server.
                         u.player.closeInventory();
-                        SwitchServer.switchServer(u.player, server);
+                        serverAPI.switchServer(PlayerAdapter.adapt(u.player), server);
                     }
                 } else {
                     user.player.sendMessage(ChatUtils.error("You are not allowed to review this plot."));
@@ -361,34 +364,28 @@ public class PlotInfo extends Gui {
             setItem(20, Utils.createItem(Material.SPYGLASS, 1, Utils.title("Verify Plot"), Utils.line("Click to start verifying this plot.")), (NetworkUser u) -> {
                 if (canVerifyPlot()) {
                     // Get server of plot.
-                    String server = Network.getInstance().getPlotSQL().getString("SELECT server FROM " + "location_data WHERE name='" + Network.getInstance().getPlotSQL()
-                            .getString("SELECT location FROM plot_data " + "WHERE id=" + plotID + ";") + "';");
+                    String server = plotSQL.getString(
+                            "SELECT server FROM " + "location_data WHERE name='" + plotSQL.getString("SELECT location FROM plot_data " + "WHERE id=" + plotID + ";") + "';");
 
                     // If they are not in the same server as the plot teleport them to that server and start
                     // the reviewing process.
-                    if (server.equals(SERVER_NAME)) {
+                    if (server.equals(constants.serverName())) {
                         u.player.closeInventory();
-                        EventManager.createEvent(u.getUuid(), "plotsystem", SERVER_NAME, "verify plot " + plotID);
+                        eventAPI.createEvent(u.getUuid(), "plotsystem", constants.serverName(), "verify plot " + plotID);
                     } else {
                         // Player is not on the current server.
                         // Set the server join event.
-                        EventManager.createJoinEvent(u.getUuid(), "plotsystem", "verify plot " + plotID);
+                        eventAPI.createJoinEvent(u.getUuid(), "plotsystem", "verify plot " + plotID);
 
                         // Teleport them to the server.
                         u.player.closeInventory();
-                        SwitchServer.switchServer(u.player, server);
+                        serverAPI.switchServer(PlayerAdapter.adapt(u.player), server);
                     }
                 } else {
                     user.player.sendMessage(ChatUtils.error("You are not allowed to verify this plot."));
                 }
             });
         }
-    }
-
-    public void refresh() {
-
-        this.clearGui();
-        createGui();
     }
 
     @Override
@@ -550,17 +547,16 @@ public class PlotInfo extends Gui {
         // Teleport to the location on the Earth server.
         Component teleportMessage = ChatUtils.success("Teleported to accepted plot %s", String.valueOf(plotID));
 
-        boolean switchServer = SERVER_TYPE != ServerType.EARTH;
+        boolean switchServer = constants.serverType() != ServerType.EARTH;
 
-        EventManager.createTeleportEvent(switchServer, user.player.getUniqueId().toString(), "network",
-                "teleport " + EARTH_WORLD + " " + x + " " + z + " "
-                        + user.player.getLocation().getYaw() + " " + user.player.getLocation().getPitch(), PlainTextComponentSerializer.plainText().serialize(teleportMessage),
-                user.player.getLocation());
+        eventAPI.createTeleportEvent(switchServer, user.player.getUniqueId().toString(), "network",
+                "teleport " + constants.earthWorld() + " " + x + " " + z + " " + user.player.getLocation().getYaw() + " " + user.player.getLocation().getPitch(),
+                PlainTextComponentSerializer.plainText().serialize(teleportMessage), LocationAdapter.adapt(user.player.getLocation()));
 
         // Switch to Earth server is necessary.
         if (switchServer) {
             user.player.closeInventory();
-            SwitchServer.switchServer(user.player, Network.getInstance().getGlobalSQL().getString("SELECT name FROM server_data WHERE type='EARTH';"));
+            serverAPI.switchServer(PlayerAdapter.adapt(user.player), globalSQL.getString("SELECT name FROM server_data WHERE type='EARTH';"));
         }
     }
 

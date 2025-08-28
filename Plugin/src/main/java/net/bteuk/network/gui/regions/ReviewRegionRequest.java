@@ -49,7 +49,7 @@ public class ReviewRegionRequest extends Gui {
         setItem(11, Utils.createItem(Material.LIME_CONCRETE, 1,
                         Utils.title("Accept Request"),
                         Utils.line("The user will be able to build in this region.")),
-                u ->
+                (NetworkUser u) ->
 
                 {
 
@@ -86,7 +86,7 @@ public class ReviewRegionRequest extends Gui {
         setItem(15, Utils.createItem(Material.RED_CONCRETE, 1,
                         Utils.title("Deny Request"),
                         Utils.line("The user will not be able to build in this region.")),
-                u ->
+                (NetworkUser u) ->
 
                 {
 
@@ -123,7 +123,7 @@ public class ReviewRegionRequest extends Gui {
         setItem(22, Utils.createItem(Material.ENDER_PEARL, 1,
                         Utils.title("Teleport to Region"),
                         Utils.line("Teleport to the location where the request was made.")),
-                u ->
+                (NetworkUser u) ->
 
                 {
 
@@ -163,7 +163,7 @@ public class ReviewRegionRequest extends Gui {
         setItem(26, Utils.createItem(Material.SPRUCE_DOOR, 1,
                         Utils.title("Previous Page"),
                         Utils.line("Open the region request menu.")),
-                u ->
+                (NetworkUser u) ->
 
                 {
 

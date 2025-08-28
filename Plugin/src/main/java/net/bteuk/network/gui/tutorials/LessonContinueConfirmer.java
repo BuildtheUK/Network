@@ -1,6 +1,10 @@
 package net.bteuk.network.gui.tutorials;
 
+import lombok.extern.java.Log;
+import net.bteuk.minecraft.gui.Gui;
 import net.bteuk.network.Network;
+import net.bteuk.network.gui.GuiProvider;
+import net.bteuk.network.gui.NetworkGui;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
 import org.bukkit.Material;
@@ -9,9 +13,8 @@ import teachingtutorials.guis.Event;
 import teachingtutorials.guis.EventType;
 import teachingtutorials.tutorialobjects.LessonObject;
 
-import static net.bteuk.network.utils.Constants.LOGGER;
-
-public class LessonContinueConfirmer extends Gui {
+@Log
+public class LessonContinueConfirmer extends NetworkGui {
     /**
      * A reference to the instance of the Network plugin
      */
@@ -43,8 +46,8 @@ public class LessonContinueConfirmer extends Gui {
      * @param lessonToContinue The Lesson which is to be restarted or resumed
      * @param szMessage        The message to display to the user
      */
-    public LessonContinueConfirmer(Network plugin, NetworkUser user, Gui parentGui, LessonObject lessonToContinue, String szMessage) {
-        super(27, Utils.title("Resume or continue lesson?"));
+    public LessonContinueConfirmer(GuiProvider provider, Network plugin, NetworkUser user, Gui parentGui, LessonObject lessonToContinue, String szMessage) {
+        super(provider, 27, Utils.title("Resume or continue lesson?"));
         this.plugin = plugin;
         this.parentGui = parentGui;
         this.user = user;
@@ -64,15 +67,13 @@ public class LessonContinueConfirmer extends Gui {
 
         // Restart lesson
         super.setItem(12 - 1, Utils.createItem(Material.BOOK, 1,
-                Utils.title("Restart the lesson")), new guiAction() {
-            @Override
-            public void click(NetworkUser u) {
-                // Switch to the tutorial.
-                if (Event.addEvent(EventType.RESTART_LESSON, user.player.getUniqueId(), lessonToContinue.getLessonID(),
-                        plugin.getTutorialsDBConnection(), LOGGER))
-                    TutorialsGui.switchServer(user);
-                else
-                    user.sendMessage(net.bteuk.network.utils.Utils.error("A problem occurred, please let staff know"));
+                Utils.title("Restart the lesson")), (NetworkUser u) -> {
+            // Switch to the tutorial.
+            if (Event.addEvent(EventType.RESTART_LESSON, user.player.getUniqueId(), lessonToContinue.getLessonID(),
+                    plugin.getTutorialsDBConnection(), log)) {
+                TutorialsGui.switchServer(user);
+            } else {
+                user.sendMessage(net.bteuk.network.utils.Utils.error("A problem occurred, please let staff know"));
             }
         });
 
@@ -80,37 +81,23 @@ public class LessonContinueConfirmer extends Gui {
         ItemStack resumeCompulsory = Utils.createItem(Material.WRITABLE_BOOK, 1,
                 Utils.title("Resume the lesson"));
 
-        super.setItem(16 - 1, resumeCompulsory, new guiAction() {
-            @Override
-            public void click(NetworkUser u) {
+        super.setItem(16 - 1, resumeCompulsory, (NetworkUser u) -> {
                 // Switch to the tutorial.
                 if (Event.addEvent(EventType.CONTINUE_LESSON, user.player.getUniqueId(), lessonToContinue.getLessonID(),
-                        plugin.getTutorialsDBConnection(), LOGGER))
+                        plugin.getTutorialsDBConnection(), log)) {
                     TutorialsGui.switchServer(user);
-                else
+                } else {
                     user.sendMessage(net.bteuk.network.utils.Utils.error("A problem occurred, please let staff know"));
-            }
+                }
         });
 
         // Back button
         ItemStack back = Utils.createItem(Material.SPRUCE_DOOR, 1,
                 Utils.title("Back"));
-        super.setItem(26, back, new guiAction() {
-            @Override
-            public void click(NetworkUser u) {
+        super.setItem(26, back, (NetworkUser u) -> {
                 user.mainGui = parentGui;
-                user.mainGui.open(user);
+                user.mainGui.open(user.player);
                 delete();
-            }
         });
-    }
-
-    /**
-     * Refresh the gui.
-     * This usually involves clearing the content and recreating it.
-     */
-    @Override
-    public void refresh() {
-
     }
 }

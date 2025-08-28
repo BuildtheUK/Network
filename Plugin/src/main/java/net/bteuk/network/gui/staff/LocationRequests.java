@@ -72,7 +72,7 @@ public class LocationRequests extends Gui {
         setItem(26, Utils.createItem(Material.SPRUCE_DOOR, 1,
                         Utils.title("Return"),
                         Utils.line("Open the staff menu.")),
-                u ->
+                (NetworkUser u) ->
 
                 {
 

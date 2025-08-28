@@ -169,7 +169,7 @@ public class ModerationActionGui extends Gui {
         // Set reason
         setItem(2, Utils.createItem(Material.WRITABLE_BOOK, 1, Utils.title("Reason"), Utils.line("Click to write the reason in chat."),
                 Utils.line("Your first chat message will be set as reason."), Utils.line("If you don't type anything within 1 minute"),
-                Utils.line("the action gets " + "cancelled.")), u ->
+                Utils.line("the action gets " + "cancelled.")), (NetworkUser u) ->
 
         {
 
@@ -181,7 +181,7 @@ public class ModerationActionGui extends Gui {
         });
 
         // Return to select user menu.
-        setItem(8, Utils.createItem(Material.SPRUCE_DOOR, 1, Utils.title("Previous Page"), Utils.line("Open the select user menu.")), u ->
+        setItem(8, Utils.createItem(Material.SPRUCE_DOOR, 1, Utils.title("Previous Page"), Utils.line("Open the select user menu.")), (NetworkUser u) ->
 
         {
 

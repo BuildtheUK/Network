@@ -65,27 +65,27 @@ public class ExploreGui extends NetworkRefreshableGui {
         // England
         setItem(2, Utils.createCustomSkullWithFallback("bee5c850afbb7d8843265a146211ac9c615f733dcc5a8e2190e5c247dea32",
                 Material.ORANGE_CONCRETE_POWDER, 1, Utils.title("England"), Utils.line("Click to pick from"),
-                Utils.line("locations in England.")), u -> openLocation("England", u, Category.ENGLAND));
+                Utils.line("locations in England.")), (NetworkUser u) -> openLocation("England", u, Category.ENGLAND));
 
         // Scotland
         setItem(3,
                 Utils.createCustomSkullWithFallback("dadc377816389c3c87c65dcacac1d8f880b54334d7c23ea22f099e2c4eab1ff9",
                         Material.LIGHT_BLUE_CONCRETE_POWDER, 1, Utils.title("Scotland"),
                         Utils.line("Click to pick from"), Utils.line("locations in Scotland.")),
-                u -> openLocation("Scotland", u, Category.SCOTLAND));
+                (NetworkUser u) -> openLocation("Scotland", u, Category.SCOTLAND));
 
         // Wales
         setItem(4,
                 Utils.createCustomSkullWithFallback("8140ad08f7ee1c73bf75660614595c7392caba5529211a9adbe3b5639cb6ad41",
                         Material.RED_CONCRETE_POWDER, 1, Utils.title("Wales"), Utils.line("Click to pick from"),
-                        Utils.line("locations in Wales.")), u -> openLocation("Wales", u, Category.WALES));
+                        Utils.line("locations in Wales.")), (NetworkUser u) -> openLocation("Wales", u, Category.WALES));
 
         // Northern Ireland
         setItem(5,
                 Utils.createCustomSkullWithFallback("c00ae311a5c7082e76450ecafcbbbc07dcdc484600ac0bf8d91f27e0a65b7e32",
                         Material.LIME_CONCRETE_POWDER, 1, Utils.title("Northern Ireland"),
                         Utils.line("Click to pick from"), Utils.line("locations in Norther " + "Ireland.")),
-                u -> openLocation("Northern Ireland", u, Category.NORTHERN_IRELAND));
+                (NetworkUser u) -> openLocation("Northern Ireland", u, Category.NORTHERN_IRELAND));
 
         // Other
         setItem(6,
@@ -93,19 +93,19 @@ public class ExploreGui extends NetworkRefreshableGui {
                         Material.YELLOW_CONCRETE_POWDER, 1, Utils.title("Other"),
                         Utils.line("Click to pick from locations"),
                         Utils.line("not in the 4 " + "countries of the UK.")),
-                u -> openLocation("Other", u, Category.OTHER));
+                (NetworkUser u) -> openLocation("Other", u, Category.OTHER));
 
         // Suggested Locations
         // Gets all locations which have suggested=1 in database.
         setItem(21, Utils.createItem(Material.GOLD_BLOCK, 1, Utils.title("Suggested Locations"),
                         Utils.line("Click " + "to" + " view locations"), Utils.line("that are recommended to view.")),
-                u -> openLocation("Suggested" + " " + "Locations", u, Category.SUGGESTED));
+                (NetworkUser u) -> openLocation("Suggested" + " " + "Locations", u, Category.SUGGESTED));
 
         // Nearby Locations (radius set in config under navigation_radius)
         setItem(22, Utils.createItem(Material.COMPASS, 1, Utils.title("Nearby Locations"),
                         Utils.line("Click to view " + "locations"),
                         Utils.line("in a " + CONFIG.getInt("navigation_radius") + "km radius.")),
-                u -> openLocation("Nearby Locations", u, Category.NEARBY));
+                (NetworkUser u) -> openLocation("Nearby Locations", u, Category.NEARBY));
 
         // Find Locations
         setItem(23, Utils.createItem(Material.OAK_SIGN, 1, Utils.title("Find Locations"),

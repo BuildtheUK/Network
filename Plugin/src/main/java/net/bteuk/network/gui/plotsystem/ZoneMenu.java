@@ -1,8 +1,7 @@
 package net.bteuk.network.gui.plotsystem;
 
-import net.bteuk.network.Network;
-import net.bteuk.network.eventing.events.EventManager;
 import net.bteuk.network.gui.BuildGui;
+import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.sql.PlotSQL;
 import net.bteuk.network.utils.NetworkUser;
@@ -19,17 +18,15 @@ public class ZoneMenu extends NetworkRefreshableGui {
     private final NetworkUser user;
     private final PlotSQL plotSQL;
 
-    public ZoneMenu(NetworkUser user) {
+    public ZoneMenu(GuiProvider provider, NetworkUser user) {
 
-        super(45, Component.text("Zone Menu", NamedTextColor.AQUA, TextDecoration.BOLD));
+        super(provider, 45, Component.text("Zone Menu", NamedTextColor.AQUA, TextDecoration.BOLD));
 
         this.user = user;
-        plotSQL = Network.getInstance().getPlotSQL();
-
-        createGui();
+        this.plotSQL = provider.plotSQL();
     }
 
-    private void createGui() {
+    protected void createGui() {
 
         /*
         Gui layout:
@@ -74,7 +71,7 @@ public class ZoneMenu extends NetworkRefreshableGui {
                             u.mainGui = null;
 
                             // Switch to zone info.
-                            u.mainGui = new ZoneInfo(u, zones.get(finalI), u.player.getUniqueId().toString());
+                            u.mainGui = new ZoneInfo(provider, u, zones.get(finalI), u.player.getUniqueId().toString());
                             u.mainGui.open(u.player);
                         });
             } else if (plotSQL.hasRow("SELECT id FROM zones WHERE id=" + zones.get(i) + " AND is_public=1;")) {
@@ -86,7 +83,7 @@ public class ZoneMenu extends NetworkRefreshableGui {
                         (NetworkUser u) -> {
 
                             // Add server event to join zone.
-                            EventManager.createEvent(u.player.getUniqueId().toString(), "plotsystem",
+                            provider.eventAPI().createEvent(u.player.getUniqueId().toString(), "plotsystem",
                                     plotSQL.getString("SELECT server FROM location_data WHERE name='" +
                                             plotSQL.getString("SELECT location FROM zones WHERE id=" + zones.get(
                                                     finalI) + ";") + "';"),
@@ -103,7 +100,7 @@ public class ZoneMenu extends NetworkRefreshableGui {
                         Utils.line("This zone is private,"),
                         Utils.line("to join this zone you must be"),
                         Utils.line("invited by ")
-                                .append(Component.text(Network.getInstance().getGlobalSQL().getString("SELECT name " +
+                                .append(Component.text(provider.globalSQL().getString("SELECT name " +
                                         "FROM player_data WHERE uuid='" +
                                         plotSQL.getString("SELECT uuid FROM zone_members WHERE id=" + zones.get(i) +
                                                 " AND is_owner=1;") + "';"), NamedTextColor.GRAY))));
@@ -130,14 +127,8 @@ public class ZoneMenu extends NetworkRefreshableGui {
                     u.mainGui = null;
 
                     // Switch to plot info.
-                    u.mainGui = new BuildGui(u);
+                    u.mainGui = new BuildGui(provider, u);
                     u.mainGui.open(u.player);
                 });
-    }
-
-    public void refresh() {
-
-        this.clearGui();
-        createGui();
     }
 }

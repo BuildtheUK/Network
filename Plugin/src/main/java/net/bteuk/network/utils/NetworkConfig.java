@@ -177,10 +177,16 @@ public class NetworkConfig {
 
         int tipsFrequency = config.getInt("chat.tips.frequency");
 
+        boolean regionStaffRequestAlways = config.getBoolean("region.staff_request.always");
+        int regionStaffRequestRadius = config.getInt("region.staff_request.radius", 0);
+
+        int progressMapID = config.getInt("ProgressMap.ProgressMapID");
+        String mapHubAPIKey = config.getString("ProgressMap.MapHubAPIKey");
+
         log.info("Loaded constants from config.");
         return new Constants(serverName, serverType, standalone, regionsEnabled, regionInactivity, tpllEnabled, tpllRequiredPermission, maxY, minY, earthWorld, staffChat, tips,
                 tutorials, llEnabled, progressMap, progression, announceOverallLevelUps, announceSeasonalLevelUps, sidebarEnabled, sidebarTitle, sidebarTextList, motdEnabled,
                 motdText, plotSystemEnabled, moderationEnabled, warpsEnabled, homesEnabled, announcePromotions, discordLink, skullsEnabled, progressMapLink, chatSocketOutputIP,
-                chatSocketOutputPort, chatSocketInputPort, tipsFrequency);
+                chatSocketOutputPort, chatSocketInputPort, tipsFrequency, regionStaffRequestAlways, regionStaffRequestRadius, progressMapID, mapHubAPIKey);
     }
 }

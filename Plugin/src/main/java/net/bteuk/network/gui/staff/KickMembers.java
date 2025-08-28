@@ -47,14 +47,14 @@ public class KickMembers extends Gui {
             setItem(18, Utils.createItem(Material.ARROW, 1,
                             Utils.title("Previous Page"),
                             Utils.line("Open the previous page of region members.")),
-                    u ->
+                    (NetworkUser u) ->
 
                     {
 
                         // Update the gui.
                         page--;
                         this.refresh();
-                        u.player.getOpenInventory().getTopInventory().setContents(this.getInventory().getContents());
+                        this.updatePlayerInventory(u.player);
                     });
         }
 
@@ -67,7 +67,7 @@ public class KickMembers extends Gui {
                 setItem(26, Utils.createItem(Material.ARROW, 1,
                                 Utils.title("Next Page"),
                                 Utils.line("Open the next page of region members.")),
-                        u ->
+                        (NetworkUser u) ->
 
                         {
 
@@ -92,7 +92,7 @@ public class KickMembers extends Gui {
             setItem(slot, Utils.createPlayerSkull(uuid, 1,
                             Utils.title("Kick " + globalSQL.getString(
                                     "SELECT name FROM player_data WHERE uuid='" + uuid + "';") + " from the region.")),
-                    u ->
+                    (NetworkUser u) ->
 
                     {
                         // Remove them from the region.
@@ -124,7 +124,7 @@ public class KickMembers extends Gui {
                         Utils.title("Return"),
                         Utils.line("Return to manage region ")
                                 .append(Component.text(region.regionName(), NamedTextColor.GRAY))),
-                u ->
+                (NetworkUser u) ->
 
                 {
 

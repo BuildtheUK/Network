@@ -1,5 +1,6 @@
 package net.bteuk.network.sql;
 
+import lombok.extern.java.Log;
 import net.bteuk.network.core.sql.AbstractSQL;
 import net.bteuk.network.lib.enums.PlotDifficulties;
 import net.bteuk.network.lib.utils.Reviewing;
@@ -14,11 +15,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static net.buildtheearth.terraminusminus.TerraMinusMinus.LOGGER;
 
+@Log
 public class PlotSQL extends AbstractSQL {
 
     public PlotSQL(DataSource datasource) {
@@ -425,11 +425,10 @@ public class PlotSQL extends AbstractSQL {
     /**
      * Fetches a list of tutorial recommendations for a given plot
      *
-     * @param logger  A logger to output to
      * @param iPlotID The ID of the plot to fetch the recommended tutorials of
      * @return A list of tutorial recommendations
      */
-    public TutorialRecommendation[] fetchTutorialRecommendationsForPlot(Logger logger, int iPlotID) {
+    public TutorialRecommendation[] fetchTutorialRecommendationsForPlot(int iPlotID) {
         // SQL objects
         String sql;
         ResultSet resultSet;
@@ -453,7 +452,7 @@ public class PlotSQL extends AbstractSQL {
                 recommendations[i] = new TutorialRecommendation(resultSet.getInt("recommendation_id"), iPlotID);
             }
         } catch (SQLException e) {
-            logger.log(Level.WARNING, "Error fetching tutorial recommendations for plot " + iPlotID, e);
+            log.warning("Error fetching tutorial recommendations for plot " + iPlotID + ": " + e.getLocalizedMessage());
             return new TutorialRecommendation[0];
         }
 

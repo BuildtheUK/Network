@@ -3,7 +3,8 @@ package net.bteuk.network.gui.plotsystem;
 import com.destroystokyo.paper.profile.PlayerProfile;
 import lombok.Getter;
 import lombok.Setter;
-import net.bteuk.network.Network;
+import net.bteuk.network.gui.GuiProvider;
+import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.sql.PlotSQL;
 import net.bteuk.network.utils.NetworkUser;
@@ -26,7 +27,7 @@ import java.util.concurrent.Executors;
  * However, the filter can be altered to view all accepted plots,
  * or those by a specific user, granted they have completed at least one plot.
  */
-public class AcceptedPlotMenu extends Gui {
+public class AcceptedPlotMenu extends NetworkRefreshableGui {
 
     private final PlotSQL plotSQL;
     private final GlobalSQL globalSQL;
@@ -48,41 +49,34 @@ public class AcceptedPlotMenu extends Gui {
     @Setter
     private int page = 1;
 
-    public AcceptedPlotMenu(NetworkUser user) {
+    public AcceptedPlotMenu(GuiProvider provider, NetworkUser user) {
 
-        super(45, Component.text("Accepted Plot Menu", NamedTextColor.AQUA, TextDecoration.BOLD));
+        super(provider, 45, Component.text("Accepted Plot Menu", NamedTextColor.AQUA, TextDecoration.BOLD));
 
         filter = user.player.getUniqueId().toString();
-        filterMenu = new FilterMenu(this, user);
+        this.filterMenu = new FilterMenu(provider, this, user);
 
-        plotSQL = Network.getInstance().getPlotSQL();
-        globalSQL = Network.getInstance().getGlobalSQL();
+        this.plotSQL = provider.plotSQL();
+        this.globalSQL = provider.globalSQL();
 
-        createGuiAsync();
+        createGui();
     }
 
-    private void createGuiAsync() {
+    protected void createGui() {
 
         // Fetch accepted plots.
         HashMap<Integer, String> plots;
         if (StringUtils.isEmpty(filter)) {
-            plots = plotSQL.getIntStringMap("SELECT plot_id,uuid FROM plot_review WHERE accepted=1 AND completed=1 " +
-                    "ORDER BY review_time DESC;");
+            plots = plotSQL.getIntStringMap("SELECT plot_id,uuid FROM plot_review WHERE accepted=1 AND completed=1 " + "ORDER BY review_time DESC;");
         } else {
-            plots = plotSQL.getIntStringMap("SELECT plot_id,uuid FROM plot_review WHERE accepted=1 AND completed=1 " +
-                    "AND uuid='" + filter + "' ORDER BY review_time DESC;");
+            plots = plotSQL.getIntStringMap("SELECT plot_id,uuid FROM plot_review WHERE accepted=1 AND completed=1 " + "AND uuid='" + filter + "' ORDER BY review_time DESC;");
         }
 
         // Set the filter.
         // Open the filter menu.
-        setItem(4, Utils.createItem(
-                        Material.SPRUCE_SIGN, 1, Utils.title("Set filter"),
-                        Utils.line("The current filter is set to: ").append(Component.text(
-                                StringUtils.isEmpty(filter) ? "All Players" : globalSQL.getString("SELECT name FROM " +
-                                        "player_data WHERE uuid='" + filter + "';"), NamedTextColor.GRAY
-                        )),
-                        Utils.line("Click to select a different filter.")),
-                filterMenu::open);
+        setItem(4, Utils.createItem(Material.SPRUCE_SIGN, 1, Utils.title("Set filter"), Utils.line("The current filter is set to: ")
+                .append(Component.text(StringUtils.isEmpty(filter) ? "All Players" : globalSQL.getString("SELECT name FROM " + "player_data WHERE uuid='" + filter + "';"),
+                        NamedTextColor.GRAY)), Utils.line("Click to select a different filter.")), (NetworkUser u) -> filterMenu.open(u.player));
 
         // Slot count.
         int slot = 10;
@@ -92,17 +86,12 @@ public class AcceptedPlotMenu extends Gui {
 
         // If page is greater than 1 add a previous page button.
         if (page > 1) {
-            setItem(18, Utils.createItem(Material.ARROW, 1,
-                            Utils.title("Previous Page"),
-                            Utils.line("Open the previous page of accepted plots.")),
-                    u ->
-
-                    {
-                        // Update the gui.
-                        page--;
-                        this.refresh();
-                        u.player.getOpenInventory().getTopInventory().setContents(this.getInventory().getContents());
-                    });
+            setItem(18, Utils.createItem(Material.ARROW, 1, Utils.title("Previous Page"), Utils.line("Open the previous page of accepted plots.")), (NetworkUser u) -> {
+                // Update the gui.
+                page--;
+                this.refresh();
+                this.updatePlayerInventory(u.player);
+            });
         }
 
         // Make a button for each plot.
@@ -117,18 +106,14 @@ public class AcceptedPlotMenu extends Gui {
             // If the slot is greater than the number that fit in a page, create a new page.
             if (slot > 34) {
 
-                setItem(26, Utils.createItem(Material.ARROW, 1,
-                                Utils.title("Next Page"),
-                                Utils.line("Open the next page of accepted plots.")),
-                        u ->
+                setItem(26, Utils.createItem(Material.ARROW, 1, Utils.title("Next Page"), Utils.line("Open the next page of accepted plots.")), (NetworkUser u) ->
 
-                        {
-                            // Update the gui.
-                            page++;
-                            this.refresh();
-                            u.player.getOpenInventory().getTopInventory()
-                                    .setContents(this.getInventory().getContents());
-                        });
+                {
+                    // Update the gui.
+                    page++;
+                    this.refresh();
+                    this.updatePlayerInventory(u.player);
+                });
 
                 // Stop iterating.
                 break;
@@ -158,23 +143,15 @@ public class AcceptedPlotMenu extends Gui {
         }
 
         // Return
-        setItem(44, Utils.createItem(Material.SPRUCE_DOOR, 1,
-                        Utils.title("Return"),
-                        Utils.line("Open the plot menu.")),
-                (NetworkUser u) -> {
-                    // Delete this gui.
-                    this.delete();
-                    u.mainGui = null;
+        setItem(44, Utils.createItem(Material.SPRUCE_DOOR, 1, Utils.title("Return"), Utils.line("Open the plot menu.")), (NetworkUser u) -> {
+            // Delete this gui.
+            this.delete();
+            u.mainGui = null;
 
-                    // Return to the plot menu.
-                    u.mainGui = new PlotMenu(u);
-                    u.mainGui.open(u.player);
-                });
-    }
-
-    public void refresh() {
-        this.clearGui();
-        createGuiAsync();
+            // Return to the plot menu.
+            u.mainGui = new PlotMenu(provider, u);
+            u.mainGui.open(u.player);
+        });
     }
 
     @Override
@@ -189,10 +166,8 @@ public class AcceptedPlotMenu extends Gui {
     }
 
     private void createPlayerHeadGuiItem(PlayerProfile profile, int plotID, String uuid, int slot) {
-        ItemStack guiItem = Utils.createPlayerSkull(profile, 1,
-                Utils.title("Plot " + plotID),
-                Utils.line("Completed by: ").append(Component.text(globalSQL.getString("SELECT name FROM player_data " +
-                        "WHERE uuid='" + uuid + "';"), NamedTextColor.GRAY)),
+        ItemStack guiItem = Utils.createPlayerSkull(profile, 1, Utils.title("Plot " + plotID),
+                Utils.line("Completed by: ").append(Component.text(globalSQL.getString("SELECT name FROM player_data " + "WHERE uuid='" + uuid + "';"), NamedTextColor.GRAY)),
                 Utils.line("Click to open the menu of this plot."));
 
         setItem(slot, guiItem, (NetworkUser u) -> {
@@ -200,7 +175,7 @@ public class AcceptedPlotMenu extends Gui {
             if (plotInfo != null) {
                 plotInfo.deleteThis();
             }
-            plotInfo = new PlotInfo(u, plotID);
+            plotInfo = new PlotInfo(provider, u, plotID);
             plotInfo.setAcceptedPlotMenu(this);
             plotInfo.open(u.player);
         });

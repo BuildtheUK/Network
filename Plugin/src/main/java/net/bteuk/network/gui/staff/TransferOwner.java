@@ -47,14 +47,14 @@ public class TransferOwner extends Gui {
             setItem(18, Utils.createItem(Material.ARROW, 1,
                             Utils.title("Previous Page"),
                             Utils.line("Open the previous page of region members.")),
-                    u ->
+                    (NetworkUser u) ->
 
                     {
 
                         // Update the gui.
                         page--;
                         this.refresh();
-                        u.player.getOpenInventory().getTopInventory().setContents(this.getInventory().getContents());
+                        this.updatePlayerInventory(u.player);
                     });
         }
 
@@ -67,7 +67,7 @@ public class TransferOwner extends Gui {
                 setItem(26, Utils.createItem(Material.ARROW, 1,
                                 Utils.title("Next Page"),
                                 Utils.line("Open the next page of region members.")),
-                        u ->
+                        (NetworkUser u) ->
 
                         {
 
@@ -93,7 +93,7 @@ public class TransferOwner extends Gui {
                             Utils.title("Make " + globalSQL.getString(
                                     "SELECT name FROM player_data WHERE uuid='" + uuid + "';") + " the region owner."),
                             Utils.line("The previous owner will be demoted to a member.")),
-                    u ->
+                    (NetworkUser u) ->
 
                     {
                         // Make the previous owner a member.
@@ -129,7 +129,7 @@ public class TransferOwner extends Gui {
                         Utils.title("Return"),
                         Utils.line("Return to manage region ")
                                 .append(Component.text(region.regionName(), NamedTextColor.GRAY))),
-                u ->
+                (NetworkUser u) ->
 
                 {
 

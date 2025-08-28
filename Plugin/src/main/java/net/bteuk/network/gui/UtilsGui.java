@@ -1,7 +1,5 @@
 package net.bteuk.network.gui;
 
-import net.bteuk.minecraft.gui.GuiManager;
-import net.bteuk.network.Network;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
 import net.kyori.adventure.text.Component;
@@ -11,8 +9,8 @@ import org.bukkit.Material;
 
 public class UtilsGui extends NetworkGui {
 
-    public UtilsGui(Network instance, GuiManager manager) {
-        super(instance, manager, 27, Component.text("Building Utils", NamedTextColor.AQUA, TextDecoration.BOLD));
+    public UtilsGui(GuiProvider provider) {
+        super(provider, 27, Component.text("Building Utils", NamedTextColor.AQUA, TextDecoration.BOLD));
         createGui();
     }
 
@@ -53,10 +51,9 @@ public class UtilsGui extends NetworkGui {
 
             // Delete this gui.
             this.delete();
-            u.mainGui = null;
 
             // Switch to navigation menu.
-            u.mainGui = new BuildGui(u);
+            u.mainGui = new BuildGui(provider, u);
             u.mainGui.open(u.player);
         });
     }

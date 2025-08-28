@@ -23,7 +23,7 @@
 
         <paper.api.version>1.21.8-R0.1-SNAPSHOT</paper.api.version>
 
-        <bteuk.lib.version>764f5c1ece</bteuk.lib.version>
+        <bteuk.lib.version>5958727df9</bteuk.lib.version>
     </properties>
 
     <repositories>

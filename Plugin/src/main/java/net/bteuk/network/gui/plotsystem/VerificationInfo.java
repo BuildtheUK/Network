@@ -1,10 +1,13 @@
 package net.bteuk.network.gui.plotsystem;
 
-import net.bteuk.network.Network;
-import net.bteuk.network.eventing.events.EventManager;
+import net.bteuk.network.api.entity.NetworkLocation;
+import net.bteuk.network.gui.GuiProvider;
+import net.bteuk.network.gui.NetworkRefreshableGui;
+import net.bteuk.network.papercore.LocationAdapter;
+import net.bteuk.network.papercore.PlayerAdapter;
 import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.sql.PlotSQL;
-import net.bteuk.network.utils.SwitchServer;
+import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
 import net.bteuk.network.utils.plotsystem.ReviewFeedback;
 import net.kyori.adventure.text.Component;
@@ -12,32 +15,25 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
 
-import static net.bteuk.network.utils.Constants.SERVER_NAME;
-
-public class VerificationInfo extends Gui {
+public class VerificationInfo extends NetworkRefreshableGui {
 
     private final int verificationId;
 
     private final PlotSQL plotSQL;
     private final GlobalSQL globalSQL;
 
-    public VerificationInfo(int verificationId) {
+    public VerificationInfo(GuiProvider provider, int verificationId) {
 
         // Create the menu.
-        super(27, Component.text("Verification " + verificationId, NamedTextColor.AQUA, TextDecoration.BOLD));
+        super(provider,27, Component.text("Verification " + verificationId, NamedTextColor.AQUA, TextDecoration.BOLD));
 
         this.verificationId = verificationId;
 
-        // Get plot sql.
-        plotSQL = Network.getInstance().getPlotSQL();
-
-        // Get global sql.
-        globalSQL = Network.getInstance().getGlobalSQL();
-
-        createGui();
+        this.plotSQL = provider.plotSQL();
+        this.globalSQL = provider.globalSQL();
     }
 
-    public void createGui() {
+    protected void createGui() {
 
         // Return
         setItem(26, Utils.createItem(Material.SPRUCE_DOOR, 1,
@@ -45,7 +41,7 @@ public class VerificationInfo extends Gui {
                         Utils.line("Open the plot menu.")),
                 (NetworkUser u) -> {
                     this.delete();
-                    u.mainGui = new PlotMenu(u);
+                    u.mainGui = new PlotMenu(provider, u);
                     u.mainGui.open(u.player);
                 }
         );
@@ -139,16 +135,17 @@ public class VerificationInfo extends Gui {
 
                     // If the plot is on the current server teleport them directly.
                     // Else teleport them to the correct server and them teleport them to the plot.
-                    if (server.equals(SERVER_NAME)) {
-                        EventManager.createTeleportEvent(false, u.player.getUniqueId().toString(), "plotsystem",
-                                "teleport plot " + plotId, u.player.getLocation());
+                    NetworkLocation location = LocationAdapter.adapt(u.player.getLocation());
+                    if (server.equals(provider.constants().serverName())) {
+                        provider.eventAPI().createTeleportEvent(false, u.player.getUniqueId().toString(), "plotsystem",
+                                "teleport plot " + plotId, location);
                     } else {
                         // Set the server join event.
-                        EventManager.createTeleportEvent(true, u.player.getUniqueId().toString(), "plotsystem",
-                                "teleport plot " + plotId, u.player.getLocation());
+                        provider.eventAPI().createTeleportEvent(true, u.player.getUniqueId().toString(), "plotsystem",
+                                "teleport plot " + plotId, location);
 
                         // Teleport them to another server.
-                        SwitchServer.switchServer(u.player, server);
+                        provider.serverAPI().switchServer(PlayerAdapter.adapt(u.player), server);
                     }
                 });
 
@@ -162,14 +159,9 @@ public class VerificationInfo extends Gui {
                     u.mainGui = null;
 
                     // Switch to verified review menu.
-                    u.mainGui = new VerificationMenu(u);
+                    u.mainGui = new VerificationMenu(provider, u);
                     u.mainGui.open(u.player);
                 });
-    }
-
-    public void refresh() {
-        this.clearGui();
-        createGui();
     }
 }
 

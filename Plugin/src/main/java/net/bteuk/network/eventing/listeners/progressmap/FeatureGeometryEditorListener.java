@@ -37,12 +37,12 @@ public class FeatureGeometryEditorListener extends Gui implements Listener {
     }
 
     private void setActions() {
-        setAction(2, u ->
+        setAction(2, (NetworkUser u) ->
         {
             selectionCancel();
         });
 
-        setAction(6, u ->
+        setAction(6, (NetworkUser u) ->
         {
             selectionConfirm();
         });

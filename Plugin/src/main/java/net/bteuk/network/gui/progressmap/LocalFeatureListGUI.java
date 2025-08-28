@@ -1,22 +1,23 @@
 package net.bteuk.network.gui.progressmap;
 
 import me.bteuk.progressmapper.guis.LocalFeaturesMenu;
-import net.bteuk.network.Network;
 import net.bteuk.network.gui.BuildGui;
+import net.bteuk.network.gui.GuiProvider;
+import net.bteuk.network.gui.NetworkGui;
+import net.bteuk.network.utils.NetworkUser;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 
-public class LocalFeatureListGUI extends Gui {
+public class LocalFeatureListGUI extends NetworkGui {
     // Contains all of the relevant information for each feature in the list
-    LocalFeaturesMenu features;
-    Network plugin;
+    private final LocalFeaturesMenu features;
 
-    public LocalFeatureListGUI(LocalFeaturesMenu features, Network plugin) {
+    public LocalFeatureListGUI(GuiProvider provider, LocalFeaturesMenu features) {
         // Need a list of things created really. I think this has to be before this one is created. This then holds
         // all of the Features
         // Each feature would have a feature menu (not a feature page)
-        super(features.getGUI());
+        super(provider, features.getGUI());
         this.features = features;
-        this.plugin = plugin;
         setActions();
     }
 
@@ -24,12 +25,12 @@ public class LocalFeatureListGUI extends Gui {
         int i, iFeatures;
         iFeatures = features.getNumFeatures();
 
-        // Creates all of the actions
+        // Creates all the actions
         for (i = 0; i < iFeatures; i++) {
             final int iFinalSlot = i;
             setAction(i, (NetworkUser u) -> {
                 // When a feature is clicked on it needs to open a FeaturePageGUI
-                u.mainGui = new FeaturePageGUI(features.getFeatureMenu(iFinalSlot), plugin, this);
+                u.mainGui = new FeaturePageGUI(provider, features.getFeatureMenu(iFinalSlot), this);
                 u.mainGui.open(u.player);
             });
         }
@@ -47,14 +48,19 @@ public class LocalFeatureListGUI extends Gui {
     }
 
     @Override
+    public void open(Player player) {
+        this.refresh();
+        super.open(player);
+    }
+
     public void refresh() {
         // Reloads the features (with a blank one at the end)
-        features.loadFeatures(plugin.getConfig().getString("ProgressMap.MapHubAPIKey"));
+        features.loadFeatures(provider.constants().mapHubAPIKey());
 
         // Refresh icons
-        this.clearGui();
+        this.clear();
         Inventory inventory = features.getGUI();
-        this.getInventory().setContents(inventory.getContents());
+        this.setItemsFromInventory(inventory);
 
         // Refresh actions
         setActions();

@@ -3,9 +3,10 @@ package net.bteuk.network.gui.progressmap;
 import lombok.Getter;
 import me.bteuk.progressmapper.guis.FeatureMenu;
 import me.bteuk.progressmapper.guis.Field;
-import net.bteuk.network.Network;
 import net.bteuk.network.eventing.listeners.progressmap.FeatureGeometryEditorListener;
 import net.bteuk.network.eventing.listeners.progressmap.FeaturePropertiesBookListener;
+import net.bteuk.network.gui.GuiProvider;
+import net.bteuk.network.gui.NetworkGui;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
@@ -19,16 +20,14 @@ import org.bukkit.inventory.ItemStack;
 
 // The page for editing a feature
 // Should we have two different ones for edit and create (and then a shared parent) or just have both within one?
-public class FeaturePageGUI extends Gui {
+public class FeaturePageGUI extends NetworkGui {
     @Getter
     private final FeatureMenu featureMenu;
-    private final Network plugin;
     private final LocalFeatureListGUI parentLocalFeatureListGUI;
 
-    public FeaturePageGUI(FeatureMenu featureMenu, Network plugin, LocalFeatureListGUI parentLocalFeatureListGUI) {
-        super(featureMenu.getGUI());
+    public FeaturePageGUI(GuiProvider provider, FeatureMenu featureMenu, LocalFeatureListGUI parentLocalFeatureListGUI) {
+        super(provider, featureMenu.getGUI());
         this.featureMenu = featureMenu;
-        this.plugin = plugin;
         this.parentLocalFeatureListGUI = parentLocalFeatureListGUI;
         setActions();
     }

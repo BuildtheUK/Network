@@ -145,7 +145,7 @@ public class AddLocation extends Gui {
 
                     // Update gui.
                     this.refresh();
-                    u.player.getOpenInventory().getTopInventory().setContents(this.getInventory().getContents());
+                    this.updatePlayerInventory(u.player);
                 });
 
         // Select subcategory.
@@ -336,7 +336,7 @@ public class AddLocation extends Gui {
 
         // Return
         if (type == AddLocationType.ADD) {
-            setItem(26, Utils.createItem(Material.SPRUCE_DOOR, 1, Utils.title("Return"), Utils.line("Open the explore" + " menu.")), u ->
+            setItem(26, Utils.createItem(Material.SPRUCE_DOOR, 1, Utils.title("Return"), Utils.line("Open the explore" + " menu.")), (NetworkUser u) ->
 
             {
 

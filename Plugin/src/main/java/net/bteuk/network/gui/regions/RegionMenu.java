@@ -2,12 +2,10 @@ package net.bteuk.network.gui.regions;
 
 import net.bteuk.network.Network;
 import net.bteuk.network.gui.BuildGui;
-import net.bteuk.network.sql.RegionSQL;
+import net.bteuk.network.gui.GuiProvider;
+import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
-import net.bteuk.network.utils.enums.RegionStatus;
-import net.bteuk.network.utils.regions.Region;
-import net.bteuk.network.utils.regions.RegionMember;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -17,7 +15,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RegionMenu extends Gui {
+public class RegionMenu extends NetworkRefreshableGui {
 
     private final NetworkUser user;
 
@@ -25,7 +23,7 @@ public class RegionMenu extends Gui {
 
     private int page;
 
-    public RegionMenu(NetworkUser user) {
+    public RegionMenu(GuiProvider provider, NetworkUser user) {
 
         super(45, Component.text("Region Menu", NamedTextColor.AQUA, TextDecoration.BOLD));
 
@@ -85,14 +83,14 @@ public class RegionMenu extends Gui {
             setItem(18, Utils.createItem(Material.ARROW, 1,
                             Utils.title("Previous Page"),
                             Utils.line("Open the previous page of regions.")),
-                    u ->
+                    (NetworkUser u) ->
 
                     {
 
                         // Update the gui.
                         page--;
                         this.refresh();
-                        u.player.getOpenInventory().getTopInventory().setContents(this.getInventory().getContents());
+                        this.updatePlayerInventory(u.player);
                     });
         }
 
@@ -111,7 +109,7 @@ public class RegionMenu extends Gui {
                 setItem(26, Utils.createItem(Material.ARROW, 1,
                                 Utils.title("Next Page"),
                                 Utils.line("Open the next page of regions.")),
-                        u ->
+                        (NetworkUser u) ->
 
                         {
 
