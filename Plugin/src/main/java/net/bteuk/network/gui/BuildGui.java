@@ -398,7 +398,7 @@ public class BuildGui extends NetworkRefreshableGui {
                 } else {
                     this.delete();
                     // Switch to the local features menu
-                    u.mainGui = new LocalFeatureListGUI(provider, localFeatures);
+                    u.mainGui = new LocalFeatureListGUI(provider, localFeatures, localFeatures.getGUI());
                     u.mainGui.open(u.player);
                 }
             });

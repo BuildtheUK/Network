@@ -6,7 +6,7 @@ import me.bteuk.progressmapper.guis.Field;
 import net.bteuk.network.eventing.listeners.progressmap.FeatureGeometryEditorListener;
 import net.bteuk.network.eventing.listeners.progressmap.FeaturePropertiesBookListener;
 import net.bteuk.network.gui.GuiProvider;
-import net.bteuk.network.gui.NetworkGui;
+import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
@@ -15,12 +15,11 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import org.bukkit.Material;
 import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 // The page for editing a feature
 // Should we have two different ones for edit and create (and then a shared parent) or just have both within one?
-public class FeaturePageGUI extends NetworkGui {
+public class FeaturePageGUI extends NetworkRefreshableGui {
     @Getter
     private final FeatureMenu featureMenu;
     private final LocalFeatureListGUI parentLocalFeatureListGUI;
@@ -32,18 +31,19 @@ public class FeaturePageGUI extends NetworkGui {
         setActions();
     }
 
+    protected void createGui() {
+        setItemsFromInventory(featureMenu.getGUI());
+        setActions();
+    }
+
     private void setActions() {
         // Slots here are 0 indexed
 
         // Title edit
-        setAction(0, (NetworkUser u) -> {
-            openFieldEditor(u, featureMenu.getTitleBook(), Field.Title);
-        });
+        setAction(0, (NetworkUser u) -> openFieldEditor(u, featureMenu.getTitleBook(), Field.Title));
 
         // Description edit
-        setAction(2, (NetworkUser u) -> {
-            openFieldEditor(u, featureMenu.getDescriptionBook(), Field.Description);
-        });
+        setAction(2, (NetworkUser u) -> openFieldEditor(u, featureMenu.getDescriptionBook(), Field.Description));
 
         // Fill/stroke edit
         setAction(4, (NetworkUser u) -> {
@@ -52,27 +52,24 @@ public class FeaturePageGUI extends NetworkGui {
             // u.mainGui = null; - NO. u.mainGui here refers to this gui, so we never want to make it null because it
             // makes this gui null
 
-            // Switch to colour picker menu.
-            u.mainGui = new ColourPickerGUI(featureMenu.getColourPicker(), this);
+            // Switch to the colour picker menu.
+            u.mainGui = new ColourPickerGUI(provider, featureMenu.getColourPicker(), this);
             u.mainGui.open(u.player);
         });
 
         // Media_url edit
-        setAction(6, (NetworkUser u) -> {
-            openFieldEditor(u, featureMenu.getMedialURLBook(), Field.Media_url);
-        });
+        setAction(6, (NetworkUser u) -> openFieldEditor(u, featureMenu.getMedialURLBook(), Field.Media_url));
 
         // Geometry
         setAction(8, (NetworkUser u) -> {
             // Gives the blaze rod
             ItemStack blazeRod = ItemStack.of(Material.BLAZE_ROD, 1);
             Utils.giveItem(u.player, blazeRod, "Area selection tool");
-            u.player.sendMessage(Component.text("Use the blaze rod like a WorldEdit wand to make a selection. When " +
-                            "you have made your selection, reopen the nether star menu and click confirm selection",
+            u.player.sendMessage(Component.text(
+                    "Use the blaze rod like a WorldEdit wand to make a selection. When " + "you have made your selection, reopen the nether star menu and click confirm selection",
                     Style.style(NamedTextColor.AQUA)));
 
-            FeatureGeometryEditorListener geometryListener = new FeatureGeometryEditorListener(plugin, this,
-                    featureMenu.getGeometryEditor(), u, blazeRod);
+            FeatureGeometryEditorListener geometryListener = new FeatureGeometryEditorListener(provider, this, featureMenu.getGeometryEditor(), u, blazeRod);
             geometryListener.register();
             u.player.closeInventory(InventoryCloseEvent.Reason.PLUGIN);
             u.mainGui = geometryListener;
@@ -80,17 +77,18 @@ public class FeaturePageGUI extends NetworkGui {
 
         // Send update
         setAction(22, (NetworkUser u) -> {
-            if (featureMenu.isNew()) featureMenu.sendAppend(plugin.getConfig().getString("ProgressMap.MapHubAPIKey"));
-            else featureMenu.sendUpdate(plugin.getConfig().getString("ProgressMap.MapHubAPIKey"));
-
+            if (featureMenu.isNew()) {
+                featureMenu.sendAppend(provider.constants().mapHubAPIKey());
+            } else {
+                featureMenu.sendUpdate(provider.constants().mapHubAPIKey());
+            }
             u.player.sendMessage(ChatUtils.success("The progress map has been updated !"));
 
             // Return to the local feature list
             // Delete this gui.
             this.delete();
-            u.mainGui = null;
 
-            // Switch to feature list menu.
+            // Switch to the feature list menu.
             parentLocalFeatureListGUI.refresh();
             u.mainGui = parentLocalFeatureListGUI;
             u.mainGui.open(u.player);
@@ -102,7 +100,7 @@ public class FeaturePageGUI extends NetworkGui {
             this.delete();
             u.mainGui = null;
 
-            // Switch to feature list menu.
+            // Switch to the feature list menu.
             parentLocalFeatureListGUI.refresh();
             u.mainGui = parentLocalFeatureListGUI;
             u.mainGui.open(u.player);
@@ -113,7 +111,7 @@ public class FeaturePageGUI extends NetworkGui {
         //    this.delete();
         //    u.mainGui = null;
 
-        // Need a book menu sort of thing, and then when that detects a closure it updates the values in the gson and
+        // Need a book menu sort of thing, and then, when that detects a closure, it updates the values in the gson and
         // then refreshes
         // u.player.openBook(book);
 
@@ -136,18 +134,7 @@ public class FeaturePageGUI extends NetworkGui {
         u.player.closeInventory(InventoryCloseEvent.Reason.PLUGIN);
 
         // Sets up the book listener and registers it
-        FeaturePropertiesBookListener bookListener = new FeaturePropertiesBookListener(plugin, this, fieldType, u);
-        bookListener.register();
-    }
-
-    @Override
-    public void refresh() {
-        // Refresh icons
-        this.clearGui();
-        Inventory inventory = featureMenu.getGUI();
-        this.getInventory().setContents(inventory.getContents());
-
-        // Refresh actions
-        setActions();
+        FeaturePropertiesBookListener bookListener = new FeaturePropertiesBookListener(this, fieldType, u);
+        bookListener.register(provider.instance());
     }
 }

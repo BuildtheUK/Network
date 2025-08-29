@@ -49,7 +49,7 @@ public class AddLocation extends NetworkRefreshableGui {
     private String subcategory = "None";
     private int coordinate_id;
     private LocationNameListener locationNameListener;
-    private GlobalSQL globalSQL;
+    private final GlobalSQL globalSQL;
 
     public AddLocation(GuiProvider provider, AddLocationType type) {
         super(provider, 27, Component.text(type.label + " Location", NamedTextColor.AQUA, TextDecoration.BOLD));
@@ -59,6 +59,7 @@ public class AddLocation extends NetworkRefreshableGui {
         this.back = provider.back();
         this.eventAPI = provider.eventAPI();
         this.serverAPI = provider.serverAPI();
+        this.globalSQL = provider.globalSQL();
     }
 
     // This is used when location details need to be updated.
@@ -84,6 +85,7 @@ public class AddLocation extends NetworkRefreshableGui {
         this.back = provider.back();
         this.eventAPI = provider.eventAPI();
         this.serverAPI = provider.serverAPI();
+        this.globalSQL = provider.globalSQL();
     }
 
     protected void createGui() {
@@ -336,7 +338,7 @@ public class AddLocation extends NetworkRefreshableGui {
                 this.delete();
 
                 // Switch to the navigation menu.
-                u.mainGui = new ExploreGui(u);
+                u.mainGui = new ExploreGui(provider, u);
                 u.mainGui.open(u.player);
             });
         } else if (type == AddLocationType.REVIEW) {
@@ -384,7 +386,7 @@ public class AddLocation extends NetworkRefreshableGui {
         this.delete();
         u.mainGui = null;
 
-        u.mainGui = new ExploreGui(u);
+        u.mainGui = new ExploreGui(provider, u);
         u.player.closeInventory();
     }
 
@@ -469,7 +471,7 @@ public class AddLocation extends NetworkRefreshableGui {
         this.delete();
         u.mainGui = null;
 
-        u.mainGui = new ExploreGui(u);
+        u.mainGui = new ExploreGui(provider, u);
         u.player.closeInventory();
     }
 

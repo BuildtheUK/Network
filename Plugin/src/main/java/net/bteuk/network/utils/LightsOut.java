@@ -1,5 +1,7 @@
 package net.bteuk.network.utils;
 
+import net.bteuk.network.core.Time;
+import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.kyori.adventure.text.Component;
@@ -20,15 +22,14 @@ public class LightsOut extends NetworkRefreshableGui {
     private final long startTime;
     private boolean[][] game;
 
-    public LightsOut(NetworkUser u) {
+    public LightsOut(GuiProvider provider, NetworkUser u) {
 
-        super(54, Component.text("Lights Out", NamedTextColor.AQUA, TextDecoration.BOLD));
+        super(provider, 54, Component.text("Lights Out", NamedTextColor.AQUA, TextDecoration.BOLD));
 
         this.u = u;
         startTime = Time.currentTime();
 
         initialize();
-        setItems();
     }
 
     public void initialize() {
@@ -57,14 +58,12 @@ public class LightsOut extends NetworkRefreshableGui {
         this.delete();
 
         u.player.sendMessage(ChatUtils.success("Congratulations, you beat Lights Out!"));
-        u.player.sendMessage(ChatUtils.success("You took ")
-                .append(Component.text(Time.minutes(timeDiff), NamedTextColor.DARK_AQUA))
-                .append(ChatUtils.success(" " + Time.minuteString(timeDiff) + " and "))
-                .append(Component.text(Time.seconds(timeDiff), NamedTextColor.DARK_AQUA))
+        u.player.sendMessage(ChatUtils.success("You took ").append(Component.text(Time.minutes(timeDiff), NamedTextColor.DARK_AQUA))
+                .append(ChatUtils.success(" " + Time.minuteString(timeDiff) + " and ")).append(Component.text(Time.seconds(timeDiff), NamedTextColor.DARK_AQUA))
                 .append(ChatUtils.success(" " + Time.secondString(timeDiff) + ".")));
     }
 
-    public void setItems() {
+    public void createGui() {
 
         for (int i = 0; i < 9; i++) {
             for (int j = 0; j < 6; j++) {
@@ -75,19 +74,17 @@ public class LightsOut extends NetworkRefreshableGui {
                 if (game[i][j]) {
 
                     // Light is on.
-                    setItem(i + j * 9, Utils.createItem(Material.SEA_LANTERN, 1, Component.empty()),
-                            (NetworkUser u) -> invertLights(finalI, finalJ));
+                    setItem(i + j * 9, Utils.createItem(Material.SEA_LANTERN, 1, Component.empty()), (NetworkUser u) -> invertLights(finalI, finalJ));
                 } else {
 
                     // Light is off.
-                    setItem(i + j * 9, Utils.createItem(Material.REDSTONE_LAMP, 1, Component.empty()),
-                            (NetworkUser u) -> invertLights(finalI, finalJ));
+                    setItem(i + j * 9, Utils.createItem(Material.REDSTONE_LAMP, 1, Component.empty()), (NetworkUser u) -> invertLights(finalI, finalJ));
                 }
             }
         }
     }
 
-    public void invertLights(int i, int j) {
+    private void invertLights(int i, int j) {
 
         // Invert this slot and the adjacent slots.
         game[i][j] = !game[i][j];
@@ -114,19 +111,18 @@ public class LightsOut extends NetworkRefreshableGui {
 
     public void refresh() {
 
-        // Check if solution is complete.
-        // If it is then stop end the game.
+        // Check if the solution is complete.
+        // If it is, then stop and end the game.
         if (Arrays.deepEquals(game, new boolean[9][6])) {
-
             endGame();
         } else {
 
             // Change items.
-            clearGui();
-            setItems();
+            clear();
+            createGui();
 
-            // Set contents of inventory.
-            u.player.getOpenInventory().getTopInventory().setContents(getInventory().getContents());
+            // Set the contents of inventory.
+            updatePlayerInventory(u.player);
         }
     }
 }

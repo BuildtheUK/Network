@@ -126,6 +126,7 @@ public class NetworkConfig {
         boolean tips = config.getBoolean("chat.tips.enabled");
 
         boolean tutorials = config.getBoolean("tutorials.enabled");
+        boolean compulsoryTutorial = config.getBoolean("tutorials.compulsory_tutorial");
 
         boolean llEnabled = config.getBoolean("ll_enabled");
 
@@ -183,10 +184,12 @@ public class NetworkConfig {
         int progressMapID = config.getInt("ProgressMap.ProgressMapID");
         String mapHubAPIKey = config.getString("ProgressMap.MapHubAPIKey");
 
+        int navigationRadius = config.getInt("navigation_radius", 200);
+
         log.info("Loaded constants from config.");
         return new Constants(serverName, serverType, standalone, regionsEnabled, regionInactivity, tpllEnabled, tpllRequiredPermission, maxY, minY, earthWorld, staffChat, tips,
                 tutorials, llEnabled, progressMap, progression, announceOverallLevelUps, announceSeasonalLevelUps, sidebarEnabled, sidebarTitle, sidebarTextList, motdEnabled,
                 motdText, plotSystemEnabled, moderationEnabled, warpsEnabled, homesEnabled, announcePromotions, discordLink, skullsEnabled, progressMapLink, chatSocketOutputIP,
-                chatSocketOutputPort, chatSocketInputPort, tipsFrequency, regionStaffRequestAlways, regionStaffRequestRadius, progressMapID, mapHubAPIKey);
+                chatSocketOutputPort, chatSocketInputPort, tipsFrequency, regionStaffRequestAlways, regionStaffRequestRadius, progressMapID, mapHubAPIKey, navigationRadius, compulsoryTutorial);
     }
 }

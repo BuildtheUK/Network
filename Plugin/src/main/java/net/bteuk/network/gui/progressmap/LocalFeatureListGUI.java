@@ -12,12 +12,14 @@ public class LocalFeatureListGUI extends NetworkGui {
     // Contains all of the relevant information for each feature in the list
     private final LocalFeaturesMenu features;
 
-    public LocalFeatureListGUI(GuiProvider provider, LocalFeaturesMenu features) {
-        // Need a list of things created really. I think this has to be before this one is created. This then holds
-        // all of the Features
+    private final int inventorySize;
+
+    public LocalFeatureListGUI(GuiProvider provider, LocalFeaturesMenu features, Inventory guiInventory) {
+        // Need a list of things created really. I think this has to be before this one is created. This then holds all the Features
         // Each feature would have a feature menu (not a feature page)
-        super(provider, features.getGUI());
+        super(provider, guiInventory);
         this.features = features;
+        this.inventorySize = guiInventory.getSize();
         setActions();
     }
 
@@ -36,13 +38,13 @@ public class LocalFeatureListGUI extends NetworkGui {
         }
 
         // Back button
-        setAction(getInventory().getSize() - 1, (NetworkUser u) -> {
+        setAction(inventorySize - 1, (NetworkUser u) -> {
             // Delete this gui.
             this.delete();
             u.mainGui = null;
 
             // Switch to plot info.
-            u.mainGui = new BuildGui(u);
+            u.mainGui = new BuildGui(provider, u);
             u.mainGui.open(u.player);
         });
     }

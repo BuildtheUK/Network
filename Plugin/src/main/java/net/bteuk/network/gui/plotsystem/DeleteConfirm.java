@@ -52,7 +52,7 @@ public class DeleteConfirm extends NetworkRefreshableGui {
                                 "delete plot " + id);
                     } else if (regionType == RegionType.ZONE) {
 
-                        u.mainGui = new ZoneMenu(u);
+                        u.mainGui = new ZoneMenu(provider, u);
                         u.player.closeInventory();
                         u.sendMessage(ChatUtils.success("Deleting zone %s...", String.valueOf(id)));
 

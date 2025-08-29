@@ -162,7 +162,6 @@ public final class Network extends JavaPlugin implements NetworkAPI {
     private Tpll tpll;
 
     // Tutorials DB connection
-    @Getter
     private DBConnection tutorialsDBConnection;
 
     private PlotAPI plotAPI;
@@ -322,7 +321,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
         // Setup connect, this handles all connections to the server.
         // Listener and manager of server connections.
-        Connect connect = new Connect(this, constants, tab, roles, globalSQL);
+        Connect connect = new Connect(this, constants, tab, roles, globalSQL, networkGuiManager);
 
         Moderation moderation = new Moderation(this, eventManager);
 
@@ -472,11 +471,12 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
         commandManager.registerCommand(new Me());
 
-        Navigator navigator = new Navigator(this, networkGuiManager, constants, lobby, back, eventManager, serverAPI, nightvision);
+        Navigator navigator = new Navigator(this, networkGuiManager, constants, globalSQL, regionSQL, regionManager, plotSQL, plotAPI, lobby, back, eventManager, serverAPI,
+                nightvision, roles, tutorialsDBConnection, chat, moderation);
         commandManager.registerCommand(navigator);
         new PlayerInteract(this, navigator);
 
-        // Register command pre-process to make sure network versions of commands run and not that of another plugin.
+        // Register the command pre-process to make sure network versions of commands run and not that of another plugin.
         new CommandPreProcess(this, constants, afk, connect, serverAPI);
 
         commandManager.enableCommands();
@@ -560,11 +560,11 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
     // Get user from player.
     public NetworkUser getUser(Player p) {
-        return networkUsers.stream().filter(user -> user.player.equals(p)).findFirst().orElse(null);
+        return networkUsers.stream().filter((NetworkUser user) -> user.player.equals(p)).findFirst().orElse(null);
     }
 
     public Optional<NetworkUser> getNetworkUserByUuid(String uuid) {
-        return networkUsers.stream().filter(user -> user.player.getUniqueId().toString().equals(uuid)).findFirst();
+        return networkUsers.stream().filter((NetworkUser user) -> user.player.getUniqueId().toString().equals(uuid)).findFirst();
     }
 
     // Get users.

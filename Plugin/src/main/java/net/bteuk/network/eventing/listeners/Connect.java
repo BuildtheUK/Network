@@ -2,6 +2,7 @@ package net.bteuk.network.eventing.listeners;
 
 import lombok.Setter;
 import lombok.extern.java.Log;
+import net.bteuk.minecraft.gui.GuiManager;
 import net.bteuk.network.Network;
 import net.bteuk.network.TabManager;
 import net.bteuk.network.building_companion.BuildingCompanion;
@@ -46,17 +47,19 @@ public class Connect implements Listener {
     private final TabManager tabManager;
     private final Roles roles;
     private final GlobalSQL globalSQL;
+    private final GuiManager guiManager;
 
     @Setter
     private boolean blockLeaveEvent;
 
-    public Connect(Network instance, Constants constants, TabManager tabManager, Roles roles, GlobalSQL globalSQL) {
+    public Connect(Network instance, Constants constants, TabManager tabManager, Roles roles, GlobalSQL globalSQL, GuiManager guiManager) {
 
         this.instance = instance;
         this.constants = constants;
         this.tabManager = tabManager;
         this.roles = roles;
         this.globalSQL = globalSQL;
+        this.guiManager = guiManager;
 
         this.blockLeaveEvent = false;
 
@@ -190,7 +193,7 @@ public class Connect implements Listener {
         UUID playerUUID = user.player.getUniqueId();
 
         // If they are currently in an inventory, remove them from the list of open inventories.
-        Gui.openInventories.remove(playerUUID);
+        guiManager.closeGui(playerUUID);
 
         // Delete any guis that may exist.
         if (user.mainGui != null) {

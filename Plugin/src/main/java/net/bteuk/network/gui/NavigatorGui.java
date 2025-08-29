@@ -46,7 +46,7 @@ public class NavigatorGui extends NetworkGui {
 
             // Click Action
             if (constants.warpsEnabled()) {
-                u.mainGui = new ExploreGui(u);
+                u.mainGui = new ExploreGui(provider, u);
                 u.mainGui.open(u.player);
             } else {
                 u.player.closeInventory();
@@ -63,7 +63,7 @@ public class NavigatorGui extends NetworkGui {
             } else if (constants.tutorials()) {
                 if (globalSQL.hasRow("SELECT name FROM server_data WHERE " + "type='TUTORIAL' AND online=1;")) {
 
-                    u.mainGui = new TutorialsGui(u);
+                    u.mainGui = new TutorialsGui(provider, u);
                     u.mainGui.open(u.player);
                 } else {
                     u.player.closeInventory();
@@ -107,7 +107,7 @@ public class NavigatorGui extends NetworkGui {
         setItem(19, Utils.createItem(Material.REDSTONE_LAMP, 1, Utils.title("Lights Out"), Utils.line("Play a game of Lights Out.")), (NetworkUser u) -> {
             if (u.lightsOut == null) {
 
-                u.lightsOut = new LightsOut(u);
+                u.lightsOut = new LightsOut(provider, u);
                 u.lightsOut.open(u.player);
             } else {
 

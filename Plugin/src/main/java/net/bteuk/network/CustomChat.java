@@ -256,8 +256,8 @@ public class CustomChat implements Listener, SocketHandler, ChatAPI {
 
         // Find the user.
         instance.getUsers().stream()
-                .filter(user -> user.player.getUniqueId().toString().equals(discordLinking.getUuid()))
-                .forEach(user -> {
+                .filter((NetworkUser user) -> user.player.getUniqueId().toString().equals(discordLinking.getUuid()))
+                .forEach((NetworkUser user) -> {
 
                     // Link account.
                     instance.getGlobalSQL()
@@ -284,8 +284,8 @@ public class CustomChat implements Listener, SocketHandler, ChatAPI {
 
     private void handleUserUpdate(UserUpdate userUpdate) {
         // If the user is online check if anything needs updating.
-        instance.getUsers().stream().filter(user -> user.player.getUniqueId().toString().equals(userUpdate.getUuid()))
-                .findFirst().ifPresent(user -> {
+        instance.getUsers().stream().filter((NetworkUser user) -> user.player.getUniqueId().toString().equals(userUpdate.getUuid()))
+                .findFirst().ifPresent((NetworkUser user) -> {
                     if (userUpdate.getTabPlayer() != null && !userUpdate.getTabPlayer().getPrimaryGroup()
                             .equals(user.getPrimaryRole().getId())) {
                         // Update the primary role.

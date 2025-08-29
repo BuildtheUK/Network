@@ -71,7 +71,7 @@ public class Teleport extends AbstractCommand {
                         instance.getNetworkUserByUuid(onlineUser.getUuid());
 
                 NetworkLocation currentLocation = LocationAdapter.adapt(player.getLocation());
-                optionalNetworkUser.ifPresentOrElse(user -> {
+                optionalNetworkUser.ifPresentOrElse((NetworkUser user) -> {
                     // Set the current location for /back
                     back.setPreviousCoordinate(player.getUniqueId().toString(), currentLocation);
 

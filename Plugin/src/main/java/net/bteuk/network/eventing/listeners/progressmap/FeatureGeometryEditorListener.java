@@ -1,7 +1,8 @@
 package net.bteuk.network.eventing.listeners.progressmap;
 
 import me.bteuk.progressmapper.GeometryEditor;
-import net.bteuk.network.Network;
+import net.bteuk.network.gui.GuiProvider;
+import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.gui.progressmap.FeaturePageGUI;
 import net.bteuk.network.utils.NetworkUser;
 import net.kyori.adventure.text.Component;
@@ -14,11 +15,9 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-public class FeatureGeometryEditorListener extends Gui implements Listener {
-    private final Network plugin;
+public class FeatureGeometryEditorListener extends NetworkRefreshableGui implements Listener {
     private final FeaturePageGUI featurePageGUI;
     private final NetworkUser user;
     private final ItemStack blazeRod;
@@ -26,47 +25,38 @@ public class FeatureGeometryEditorListener extends Gui implements Listener {
     private final GeometryEditor geometryEditor;
     private int iTaskID;
 
-    public FeatureGeometryEditorListener(Network plugin, FeaturePageGUI featurePageGUI, GeometryEditor geometryEditor
-            , NetworkUser user, ItemStack blazeRod) {
-        super(geometryEditor.getGUI());
-        this.plugin = plugin;
+    public FeatureGeometryEditorListener(GuiProvider provider, FeaturePageGUI featurePageGUI, GeometryEditor geometryEditor, NetworkUser user, ItemStack blazeRod) {
+        super(provider, geometryEditor.getGUI());
         this.featurePageGUI = featurePageGUI;
         this.geometryEditor = geometryEditor;
         this.user = user;
         this.blazeRod = blazeRod;
     }
 
-    private void setActions() {
-        setAction(2, (NetworkUser u) ->
-        {
-            selectionCancel();
-        });
+    protected void createGui() {
+        setItemsFromInventory(geometryEditor.getGUI());
+        setActions();
+    }
 
-        setAction(6, (NetworkUser u) ->
-        {
-            selectionConfirm();
-        });
+    private void setActions() {
+        setAction(2, (NetworkUser u) -> selectionCancel());
+
+        setAction(6, (NetworkUser u) -> selectionConfirm());
     }
 
     public void register() {
         // Registers the selection listener
-        Bukkit.getServer().getPluginManager().registerEvents(this, plugin);
+        Bukkit.getServer().getPluginManager().registerEvents(this, provider.instance());
 
         // Sets up the outline view entity spawn schedule
-        this.iTaskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () ->
-        {
-            geometryEditor.updateView();
-        }, 20L, 20L);
+        this.iTaskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(provider.instance(), geometryEditor::updateView, 20L, 20L);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void BlockHitWithBlazeRodEvent(PlayerInteractEvent e) {
-        if (!e.hasBlock())
-            return;
-        if (!e.getPlayer().getUniqueId().equals(this.user.player.getUniqueId()))
-            return;
-        if (!e.getMaterial().equals(Material.BLAZE_ROD))
-            return;
+        if (!e.hasBlock()) return;
+        if (!e.getPlayer().getUniqueId().equals(this.user.player.getUniqueId())) return;
+        if (!e.getMaterial().equals(Material.BLAZE_ROD)) return;
 
         e.setCancelled(true);
 
@@ -74,6 +64,7 @@ public class FeatureGeometryEditorListener extends Gui implements Listener {
         Block clickedBlock = e.getClickedBlock();
 
         // Now we can determine the plugin action
+        if (clickedBlock == null) return;
         if (e.getAction().isLeftClick()) {
             geometryEditor.leftClick(clickedBlock.getX(), clickedBlock.getZ());
             user.player.sendMessage(Component.text("Area restarted", NamedTextColor.AQUA));
@@ -93,7 +84,7 @@ public class FeatureGeometryEditorListener extends Gui implements Listener {
         // Reopen the feature menu
         featurePageGUI.refresh(); // Refresh will redo the GUI item texts
         user.mainGui = featurePageGUI;
-        user.mainGui.open(user);
+        user.mainGui.open(user.player);
 
         // Unregisters the selection listener and cancels the outline view
         unregister();
@@ -110,7 +101,7 @@ public class FeatureGeometryEditorListener extends Gui implements Listener {
         // Reopen the feature menu
         featurePageGUI.refresh(); // Refresh will redo the GUI item texts
         user.mainGui = featurePageGUI;
-        user.mainGui.open(user);
+        user.mainGui.open(user.player);
 
         // Unregisters the selection listener and cancels the outline view
         unregister();
@@ -125,16 +116,5 @@ public class FeatureGeometryEditorListener extends Gui implements Listener {
 
         // Removes the blaze rod
         blazeRod.setAmount(0);
-    }
-
-    @Override
-    public void refresh() {
-        // Refresh icons
-        this.clearGui();
-        Inventory inventory = geometryEditor.getGUI();
-        this.getInventory().setContents(inventory.getContents());
-
-        // Refresh actions
-        setActions();
     }
 }

@@ -2,27 +2,21 @@ package net.bteuk.network.gui.tutorials;
 
 import lombok.extern.java.Log;
 import net.bteuk.minecraft.gui.Gui;
-import net.bteuk.network.Network;
 import net.bteuk.network.gui.GuiProvider;
-import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.lib.utils.ChatUtils;
-import net.bteuk.network.papercore.PlayerAdapter;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.TutorialRecommendation;
 import net.bteuk.network.utils.Utils;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
-import teachingtutorials.guis.Event;
-import teachingtutorials.guis.EventType;
 import teachingtutorials.tutorialobjects.LessonObject;
-import teachingtutorials.tutorialobjects.Location;
 import teachingtutorials.tutorialobjects.Tutorial;
 import teachingtutorials.utils.DBConnection;
 
 import java.util.UUID;
 
 @Log
-public class RecommendedTutorialsGui extends NetworkRefreshableGui {
+public class RecommendedTutorialsGui extends AbstractTutorialsGui {
     private final Gui parentGui;
 
     private final int iPlotID;
@@ -129,8 +123,8 @@ public class RecommendedTutorialsGui extends NetworkRefreshableGui {
             super.setItem(i - iStart, recommendationIcon, (NetworkUser u) -> {
                 if (!bStaffView && ownerUUID != null) {
                     DBConnection dbConnection = provider.tutorialsDBConnection();
-                    startTutorial(provider.instance(), LessonObject.getUnfinishedLessonsOfPlayer(ownerUUID, dbConnection, log), user, RecommendedTutorialsGui.this,
-                            Tutorial.fetchByTutorialID(tutorialRecommendation.getTutorialID(), dbConnection, log), null);
+                    startTutorial(LessonObject.getUnfinishedLessonsOfPlayer(ownerUUID, dbConnection, log), user, this,
+                            Tutorial.fetchByTutorialID(tutorialRecommendation.getTutorialID(), dbConnection, log), null, log);
                 }
             });
         }
@@ -149,45 +143,6 @@ public class RecommendedTutorialsGui extends NetworkRefreshableGui {
                         add.open(user.player);
                     });
         }
-    }
-
-    public void startTutorial(Network plugin, LessonObject[] lessons, NetworkUser user, Gui parentGui, Tutorial tutorialToStart, Location locationToStart) {
-        boolean bLessonFound = false;
-
-        for (LessonObject lesson : lessons) {
-            if (tutorialToStart.getTutorialID() == lesson.getTutorialID()) {
-                if (locationToStart == null) {
-                    bLessonFound = true;
-                    LessonContinueConfirmer confirmer = new LessonContinueConfirmer(provider, plugin, user, parentGui, lesson, "You have a lesson for this tutorial already");
-                    confirmer.open(user.player);
-                    break;
-                }
-
-                if (locationToStart.getLocationID() == lesson.getLocation().getLocationID()) {
-                    bLessonFound = true;
-                    LessonContinueConfirmer confirmer = new LessonContinueConfirmer(provider, plugin, user, parentGui, lesson, "You have a lesson at this location already");
-                    confirmer.open(user.player);
-                    break;
-                }
-            }
-        }
-
-        if (!bLessonFound) {
-            if (locationToStart == null) {
-                if (Event.addEvent(EventType.START_TUTORIAL, user.player.getUniqueId(), tutorialToStart.getTutorialID(), provider.tutorialsDBConnection(), log)) {
-                    provider.serverAPI().switchServer(PlayerAdapter.adapt(user.player), provider.globalSQL().getString("SELECT name FROM server_data WHERE type='TUTORIAL';"));
-                    user.player.closeInventory();
-                } else {
-                    user.sendMessage(Utils.error("A problem occurred, please let staff know"));
-                }
-            } else if (Event.addEvent(EventType.START_LOCATION, user.player.getUniqueId(), locationToStart.getLocationID(), provider.tutorialsDBConnection(), log)) {
-                provider.serverAPI().switchServer(PlayerAdapter.adapt(user.player), provider.globalSQL().getString("SELECT name FROM server_data WHERE type='TUTORIAL';"));
-                user.player.closeInventory();
-            } else {
-                user.sendMessage(Utils.error("A problem occurred, please let staff know"));
-            }
-        }
-
     }
 
     @Override

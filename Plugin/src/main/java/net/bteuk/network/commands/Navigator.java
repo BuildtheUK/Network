@@ -4,7 +4,9 @@ import io.papermc.paper.command.brigadier.CommandSourceStack;
 import lombok.extern.java.Log;
 import net.bteuk.minecraft.gui.GuiManager;
 import net.bteuk.network.Network;
+import net.bteuk.network.api.ChatAPI;
 import net.bteuk.network.api.EventAPI;
+import net.bteuk.network.api.PlotAPI;
 import net.bteuk.network.api.ServerAPI;
 import net.bteuk.network.commands.navigation.Back;
 import net.bteuk.network.core.Constants;
@@ -15,9 +17,16 @@ import net.bteuk.network.gui.navigation.ExploreGui;
 import net.bteuk.network.gui.tutorials.TutorialsGui;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.lobby.Lobby;
+import net.bteuk.network.regions.RegionManager;
+import net.bteuk.network.regions.sql.RegionSQL;
+import net.bteuk.network.sql.GlobalSQL;
+import net.bteuk.network.sql.PlotSQL;
 import net.bteuk.network.utils.NetworkUser;
+import net.bteuk.network.utils.Roles;
+import net.bteuk.network.utils.staff.Moderation;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import teachingtutorials.utils.DBConnection;
 
 import java.util.List;
 
@@ -31,13 +40,16 @@ public class Navigator extends AbstractCommand {
     private final Constants constants;
     private final NavigatorGui navigator;
 
-    public Navigator(Network instance, GuiManager guiManager, Constants constants, Lobby lobby, Back back, EventAPI eventAPI, ServerAPI serverAPI, Nightvision nightvision) {
+    public Navigator(Network instance, GuiManager guiManager, Constants constants, GlobalSQL globalSQL, RegionSQL regionSQL, RegionManager regionManager, PlotSQL plotSQL,
+                     PlotAPI plotAPI, Lobby lobby, Back back, EventAPI eventAPI, ServerAPI serverAPI, Nightvision nightvision, Roles roles,
+                     DBConnection tutorialsDBConnection, ChatAPI chatAPI, Moderation moderation) {
         this.instance = instance;
         this.constants = constants;
 
-        this.provider = new GuiProvider(instance, guiManager, constants, ...);
+        this.provider = new GuiProvider(instance, guiManager, constants, globalSQL, regionSQL, regionManager, plotSQL, plotAPI, lobby, back, eventAPI, serverAPI, nightvision, this,
+                roles, tutorialsDBConnection, chatAPI, moderation);
 
-        navigator = new NavigatorGui(provider);
+        this.navigator = new NavigatorGui(provider);
     }
 
     public void openNavigator(NetworkUser u) {
@@ -93,7 +105,7 @@ public class Navigator extends AbstractCommand {
             if (u.mainGui != null) {
                 u.mainGui.delete();
             }
-            u.mainGui = new ExploreGui(u);
+            u.mainGui = new ExploreGui(provider, u);
             u.mainGui.open(u.player);
         } else {
             openNavigator(u);
@@ -114,7 +126,7 @@ public class Navigator extends AbstractCommand {
             if (u.mainGui != null) {
                 u.mainGui.delete();
             }
-            u.mainGui = new TutorialsGui(u);
+            u.mainGui = new TutorialsGui(provider, u);
             u.mainGui.open(u.player);
         } else {
             openNavigator(u);

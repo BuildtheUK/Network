@@ -32,7 +32,7 @@ public class CloseConfirm extends NetworkRefreshableGui {
             this.delete();
             u.mainGui = null;
 
-            u.mainGui = new ZoneMenu(u);
+            u.mainGui = new ZoneMenu(provider, u);
             u.player.closeInventory();
 
             // Add server event to delete plot or zone.

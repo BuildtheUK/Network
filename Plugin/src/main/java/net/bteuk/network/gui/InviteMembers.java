@@ -153,7 +153,7 @@ public class InviteMembers extends NetworkRefreshableGui {
                 u.mainGui = null;
 
                 // Switch back to plot info.
-                u.mainGui = new RegionInfo(region, u.player.getUniqueId().toString());
+                u.mainGui = new RegionInfo(provider, region, u.player.getUniqueId().toString());
                 u.mainGui.open(u.player);
             });
         } else if (regionType == RegionType.PLOT) {

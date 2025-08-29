@@ -1,17 +1,22 @@
 package net.bteuk.network.gui.progressmap;
 
 import me.bteuk.progressmapper.guis.ColourPicker;
-import org.bukkit.inventory.Inventory;
+import net.bteuk.network.gui.GuiProvider;
+import net.bteuk.network.gui.NetworkRefreshableGui;
+import net.bteuk.network.utils.NetworkUser;
 
-public class ColourPickerGUI extends Gui {
+public class ColourPickerGUI extends NetworkRefreshableGui {
     private final ColourPicker colourPicker;
     private final FeaturePageGUI parentFeatureMenu;
 
-    public ColourPickerGUI(ColourPicker colourPicker, FeaturePageGUI parentFeatureMenu) {
-        super(colourPicker.getGUI());
+    public ColourPickerGUI(GuiProvider provider, ColourPicker colourPicker, FeaturePageGUI parentFeatureMenu) {
+        super(provider, colourPicker.getGUI());
         this.colourPicker = colourPicker;
         this.parentFeatureMenu = parentFeatureMenu;
+    }
 
+    protected void createGui() {
+        setItemsFromInventory(colourPicker.getGUI());
         setActions();
     }
 
@@ -178,16 +183,5 @@ public class ColourPickerGUI extends Gui {
             u.mainGui = parentFeatureMenu;
             u.mainGui.open(u.player);
         });
-    }
-
-    @Override
-    public void refresh() {
-        // Refresh icons
-        this.clearGui(); // Clears actions as well
-        Inventory inventory = colourPicker.getGUI();
-        this.getInventory().setContents(inventory.getContents());
-
-        // Refresh actions
-        setActions();
     }
 }

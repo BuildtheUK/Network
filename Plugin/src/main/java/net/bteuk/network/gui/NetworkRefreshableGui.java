@@ -2,11 +2,16 @@ package net.bteuk.network.gui;
 
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 
 public abstract class NetworkRefreshableGui extends NetworkGui implements RefreshableGui {
 
     public NetworkRefreshableGui(GuiProvider provider, int inventorySize, Component inventoryName) {
         super(provider, inventorySize, inventoryName);
+    }
+
+    public NetworkRefreshableGui(GuiProvider provider, Inventory inventory) {
+        super(provider, inventory);
     }
 
     protected abstract void createGui();
