@@ -5,7 +5,7 @@
 
     <groupId>net.bteuk</groupId>
     <artifactId>Network</artifactId>
-    <version>1.7.3</version>
+    <version>1.8.0</version>
     <packaging>pom</packaging>
 
     <name>Network</name>
@@ -53,10 +53,6 @@
         <repository>
             <id>OpenCollab Snapshots</id>
             <url>https://repo.opencollab.dev/snapshot/</url>
-        </repository>
-        <repository>
-            <id>dmulloy2-repo</id>
-            <url>https://repo.dmulloy2.net/repository/public/</url>
         </repository>
         <repository>
             <id>codemc-repo</id>

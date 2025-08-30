@@ -6,14 +6,14 @@
     <parent>
         <groupId>net.bteuk</groupId>
         <artifactId>Network</artifactId>
-        <version>1.7.3</version>
+        <version>1.8.0</version>
     </parent>
 
     <groupId>net.bteuk.network</groupId>
     <artifactId>api</artifactId>
     <name>Network API</name>
     <description>API for the Network plugin</description>
-    <version>1.7.3</version>
+    <version>1.8.0</version>
 
     <repositories>
         <repository>

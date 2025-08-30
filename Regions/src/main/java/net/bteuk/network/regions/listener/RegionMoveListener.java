@@ -103,7 +103,7 @@ public class RegionMoveListener extends AbstractMoveListener implements Listener
                     String world = constants.earthWorld();
                     int xTransform = regionUser.getDeltaX();
                     int zTransform = regionUser.getDeltaZ();
-                    if (regionManager.status(region) == RegionStatus.PLOT) {
+                    if (constants.plotSystemEnabled() && regionManager.status(region) == RegionStatus.PLOT) {
                         // Get server and world of the region.
                         String location = plotAPI.getRegionLocation(region.regionName());
 

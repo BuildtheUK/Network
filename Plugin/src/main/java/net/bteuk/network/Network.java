@@ -297,6 +297,9 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         networkUsers = new ArrayList<>();
         onlineUsers = new HashSet<>();
 
+        // Set up the timer api
+        timerAPI = new TimerAPIImpl(this);
+
         GuiManager networkGuiManager = new GuiManager();
 
         CommandManager commandManager = new CommandManager(this);
@@ -350,9 +353,6 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
         moveListener = new NetworkMoveListener(this, afk);
         teleportListener = new NetworkTeleportListener(this);
-
-        // Setup Timers
-        timerAPI = new TimerAPIImpl(this);
 
         // Set up the lobby, most features are only enabled in the lobby server.
         Lobby lobby = new Lobby(this, constants, serverAPI, eventManager);

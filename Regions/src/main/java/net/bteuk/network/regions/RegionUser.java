@@ -40,7 +40,7 @@ public class RegionUser {
                 // Add the region to the database if not exists.
                 regionManager.addToDatabase(trackedRegion);
             }
-        } else if (constants.serverType() == PLOT) {
+        } else if (constants.plotSystemEnabled() && constants.serverType() == PLOT) {
             // Check if the player is in a buildable plot world and apply coordinate transform if true.
             if (plotAPI.hasLocation(player.getLocation().getWorld().getName())) {
                 this.deltaX = -plotAPI.getXTransform(player.getLocation().getWorld().getName());

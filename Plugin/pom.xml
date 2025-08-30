@@ -6,7 +6,7 @@
     <parent>
         <groupId>net.bteuk</groupId>
         <artifactId>Network</artifactId>
-        <version>1.7.3</version>
+        <version>1.8.0</version>
     </parent>
 
     <groupId>net.bteuk.network</groupId>
@@ -36,6 +36,7 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <finalName>${project.parent.artifactId}-${project.version}</finalName>
                             <minimizeJar>true</minimizeJar>
                             <filters>
                                 <filter>
@@ -110,7 +111,6 @@
     </build>
 
     <dependencies>
-
         <dependency>
             <groupId>net.bteuk.network</groupId>
             <artifactId>api</artifactId>
@@ -149,9 +149,9 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.comphenix.protocol</groupId>
+            <groupId>net.dmulloy2</groupId>
             <artifactId>ProtocolLib</artifactId>
-            <version>5.3.0</version>
+            <version>5.4.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

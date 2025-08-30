@@ -57,7 +57,11 @@ public class RegionManager {
 
         this.regionSQL = regionSQL;
         this.globalSQL = networkAPI.getGlobalSQL();
-        this.plotAPI = networkAPI.getPlotAPI();
+        if (constants.plotSystemEnabled()) {
+            this.plotAPI = networkAPI.getPlotAPI();
+        } else {
+            this.plotAPI = null;
+        }
         this.chat = networkAPI.getChat();
         this.coordinateAPI = coordinateAPI;
         this.eventAPI = eventAPI;
@@ -159,7 +163,7 @@ public class RegionManager {
 
     // Get the server of the region.
     public String getServer(Region region) {
-        if (regionSQL.hasRow("SELECT region FROM regions WHERE region='" + region.regionName() + "' AND " + "status='plot'")) {
+        if (constants.plotSystemEnabled() && regionSQL.hasRow("SELECT region FROM regions WHERE region='" + region.regionName() + "' AND " + "status='plot'")) {
             return (plotAPI.getRegionServer("SELECT server FROM regions WHERE region='" + region.regionName() + "';"));
         } else {
             return (globalSQL.getString("SELECT name FROM server_data WHERE type='EARTH';"));

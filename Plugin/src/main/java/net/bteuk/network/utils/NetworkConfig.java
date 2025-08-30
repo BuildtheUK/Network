@@ -157,7 +157,7 @@ public class NetworkConfig {
 
         String earthWorld = config.getString("regions.earth_world", "earth");
 
-        boolean plotSystemEnabled = config.getBoolean("plot_system.enabled");
+        boolean plotSystemEnabled = config.getBoolean("plot_system_enabled");
 
         boolean moderationEnabled = config.getBoolean("staff.moderation.enabled");
 
