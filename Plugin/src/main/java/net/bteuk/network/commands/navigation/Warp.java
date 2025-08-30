@@ -38,7 +38,7 @@ public class Warp extends AbstractCommand {
         this.eventAPI = eventAPI;
         this.serverAPI = serverAPI;
         this.globalSQL = instance.getGlobalSQL();
-        setTabCompleter(new LocationSelector());
+        setTabCompleter(new LocationSelector(globalSQL));
     }
 
     @Override

@@ -107,7 +107,7 @@ public class VerificationInfo extends NetworkRefreshableGui {
                         Utils.line("altered by the verifier.")),
                 (NetworkUser u) -> {
                     // Open the feedback book.
-                    u.player.openBook(ReviewFeedback.createVerificationFeedbackBook(verificationId, true));
+                    u.player.openBook(ReviewFeedback.createVerificationFeedbackBook(plotSQL, verificationId, true));
                 });
 
         // If the selection or feedback was changed show the before and after books.
@@ -118,7 +118,7 @@ public class VerificationInfo extends NetworkRefreshableGui {
                         Utils.line("altered by the verifier.")),
                 (NetworkUser u) -> {
                     // Open the feedback book.
-                    u.player.openBook(ReviewFeedback.createVerificationFeedbackBook(verificationId, false));
+                    u.player.openBook(ReviewFeedback.createVerificationFeedbackBook(plotSQL, verificationId, false));
                 });
 
         // Teleport to the plot.

@@ -49,7 +49,7 @@ public class RecommendedTutorialsGui extends AbstractTutorialsGui {
         this.bStaffView = bStaffView;
 
         // Fetches the tutorial recommendations for this plot
-        tutorialRecommendations = provider.plotSQL().fetchTutorialRecommendationsForPlot(iPlotID);
+        tutorialRecommendations = provider.plotSQL().fetchTutorialRecommendationsForPlot(provider.tutorialsDBConnection(), iPlotID);
 
         this.iPages = ((tutorialRecommendations.length - 1) / 45) + 1;
         this.iPage = 1;
@@ -75,7 +75,7 @@ public class RecommendedTutorialsGui extends AbstractTutorialsGui {
 
         // Page back
         if (iPage > 1) {
-            ItemStack pageBack = Utils.createCustomSkullWithFallback("4eff72715e6032e90f50a38f4892529493c9f555b9af0d5e77a6fa5cddff3cd2", Material.ACACIA_BOAT, 1,
+            ItemStack pageBack = Utils.createCustomSkullWithFallback(provider.instance(), "4eff72715e6032e90f50a38f4892529493c9f555b9af0d5e77a6fa5cddff3cd2", Material.ACACIA_BOAT, 1,
                     Utils.title("Page back"));
             setItem(47, pageBack, (NetworkUser u) -> {
                 iPage--;
@@ -86,7 +86,7 @@ public class RecommendedTutorialsGui extends AbstractTutorialsGui {
 
         // Page forwards
         if (iPage < iPages) {
-            ItemStack pageBack = Utils.createCustomSkullWithFallback("a7ba2aa14ae5b0b65573dc4971d3524e92a61dd779e4412e4642adabc2e56c44", Material.ACACIA_BOAT, 1,
+            ItemStack pageBack = Utils.createCustomSkullWithFallback(provider.instance(), "a7ba2aa14ae5b0b65573dc4971d3524e92a61dd779e4412e4642adabc2e56c44", Material.ACACIA_BOAT, 1,
                     Utils.title("Page forwards"));
             super.setItem(51, pageBack, (NetworkUser u) -> {
                 iPage++;
@@ -150,7 +150,7 @@ public class RecommendedTutorialsGui extends AbstractTutorialsGui {
         clear();
 
         // Fetches the tutorial recommendations for this plot
-        tutorialRecommendations = provider.plotSQL().fetchTutorialRecommendationsForPlot(iPlotID);
+        tutorialRecommendations = provider.plotSQL().fetchTutorialRecommendationsForPlot(provider.tutorialsDBConnection(), iPlotID);
 
         this.iPages = ((tutorialRecommendations.length - 1) / 45) + 1;
         this.iPage = 1;

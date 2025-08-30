@@ -4,8 +4,8 @@ import com.sk89q.worldguard.LocalPlayer;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.managers.storage.StorageException;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
-import net.bteuk.network.minecraft.worldguard.exceptions.RegionManagerNotFoundException;
-import net.bteuk.network.minecraft.worldguard.exceptions.RegionNotFoundException;
+import net.bteuk.network.exceptions.RegionManagerNotFoundException;
+import net.bteuk.network.exceptions.RegionNotFoundException;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 

@@ -2,7 +2,12 @@ package net.bteuk.network.regions;
 
 import lombok.Getter;
 import lombok.Setter;
+import net.bteuk.network.api.PlotAPI;
+import net.bteuk.network.core.Constants;
 import org.bukkit.entity.Player;
+
+import static net.bteuk.network.core.ServerType.EARTH;
+import static net.bteuk.network.core.ServerType.PLOT;
 
 public class RegionUser {
 
@@ -24,30 +29,24 @@ public class RegionUser {
     @Setter
     int deltaZ;
 
-    public RegionUser(Player player) {
+    public RegionUser(Player player, Constants constants, RegionManager regionManager, PlotAPI plotAPI) {
         this.player = player;
 
-        // TODO: Copied from NetworkUser, implement this.
         // Check if the player is in a region.
-        if (constants.regionsEnabled()) {
-            if (SERVER_TYPE == EARTH) {
-                // Check if they are in the earth world.
-                if (player.getWorld().getName().equals(EARTH_WORLD)) {
-                    region = instance.getRegionManager().getRegion(player.getLocation());
-                    // Add region to database if not exists.
-                    region.addToDatabase();
-                    inRegion = true;
-                }
-            } else if (SERVER_TYPE == PLOT) {
-                // Check if the player is in a buildable plot world and apply coordinate transform if true.
-                if (instance.getPlotSQL()
-                        .hasRow("SELECT name FROM location_data WHERE name='" + player.getLocation().getWorld()
-                                .getName() + "';")) {
-                    updateCoordinateTransform(instance.getPlotSQL(), player.getLocation());
+        if (constants.serverType() == EARTH) {
+            // Check if they are in the earth world.
+            if (player.getWorld().getName().equals(constants.earthWorld())) {
+                trackedRegion = regionManager.getRegion(player.getLocation().getX(), player.getLocation().getZ());
+                // Add the region to the database if not exists.
+                regionManager.addToDatabase(trackedRegion);
+            }
+        } else if (constants.serverType() == PLOT) {
+            // Check if the player is in a buildable plot world and apply coordinate transform if true.
+            if (plotAPI.hasLocation(player.getLocation().getWorld().getName())) {
+                this.deltaX = -plotAPI.getXTransform(player.getLocation().getWorld().getName());
+                this.deltaZ = -plotAPI.getZTransform(player.getLocation().getWorld().getName());
 
-                    region = instance.getRegionManager().getRegion(player.getLocation(), dx, dz);
-                    inRegion = true;
-                }
+                trackedRegion = regionManager.getRegion(player.getLocation().getX(), player.getLocation().getZ(), deltaX, deltaZ);
             }
         }
     }

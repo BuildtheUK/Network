@@ -6,8 +6,10 @@ import net.bteuk.minecraft.gui.GuiManager;
 import net.bteuk.network.Network;
 import net.bteuk.network.TabManager;
 import net.bteuk.network.building_companion.BuildingCompanion;
+import net.bteuk.network.commands.Nightvision;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.Time;
+import net.bteuk.network.eventing.events.EventManager;
 import net.bteuk.network.lib.dto.OnlineUser;
 import net.bteuk.network.lib.dto.OnlineUserAdd;
 import net.bteuk.network.lib.dto.OnlineUserRemove;
@@ -16,6 +18,8 @@ import net.bteuk.network.lib.dto.UserConnectReply;
 import net.bteuk.network.lib.dto.UserConnectRequest;
 import net.bteuk.network.lib.dto.UserDisconnect;
 import net.bteuk.network.lib.dto.UserRemove;
+import net.bteuk.network.regions.RegionManager;
+import net.bteuk.network.regions.RegionUser;
 import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Roles;
@@ -48,11 +52,14 @@ public class Connect implements Listener {
     private final Roles roles;
     private final GlobalSQL globalSQL;
     private final GuiManager guiManager;
+    private final Nightvision nightvision;
+    private final EventManager eventManager;
+    private final RegionManager regionManager;
 
     @Setter
     private boolean blockLeaveEvent;
 
-    public Connect(Network instance, Constants constants, TabManager tabManager, Roles roles, GlobalSQL globalSQL, GuiManager guiManager) {
+    public Connect(Network instance, Constants constants, TabManager tabManager, Roles roles, GlobalSQL globalSQL, GuiManager guiManager, Nightvision nightvision, EventManager eventManager, RegionManager regionManager) {
 
         this.instance = instance;
         this.constants = constants;
@@ -60,6 +67,9 @@ public class Connect implements Listener {
         this.roles = roles;
         this.globalSQL = globalSQL;
         this.guiManager = guiManager;
+        this.nightvision = nightvision;
+        this.eventManager = eventManager;
+        this.regionManager = regionManager;
 
         this.blockLeaveEvent = false;
 
@@ -86,7 +96,8 @@ public class Connect implements Listener {
             }
 
             log.info(String.format("User connect reply received from the proxy, creating NetworkUser for %s", player.getName()));
-            NetworkUser user = new NetworkUser(player, reply, instance, constants, roles);
+            RegionUser regionUser = regionManager.getUserByPlayer(player).orElseThrow();
+            NetworkUser user = new NetworkUser(player, reply, instance, constants, roles, nightvision, eventManager, regionUser);
             instance.addUser(user);
 
             // Hide this player for all players in focus mode.
@@ -139,7 +150,8 @@ public class Connect implements Listener {
 
             UserConnectReply reply = new UserConnectReply(player.getUniqueId().toString(), navigatorEnabled, teleportEnabled, nightVisionEnabled, chatChannel, tipsEnabled,
                     components, false);
-            NetworkUser user = new NetworkUser(player, reply, instance, constants, roles);
+            RegionUser regionUser = regionManager.getUserByPlayer(player).orElseThrow();
+            NetworkUser user = new NetworkUser(player, reply, instance, constants, roles, nightvision, eventManager, regionUser);
 
             OnlineUserAdd onlineUserAdd = new OnlineUserAdd();
             onlineUserAdd.setUser(new OnlineUser(player.getUniqueId().toString(), player.getName(), constants.serverName()));

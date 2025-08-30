@@ -103,7 +103,7 @@ public class SelectUser extends NetworkRefreshableGui {
             switch (type) {
 
                 case BAN, MUTE, KICK -> // Ban/mute/kick the player.
-                        setItem(slot, Utils.createCustomSkullWithFallback(player_skin, Material.RED_CONCRETE, 1, Utils.title(type.label + " " + name),
+                        setItem(slot, Utils.createCustomSkullWithFallback(provider.instance(), player_skin, Material.RED_CONCRETE, 1, Utils.title(type.label + " " + name),
                                 Utils.line("Opens the " + type.label.toLowerCase(Locale.ROOT) + " menu to set" + " the parameters.")), (NetworkUser u) ->
 
                         {
@@ -115,7 +115,7 @@ public class SelectUser extends NetworkRefreshableGui {
                         });
 
                 case UNBAN, UNMUTE -> // Unban/unmute the player.
-                        setItem(slot, Utils.createCustomSkullWithFallback(player_skin, Material.LIME_CONCRETE, 1, Utils.title(type.label + " " + name),
+                        setItem(slot, Utils.createCustomSkullWithFallback(provider.instance(), player_skin, Material.LIME_CONCRETE, 1, Utils.title(type.label + " " + name),
                                         Utils.line(type.label + " the player immediately.")),
 
                                 (NetworkUser u) -> {

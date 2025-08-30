@@ -18,8 +18,8 @@ public class VoidTeleport implements Listener {
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent e) {
         if (e.getTo().getY() < 0) {
-            // Teleport to spawnpoint.
-            e.getPlayer().teleport(lobby.spawn);
+            // Teleport to the spawn-point.
+            e.getPlayer().teleport(lobby.getSpawn());
         }
     }
 }

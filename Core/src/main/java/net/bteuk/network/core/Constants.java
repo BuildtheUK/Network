@@ -1,5 +1,7 @@
 package net.bteuk.network.core;
 
+import net.bteuk.network.api.entity.NetworkLocation;
+
 import java.util.List;
 
 public record Constants(String serverName, ServerType serverType, boolean standalone, boolean regionsEnabled, long regionInactivity, boolean tpllEnabled,
@@ -9,5 +11,6 @@ public record Constants(String serverName, ServerType serverType, boolean standa
                         boolean plotSystemEnabled,
                         boolean moderationEnabled, boolean warpsEnabled, boolean homesEnabled, boolean announcePromotions, String discordLink, boolean skullsEnabled,
                         String progressMapLink, String chatSocketOutputIP, int chatSocketOutputPort, int chatSocketInputPort, int tipsFrequency, boolean regionStaffRequestAlways,
-                        int regionStaffRequestRadius, int progressMapID, String mapHubAPIKey, int navigationRadius, boolean compulsoryTutorial) {
+                        int regionStaffRequestRadius, int progressMapID, String mapHubAPIKey, int navigationRadius, boolean compulsoryTutorial, int afkTime, boolean mapEnabled,
+                        String mapServer, NetworkLocation mapLocation, NetworkLocation spawnLocation) {
 }

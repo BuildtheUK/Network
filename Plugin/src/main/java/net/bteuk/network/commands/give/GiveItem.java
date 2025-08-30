@@ -46,6 +46,6 @@ public abstract class GiveItem extends AbstractCommand {
         }
 
         // Add debug stick to inventory.
-        Utils.giveItem(player, item, itemName);
+        Utils.giveItem(instance, player, item, itemName);
     }
 }

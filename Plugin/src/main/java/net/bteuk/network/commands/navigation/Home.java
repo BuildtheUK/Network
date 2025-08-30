@@ -36,7 +36,7 @@ public class Home extends AbstractCommand {
         this.serverAPI = serverAPI;
 
         // Set tab completer.
-        setTabCompleter(new HomeSelector());
+        setTabCompleter(new HomeSelector(globalSQL));
     }
 
     @Override

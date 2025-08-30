@@ -3,17 +3,21 @@ package net.bteuk.network.commands.navigation;
 import io.papermc.lib.PaperLib;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.bteuk.network.Network;
+import net.bteuk.network.api.EventAPI;
+import net.bteuk.network.api.ServerAPI;
 import net.bteuk.network.commands.AbstractCommand;
-import net.bteuk.network.eventing.events.EventManager;
+import net.bteuk.network.core.Constants;
+import net.bteuk.network.core.Time;
 import net.bteuk.network.lib.utils.ChatUtils;
+import net.bteuk.network.papercore.LocationAdapter;
+import net.bteuk.network.papercore.PlayerAdapter;
+import net.bteuk.network.regions.Region;
+import net.bteuk.network.regions.RegionManager;
+import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.sql.PlotSQL;
 import net.bteuk.network.utils.Statistics;
-import net.bteuk.network.utils.SwitchServer;
-import net.bteuk.network.utils.Time;
 import net.bteuk.network.utils.TpllFormat;
 import net.bteuk.network.utils.Utils;
-import net.bteuk.network.utils.regions.Region;
-import net.bteuk.network.utils.regions.RegionManager;
 import net.buildtheearth.terraminusminus.dataset.IScalarDataset;
 import net.buildtheearth.terraminusminus.generator.EarthGeneratorPipelines;
 import net.buildtheearth.terraminusminus.generator.EarthGeneratorSettings;
@@ -34,26 +38,31 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import static net.bteuk.network.utils.Constants.EARTH_WORLD;
-import static net.bteuk.network.utils.Constants.SERVER_NAME;
-import static net.bteuk.network.utils.NetworkConfig.CONFIG;
-
 public class Tpll extends AbstractCommand {
 
-    public static final EarthGeneratorSettings bteGeneratorSettings =
-            EarthGeneratorSettings.parse(EarthGeneratorSettings.BTE_DEFAULT_SETTINGS);
+    public static final EarthGeneratorSettings bteGeneratorSettings = EarthGeneratorSettings.parse(EarthGeneratorSettings.BTE_DEFAULT_SETTINGS);
     private static final DecimalFormat DECIMAL_FORMATTER = new DecimalFormat("##.#####");
-    private static final boolean regionsEnabled = CONFIG.getBoolean("regions_enabled");
     private static final Component USAGE = ChatUtils.error("/tpll <latitude> <longitude> [altitude]");
-    private final boolean requires_permission;
+    private final Network instance;
+    private final boolean requiresPermission;
     private final RegionManager regionManager;
+    private final Constants constants;
     private final PlotSQL plotSQL;
+    private final EventAPI eventAPI;
+    private final ServerAPI serverAPI;
+    private final Back back;
+    private final GlobalSQL globalSQL;
 
-    public Tpll(Network instance, boolean requires_permission) {
-        this.requires_permission = requires_permission;
-
-        regionManager = instance.getRegionManager();
-        plotSQL = instance.getPlotSQL();
+    public Tpll(Network instance, boolean requiresPermission, RegionManager regionManager, Constants constants, PlotSQL plotSQL, EventAPI eventAPI, ServerAPI serverAPI, Back back, GlobalSQL globalSQL) {
+        this.instance = instance;
+        this.requiresPermission = requiresPermission;
+        this.regionManager = regionManager;
+        this.constants = constants;
+        this.plotSQL = plotSQL;
+        this.eventAPI = eventAPI;
+        this.serverAPI = serverAPI;
+        this.back = back;
+        this.globalSQL = globalSQL;
     }
 
     /**
@@ -68,16 +77,13 @@ public class Tpll extends AbstractCommand {
         format.setCoordinates(CoordinateParseUtils.parseVerbatimCoordinates(getRawArguments(args).trim()));
 
         if (format.getCoordinates() == null) {
-            LatLng possiblePlayerCoords =
-                    CoordinateParseUtils.parseVerbatimCoordinates(getRawArguments(selectArray(args)));
+            LatLng possiblePlayerCoords = CoordinateParseUtils.parseVerbatimCoordinates(getRawArguments(selectArray(args)));
             if (possiblePlayerCoords != null) {
                 format.setCoordinates(possiblePlayerCoords);
             }
         }
 
-        LatLng possibleHeightCoords =
-                CoordinateParseUtils.parseVerbatimCoordinates(getRawArguments(inverseSelectArray(args,
-                        args.length - 1)));
+        LatLng possibleHeightCoords = CoordinateParseUtils.parseVerbatimCoordinates(getRawArguments(inverseSelectArray(args, args.length - 1)));
         if (possibleHeightCoords != null) {
             format.setCoordinates(possibleHeightCoords);
             try {
@@ -86,9 +92,7 @@ public class Tpll extends AbstractCommand {
             }
         }
 
-        LatLng possibleHeightNameCoords =
-                CoordinateParseUtils.parseVerbatimCoordinates(getRawArguments(inverseSelectArray(selectArray(args),
-                        selectArray(args).length - 1)));
+        LatLng possibleHeightNameCoords = CoordinateParseUtils.parseVerbatimCoordinates(getRawArguments(inverseSelectArray(selectArray(args), selectArray(args).length - 1)));
         if (possibleHeightNameCoords != null) {
             format.setCoordinates(possibleHeightNameCoords);
             try {
@@ -107,21 +111,18 @@ public class Tpll extends AbstractCommand {
      * @param l      the location of the tpll
      * @return {@link Location} the location with potential coordinate transform
      */
-    public static Location applyCoordinateTransformIfPlotSystem(Region region, Location l) {
+    public Location applyCoordinateTransformIfPlotSystem(Region region, Location l) {
 
         // Regions must be enabled to use the plot system.
-        if (regionsEnabled) {
+        if (constants.regionsEnabled()) {
 
             // Check if the region is on a plot server.
-            if (region.isPlot()) {
-                String location = Network.getInstance().getPlotSQL().getString("SELECT location FROM regions WHERE " +
-                        "region='" + region.regionName() + "';");
+            if (regionManager.isPlot(region)) {
+                String location = plotSQL.getString("SELECT location FROM regions WHERE " + "region='" + region.regionName() + "';");
 
                 // Get the coordinate transformations.
-                int xTransform = Network.getInstance().getPlotSQL().getInt("SELECT xTransform FROM location_data " +
-                        "WHERE name='" + location + "';");
-                int zTransform = Network.getInstance().getPlotSQL().getInt("SELECT zTransform FROM location_data " +
-                        "WHERE name='" + location + "';");
+                int xTransform = plotSQL.getInt("SELECT xTransform FROM location_data " + "WHERE name='" + location + "';");
+                int zTransform = plotSQL.getInt("SELECT zTransform FROM location_data " + "WHERE name='" + location + "';");
 
                 Location newLocation = l.clone();
                 newLocation.setX(l.getX() + xTransform);
@@ -176,7 +177,7 @@ public class Tpll extends AbstractCommand {
     }
 
     @Override
-    public void execute(@NotNull CommandSourceStack stack, @NotNull String[] args) {
+    public void execute(@NotNull CommandSourceStack stack, String @NotNull [] args) {
 
         // Check if the sender is a player.
         // Only players can use /tpll.
@@ -186,7 +187,7 @@ public class Tpll extends AbstractCommand {
         }
 
         // Check if permission is required.
-        if (requires_permission) {
+        if (requiresPermission) {
             if (!player.hasPermission("uknet.navigation.tpll")) {
                 player.sendMessage(NO_PERMISSION);
                 return;
@@ -215,38 +216,42 @@ public class Tpll extends AbstractCommand {
         double[] proj;
 
         try {
-            proj = bteGeneratorSettings.projection().fromGeo(format.getCoordinates().getLng(),
-                    format.getCoordinates().getLat());
+            proj = bteGeneratorSettings.projection().fromGeo(format.getCoordinates().getLng(), format.getCoordinates().getLat());
         } catch (Exception e) {
             p.sendMessage(USAGE);
             return;
         }
         // Get location and region.
-        Location l = new Location(p.getWorld(), proj[0], 1, proj[1], p.getLocation().getYaw(),
-                p.getLocation().getPitch());
+        Location l = new Location(p.getWorld(), proj[0], 1, proj[1], p.getLocation().getYaw(), p.getLocation().getPitch());
+
         Region region = null;
-        if (regionsEnabled) {
-            region = regionManager.getRegion(l);
-        }
+        if (constants.regionsEnabled()) {
+            region = regionManager.getRegion(proj[0], proj[1]);
 
-        // Check if the player is allowed to teleport here.
-        if (!canTeleportHere(p, region)) {
-            p.sendMessage(ChatUtils.error("The terrain for this region has not been generated, you must be at least " +
-                    "Jr.Builder to load new terrain."));
-        }
+            // Check if the player is allowed to teleport here.
+            if (!canTeleportHere(p, region)) {
+                p.sendMessage(ChatUtils.error("The terrain for this region has not been generated, you must be at least " + "Jr.Builder to load new terrain."));
+            }
 
-        // Check the server of the location.
-        // Switch if necessary.
-        if (switchServerIfNecessary(p, region, args)) {
-            p.sendMessage(ChatUtils.success("The location is on another server, switching servers..."));
-            return;
+            if (!constants.standalone()) {
+                // Check the server of the location.
+                // Switch if necessary.
+                if (switchServerIfNecessary(p, region, args)) {
+                    p.sendMessage(ChatUtils.success("The location is on another server, switching servers..."));
+                    return;
+                }
+            }
         }
 
         // If the region is in the plot system, apply the coordinate transform.
-        l = applyCoordinateTransformIfPlotSystem(region, l);
+        if (constants.plotSystemEnabled()) {
+            l = applyCoordinateTransformIfPlotSystem(region, l);
+        }
 
         // Set the correct world.
-        setWorldOfRegion(region, l);
+        if (constants.regionsEnabled()) {
+            setWorldOfRegion(region, l);
+        }
 
         // Check if the chunk has already been generated.
         // If not warn the player that it needs to be generated.
@@ -266,7 +271,7 @@ public class Tpll extends AbstractCommand {
      * @return whether the player can teleport here
      */
     private boolean canTeleportHere(Player p, Region region) {
-        return !regionsEnabled || region.inDatabase() || p.hasPermission("group.jrbuilder");
+        return regionManager.inDatabase(region) || p.hasPermission("uknet.regions.generate");
     }
 
     /**
@@ -276,20 +281,17 @@ public class Tpll extends AbstractCommand {
      * @return whether the player is switching server
      */
     private boolean switchServerIfNecessary(Player p, Region region, String[] args) {
-        if (regionsEnabled) {
+        // Check if the server of the region equals the current server, else teleport them with a teleport event
+        // for tpll.
+        String server = regionManager.getServer(region);
+        if (!server.equals(constants.serverName())) {
 
-            // Check if the server of the region equals the current server, else teleport them with a teleport event
-            // for tpll.
-            if (!region.getServer().equals(SERVER_NAME)) {
+            // Create teleport event.
+            eventAPI.createTeleportEvent(true, p.getUniqueId().toString(), "network", "teleport tpll " + String.join(" ", args), LocationAdapter.adapt(p.getLocation()));
 
-                // Create teleport event.
-                EventManager.createTeleportEvent(true, p.getUniqueId().toString(), "network", "teleport tpll "
-                        + String.join(" ", args), p.getLocation());
-
-                // Switch server.
-                SwitchServer.switchServer(p, region.getServer());
-                return true;
-            }
+            // Switch server.
+            serverAPI.switchServer(PlayerAdapter.adapt(p), server);
+            return true;
         }
         return false;
     }
@@ -301,18 +303,12 @@ public class Tpll extends AbstractCommand {
      * @param l      the location of the tpll
      */
     private void setWorldOfRegion(Region region, Location l) {
-
-        // Regions must be enabled to get the world,else return the current world.
-        if (regionsEnabled) {
-
-            // Check if the region is on the plot server.
-            if (region.isPlot()) {
-                String location =
-                        plotSQL.getString("SELECT location FROM regions WHERE region='" + region.regionName() + "';");
-                l.setWorld(Bukkit.getWorld(location));
-            } else {
-                l.setWorld(Bukkit.getWorld(EARTH_WORLD));
-            }
+        // Check if the region is on the plot server.
+        if (regionManager.isPlot(region)) {
+            String location = plotSQL.getString("SELECT location FROM regions WHERE region='" + region.regionName() + "';");
+            l.setWorld(Bukkit.getWorld(location));
+        } else {
+            l.setWorld(Bukkit.getWorld(constants.earthWorld()));
         }
     }
 
@@ -332,10 +328,8 @@ public class Tpll extends AbstractCommand {
             // If the altitude was not specified, get it from the data.
             if (Double.isNaN(format.getAltitude())) {
                 try {
-                    altFuture = new GeneratorDatasets(bteGeneratorSettings)
-                            .<IScalarDataset>getCustom(EarthGeneratorPipelines.KEY_DATASET_HEIGHTS)
-                            .getAsync(format.getCoordinates().getLng(), format.getCoordinates().getLat())
-                            .thenApply(a -> a + 1.0d);
+                    altFuture = new GeneratorDatasets(bteGeneratorSettings).<IScalarDataset>getCustom(EarthGeneratorPipelines.KEY_DATASET_HEIGHTS)
+                            .getAsync(format.getCoordinates().getLng(), format.getCoordinates().getLat()).thenApply(a -> a + 1.0d);
                 } catch (OutOfProjectionBoundsException e) { // out of bounds, notify user
                     p.sendMessage(ChatUtils.error("These coordinates are out of the projection bounds."));
                     return null;
@@ -347,8 +341,7 @@ public class Tpll extends AbstractCommand {
 
             // If the altitude was not specified, get it from the data.
             if (Double.isNaN(format.getAltitude())) {
-                altFuture = CompletableFuture.completedFuture((double) Utils.getHighestYAt(l.getWorld(),
-                        l.getBlockX(), l.getBlockZ()));
+                altFuture = CompletableFuture.completedFuture((double) Utils.getHighestYAt(constants, l.getWorld(), l.getBlockX(), l.getBlockZ()));
             } else {
                 altFuture = CompletableFuture.completedFuture(format.getAltitude());
             }
@@ -365,34 +358,28 @@ public class Tpll extends AbstractCommand {
      * @param l         the location to teleport to
      * @param fromEvent whether the command was executed from an event
      */
-    private void teleport(Player p, CompletableFuture<Double> altFuture, TpllFormat format, Location l,
-                          boolean fromEvent) {
-        altFuture.thenAccept(s -> Bukkit.getScheduler().runTask(Network.getInstance(), () -> {
+    private void teleport(Player p, CompletableFuture<Double> altFuture, TpllFormat format, Location l, boolean fromEvent) {
+        altFuture.thenAccept(s -> Bukkit.getScheduler().runTask(instance, () -> {
 
             // If the tpll is from an event, don't save the previous coordinate, since that was already done when
             // creating the event.
             if (!fromEvent) {
 
                 // Set current location for /back
-                Back.setPreviousCoordinate(p.getUniqueId().toString(), p.getLocation());
+                back.setPreviousCoordinate(p.getUniqueId().toString(), LocationAdapter.adapt(p.getLocation()));
             }
 
             // Set the altitude
             l.setY(s);
 
             // Add tpll to statistics.
-            Statistics.addTpll(p.getUniqueId().toString(), Time.getDate(Time.currentTime()));
+            Statistics.addTpll(globalSQL, p.getUniqueId().toString(), Time.getDate(Time.currentTime()));
 
             // Teleport player.
             PaperLib.teleportAsync(p, l);
 
-            p.sendMessage(
-                    ChatUtils.success("Teleported to ")
-                            .append(Component.text(DECIMAL_FORMATTER.format(format.getCoordinates().getLat()),
-                                    NamedTextColor.DARK_AQUA))
-                            .append(ChatUtils.success(", "))
-                            .append(Component.text(DECIMAL_FORMATTER.format(format.getCoordinates().getLng()),
-                                    NamedTextColor.DARK_AQUA)));
+            p.sendMessage(ChatUtils.success("Teleported to ").append(Component.text(DECIMAL_FORMATTER.format(format.getCoordinates().getLat()), NamedTextColor.DARK_AQUA))
+                    .append(ChatUtils.success(", ")).append(Component.text(DECIMAL_FORMATTER.format(format.getCoordinates().getLng()), NamedTextColor.DARK_AQUA)));
         }));
     }
 

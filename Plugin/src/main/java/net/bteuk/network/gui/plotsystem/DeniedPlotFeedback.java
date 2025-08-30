@@ -66,7 +66,7 @@ public class DeniedPlotFeedback extends NetworkRefreshableGui {
                         int reviewId = plotSQL.getInt("SELECT id FROM plot_review WHERE plot_id=" + plotID + " AND " + "uuid='" + uuid + "' AND attempt=" + finalI + ";");
 
                         // Open the book.
-                        u.player.openBook(ReviewFeedback.createFeedbackBook(reviewId));
+                        u.player.openBook(ReviewFeedback.createFeedbackBook(globalSQL, plotSQL, reviewId));
                     });
 
             // Increase the slot accordingly.

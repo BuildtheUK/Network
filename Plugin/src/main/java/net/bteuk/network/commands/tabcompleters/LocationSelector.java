@@ -1,6 +1,6 @@
 package net.bteuk.network.commands.tabcompleters;
 
-import net.bteuk.network.Network;
+import net.bteuk.network.api.SQLAPI;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
@@ -10,13 +10,19 @@ import java.util.List;
 
 public class LocationSelector extends AbstractTabCompleter {
 
-    public static List<String> locationSelectorOnArg(String[] args, int argIndexStart) {
-        // Get array of locations.
-        List<String> locations = Network.getInstance().getGlobalSQL().getStringList("SELECT location FROM " +
+    private final SQLAPI globalSQL;
+
+    public LocationSelector(SQLAPI globalSQL) {
+        this.globalSQL = globalSQL;
+    }
+
+    public static List<String> locationSelectorOnArg(SQLAPI globalSQL, String[] args, int argIndexStart) {
+        // Get an array of locations.
+        List<String> locations = globalSQL.getStringList("SELECT location FROM " +
                 "location_data;");
 
         // It is possible that the location has multiple words, so the tab completer should work for later words.
-        // This is done by returning a list of partial location names including only the part of the location name that is yet to be written.
+        // This is done by returning a list of partial location names, including only the part of the location name that is yet to be written.
         int word = args.length - argIndexStart;
         int argIndex = argIndexStart;
         if (word > 1) {
@@ -30,6 +36,6 @@ public class LocationSelector extends AbstractTabCompleter {
 
     @Override
     public @NotNull Collection<String> onTabComplete(@NotNull CommandSender sender, @NotNull String[] args) {
-        return locationSelectorOnArg(args, 0);
+        return locationSelectorOnArg(globalSQL, args, 0);
     }
 }

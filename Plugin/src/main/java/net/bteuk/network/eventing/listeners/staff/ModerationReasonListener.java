@@ -18,21 +18,22 @@ import static net.kyori.adventure.text.format.NamedTextColor.DARK_AQUA;
 
 public class ModerationReasonListener implements Listener {
 
+    private final Network instance;
     private final NetworkUser u;
     private final ModerationActionGui gui;
 
     @Getter
     private final BukkitTask task;
 
-    public ModerationReasonListener(NetworkUser u, ModerationActionGui gui) {
-
+    public ModerationReasonListener(Network instance, NetworkUser u, ModerationActionGui gui) {
+        this.instance = instance;
         this.u = u;
         this.gui = gui;
 
-        Bukkit.getServer().getPluginManager().registerEvents(this, Network.getInstance());
+        Bukkit.getServer().getPluginManager().registerEvents(this, instance);
 
         // Start timer to automatically close the listener.
-        task = Bukkit.getScheduler().runTaskLater(Network.getInstance(), () -> {
+        task = Bukkit.getScheduler().runTaskLater(instance, () -> {
             // Send message to player telling them it's been timer out.
             if (u.player != null) {
                 u.player.sendMessage(ChatUtils.error("'Set " + gui.getType().label.toLowerCase(Locale.ROOT) + " " +
@@ -66,7 +67,7 @@ public class ModerationReasonListener implements Listener {
                 // This also cancels the task and unregisters the listener.
                 gui.refresh();
 
-                Bukkit.getScheduler().runTask(Network.getInstance(), () -> gui.open(u.player));
+                Bukkit.getScheduler().runTask(instance, () -> gui.open(u.player));
             }
         }
     }

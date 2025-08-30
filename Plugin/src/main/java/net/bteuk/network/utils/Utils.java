@@ -2,6 +2,7 @@ package net.bteuk.network.utils;
 
 import com.destroystokyo.paper.profile.PlayerProfile;
 import net.bteuk.network.Network;
+import net.bteuk.network.core.Constants;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -29,16 +30,12 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static net.bteuk.network.utils.Constants.MAX_Y;
-import static net.bteuk.network.utils.Constants.MIN_Y;
-
 public class Utils {
 
     private static final Pattern PATTERN = Pattern.compile("%s");
 
     public static Component title(String message) {
-        return Component.text(message, NamedTextColor.AQUA, TextDecoration.BOLD).decoration(TextDecoration.ITALIC,
-                false);
+        return Component.text(message, NamedTextColor.AQUA, TextDecoration.BOLD).decoration(TextDecoration.ITALIC, false);
     }
 
     public static Component line(String message) {
@@ -81,8 +78,7 @@ public class Utils {
         return varMessage(NamedTextColor.GREEN, NamedTextColor.DARK_AQUA, message, vars);
     }
 
-    private static Component varMessage(NamedTextColor textColour, NamedTextColor varColour, String message,
-                                        String... vars) {
+    private static Component varMessage(NamedTextColor textColour, NamedTextColor varColour, String message, String... vars) {
         Component component = Component.empty();
         // Find the number of vars needed.
         int lastIdx = 0;
@@ -107,9 +103,7 @@ public class Utils {
     }
 
     private static Component colouredText(NamedTextColor colour, String message) {
-        return Component.text(message, colour)
-                .decoration(TextDecoration.ITALIC, false)
-                .decoration(TextDecoration.BOLD, false);
+        return Component.text(message, colour).decoration(TextDecoration.ITALIC, false).decoration(TextDecoration.BOLD, false);
     }
 
     /**
@@ -119,8 +113,7 @@ public class Utils {
      * @return Component of the tip with the prefix
      */
     public static Component tip(String tip) {
-        return Component.text("[TIP] ", TextColor.color(0x346beb))
-                .append(Utils.line(tip));
+        return Component.text("[TIP] ", TextColor.color(0x346beb)).append(Utils.line(tip));
     }
 
     public static ItemStack createItem(Material material, int amount, Component displayName, Component... loreString) {
@@ -137,8 +130,7 @@ public class Utils {
         return item;
     }
 
-    public static ItemStack createCustomSkullWithFallback(String texture, Material fallback, int amount,
-                                                          Component displayName, Component... loreString) {
+    public static ItemStack createCustomSkullWithFallback(Network instance, String texture, Material fallback, int amount, Component displayName, Component... loreString) {
 
         ItemStack item;
 
@@ -154,7 +146,7 @@ public class Utils {
             SkullMeta meta = (SkullMeta) item.getItemMeta();
 
             // Create playerprofile.
-            PlayerProfile profile = Network.getInstance().getServer().createProfile(UUID.randomUUID());
+            PlayerProfile profile = instance.getServer().createProfile(UUID.randomUUID());
 
             PlayerTextures textures = profile.getTextures();
             textures.setSkin(url);
@@ -199,8 +191,7 @@ public class Utils {
         return item;
     }
 
-    public static ItemStack createPlayerSkull(PlayerProfile profile, int amount, Component displayName,
-                                              Component... loreString) {
+    public static ItemStack createPlayerSkull(PlayerProfile profile, int amount, Component displayName, Component... loreString) {
 
         ItemStack item;
 
@@ -217,8 +208,7 @@ public class Utils {
         return item;
     }
 
-    public static ItemStack createPotion(Material material, PotionEffectType effect, int amount,
-                                         Component displayName, Component... loreString) {
+    public static ItemStack createPotion(Material material, PotionEffectType effect, int amount, Component displayName, Component... loreString) {
 
         ItemStack item;
 
@@ -236,9 +226,9 @@ public class Utils {
         return item;
     }
 
-    public static int getHighestYAt(World w, int x, int z) {
+    public static int getHighestYAt(Constants constants, World w, int x, int z) {
 
-        for (int i = (MAX_Y - 1); i >= MIN_Y; i--) {
+        for (int i = (constants.maxY() - 1); i >= constants.minY(); i--) {
             if (w.getBlockAt(x, i, z).getType() != Material.AIR) {
                 return i + 1;
             }
@@ -256,14 +246,13 @@ public class Utils {
      * If the main hand has an item swap the current item to an empty slot in the inventory.
      * If no empty slots are available overwrite it.
      */
-    public static void giveItem(Player p, ItemStack item, String name) {
+    public static void giveItem(Network instance, Player p, ItemStack item, String name) {
 
         ItemStack currentItem = p.getInventory().getItemInMainHand();
 
         int emptySlot = getEmptyHotbarSlot(p);
 
-        boolean hasNavigator =
-                (p.getInventory().getHeldItemSlot() == 8 && currentItem.equals(Network.getInstance().navigator));
+        boolean hasNavigator = (p.getInventory().getHeldItemSlot() == 8 && currentItem.equals(instance.getNavigatorItem()));
         boolean hasItemAlready = p.getInventory().containsAtLeast(item, 1);
 
         // If we already have the item switch to current slot.
@@ -276,32 +265,27 @@ public class Utils {
 
                 p.getInventory().setItem(slot, p.getInventory().getItem(7));
                 p.getInventory().setItem(7, item);
-                p.sendMessage(ChatUtils.success("Set ").append(Component.text(name, NamedTextColor.DARK_AQUA)
-                        .append(ChatUtils.success(" to slot 8"))));
+                p.sendMessage(ChatUtils.success("Set ").append(Component.text(name, NamedTextColor.DARK_AQUA).append(ChatUtils.success(" to slot 8"))));
             } else {
 
                 p.getInventory().setItem(slot, p.getInventory().getItemInMainHand());
                 p.getInventory().setItemInMainHand(item);
-                p.sendMessage(ChatUtils.success("Set ").append(Component.text(name, NamedTextColor.DARK_AQUA)
-                        .append(ChatUtils.success(" to main hand."))));
+                p.sendMessage(ChatUtils.success("Set ").append(Component.text(name, NamedTextColor.DARK_AQUA).append(ChatUtils.success(" to main hand."))));
             }
         } else if (emptySlot >= 0) {
             // The current slot is empty. This also implies no navigator, and thus the item does not yet exist in the
             // inventory.
             // Set item to empty slot.
             p.getInventory().setItem(emptySlot, item);
-            p.sendMessage(ChatUtils.success("Set ").append(Component.text(name, NamedTextColor.DARK_AQUA)
-                    .append(ChatUtils.success(" to slot " + (emptySlot + 1)))));
+            p.sendMessage(ChatUtils.success("Set ").append(Component.text(name, NamedTextColor.DARK_AQUA).append(ChatUtils.success(" to slot " + (emptySlot + 1)))));
         } else if (hasNavigator) {
             // Player has no empty slots and is holding the navigator, set to item to slot 7.
             p.getInventory().setItem(7, item);
-            p.sendMessage(ChatUtils.success("Set ")
-                    .append(Component.text(name, NamedTextColor.DARK_AQUA).append(ChatUtils.success(" to slot 8"))));
+            p.sendMessage(ChatUtils.success("Set ").append(Component.text(name, NamedTextColor.DARK_AQUA).append(ChatUtils.success(" to slot 8"))));
         } else {
             // Set item in current slot.
             p.getInventory().setItemInMainHand(item);
-            p.sendMessage(ChatUtils.success("Set ").append(Component.text(name, NamedTextColor.DARK_AQUA)
-                    .append(ChatUtils.success(" to main hand."))));
+            p.sendMessage(ChatUtils.success("Set ").append(Component.text(name, NamedTextColor.DARK_AQUA).append(ChatUtils.success(" to main hand."))));
         }
     }
 

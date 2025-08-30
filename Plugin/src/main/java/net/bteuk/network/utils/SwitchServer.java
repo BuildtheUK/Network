@@ -19,15 +19,17 @@ import java.util.Optional;
 @Log
 public class SwitchServer implements ServerAPI {
 
+    private final Network instance;
     private final Constants constants;
 
-    public SwitchServer(Constants constants) {
+    public SwitchServer(Network instance, Constants constants) {
+        this.instance = instance;
         this.constants = constants;
     }
 
     public void switchServer(NetworkPlayer player, String server) {
 
-        Optional<NetworkUser> user = Network.getInstance().getNetworkUserByUuid(player.getUuidAsString());
+        Optional<NetworkUser> user = instance.getNetworkUserByUuid(player.getUuidAsString());
 
         // If u is null, cancel.
         if (user.isEmpty()) {
@@ -39,28 +41,28 @@ public class SwitchServer implements ServerAPI {
         // If the server is null, cancel and notify the player.
         if (server == null) {
             player.sendMessage(ChatUtils.error("An error occurred, server does not exist."));
-            Network.getInstance().getLogger().warning("Player attempting to switch to non-existing server.");
+            instance.getLogger().warning("Player attempting to switch to non-existing server.");
 
             // Remove any join events that the player may have.
-            Network.getInstance().getGlobalSQL().update("DELETE FROM join_events WHERE uuid='" + player.getUuidAsString() +
+            instance.getGlobalSQL().update("DELETE FROM join_events WHERE uuid='" + player.getUuidAsString() +
                     "';");
             return;
         }
 
         // Check if the server exists and is online.
-        if (!Network.getInstance().getGlobalSQL().hasRow("SELECT name FROM server_data WHERE name='" + server + "';")) {
+        if (!instance.getGlobalSQL().hasRow("SELECT name FROM server_data WHERE name='" + server + "';")) {
             player.sendMessage(ChatUtils.error("The server " + server + " does not exist."));
 
             // Remove any join events that the player may have.
-            Network.getInstance().getGlobalSQL().update("DELETE FROM join_events WHERE uuid='" + player.getUuidAsString() +
+            instance.getGlobalSQL().update("DELETE FROM join_events WHERE uuid='" + player.getUuidAsString() +
                     "';");
             return;
-        } else if (Network.getInstance().getGlobalSQL()
+        } else if (instance.getGlobalSQL()
                 .hasRow("SELECT online FROM server_data WHERE name='" + server + "' AND online=0;")) {
             player.sendMessage(ChatUtils.error("The server " + server + " is currently offline."));
 
             // Remove any join events that the player may have.
-            Network.getInstance().getGlobalSQL().update("DELETE FROM join_events WHERE uuid='" + player.getUuidAsString() +
+            instance.getGlobalSQL().update("DELETE FROM join_events WHERE uuid='" + player.getUuidAsString() +
                     "';");
             return;
         }
@@ -72,7 +74,7 @@ public class SwitchServer implements ServerAPI {
         UserDisconnect userDisconnect = user.get().createDisconnectEvent();
         SwitchServerEvent switchServerEvent = new SwitchServerEvent(player.getUuidAsString(), server, constants.serverName(),
                 userDisconnect);
-        Network.getInstance().getChat().sendSocketMessage(switchServerEvent);
+        instance.getChat().sendSocketMessage(switchServerEvent);
     }
 
     public static void switchToExternalServer(Player player) {

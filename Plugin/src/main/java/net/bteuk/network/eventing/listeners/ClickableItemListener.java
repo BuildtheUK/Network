@@ -1,5 +1,6 @@
 package net.bteuk.network.eventing.listeners;
 
+import lombok.extern.java.Log;
 import net.bteuk.network.Network;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.NetworkUser;
@@ -16,12 +17,11 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.ItemStack;
 
-import static net.bteuk.network.utils.Constants.LOGGER;
-
 /**
  * Listener class that implements a generic clickable item in the inventory of the player.
  * It can not be (re)moved from the inventory at any point in time.
  */
+@Log
 public class ClickableItemListener implements Listener {
 
     private final Network instance;
@@ -47,7 +47,7 @@ public class ClickableItemListener implements Listener {
     private NetworkUser getUserIfExists(Player p) {
         NetworkUser u = instance.getUser(p);
         if (u == null) {
-            LOGGER.severe("User " + p.getName() + " can not be found!");
+            log.severe("User " + p.getName() + " can not be found!");
             p.sendMessage(ChatUtils.error("User can not be found, please relog!"));
         }
         return u;

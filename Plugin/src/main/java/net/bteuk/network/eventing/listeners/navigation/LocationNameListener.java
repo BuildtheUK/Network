@@ -18,28 +18,30 @@ import java.util.Objects;
 
 public class LocationNameListener implements Listener {
 
+    private final Network instance;
     private final AddLocation gui;
     private final Player p;
 
     private final BukkitTask task;
 
-    public LocationNameListener(Player p, AddLocation gui) {
+    public LocationNameListener(Network instance, Player p, AddLocation gui) {
+        this.instance = instance;
 
-        Bukkit.getServer().getPluginManager().registerEvents(this, Network.getInstance());
+        Bukkit.getServer().getPluginManager().registerEvents(this, instance);
 
         this.p = p;
         this.gui = gui;
 
-        // Start timer to automatically close the listener.
-        task = Bukkit.getScheduler().runTaskLater(Network.getInstance(), () -> {
-            // Send message to player telling them it's been timer out.
+        // Start the timer to automatically close the listener.
+        task = Bukkit.getScheduler().runTaskLater(instance, () -> {
+            // Send a message to player telling them it's been timer out.
             if (p != null) {
                 p.sendMessage(ChatUtils.error("'Set Location Name' cancelled."));
 
                 // If AddLocation gui still exists, reopen it.
-                // Also check if player is actually still online.
+                // Also check if the player is actually still online.
                 if (p.isOnline()) {
-                    NetworkUser u = Network.getInstance().getUser(p);
+                    NetworkUser u = instance.getUser(p);
                     // Open staff gui if it's update or review.
                     if (gui.getType() == AddLocationType.ADD) {
                         if (Objects.requireNonNull(u).mainGui != null) {
@@ -85,12 +87,11 @@ public class LocationNameListener implements Listener {
                 unregister();
 
                 // If AddLocation gui still exists, reopen it.
-                NetworkUser u = Network.getInstance().getUser(p);
+                NetworkUser u = instance.getUser(p);
                 if (gui.getType() == AddLocationType.ADD) {
                     if (Objects.requireNonNull(u).mainGui != null) {
                         if (u.mainGui instanceof AddLocation) {
-                            Bukkit.getScheduler().runTask(Network.getInstance(), () -> {
-                                u.mainGui.refresh();
+                            Bukkit.getScheduler().runTask(instance, () -> {
                                 u.mainGui.open(u.player);
                             });
                         }
@@ -98,8 +99,7 @@ public class LocationNameListener implements Listener {
                 } else {
                     if (Objects.requireNonNull(u).staffGui != null) {
                         if (u.staffGui instanceof AddLocation) {
-                            Bukkit.getScheduler().runTask(Network.getInstance(), () -> {
-                                u.staffGui.refresh();
+                            Bukkit.getScheduler().runTask(instance, () -> {
                                 u.staffGui.open(u.player);
                             });
                         }

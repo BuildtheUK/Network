@@ -25,7 +25,7 @@ public class Msg extends AbstractCommand {
     public Msg(Network instance, String commandName) {
         this.instance = instance;
         this.commandName = commandName;
-        setTabCompleter(new PlayerSelector());
+        setTabCompleter(new PlayerSelector(instance));
     }
 
     @Override

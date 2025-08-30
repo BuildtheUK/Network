@@ -51,8 +51,8 @@ public class RegionManager {
     private final Constants constants;
     private final Set<RegionUser> users = new HashSet<>();
 
-    public RegionManager(RegionSQL regionSQL, NetworkAPI networkAPI, CoordinateAPI coordinateAPI, EventAPI eventAPI, WorldGuardAPI worldGuard,
-                         Constants constants, JavaPlugin plugin, ServerAPI serverAPI) {
+    public RegionManager(RegionSQL regionSQL, NetworkAPI networkAPI, CoordinateAPI coordinateAPI, EventAPI eventAPI, WorldGuardAPI worldGuard, Constants constants,
+                         JavaPlugin plugin, ServerAPI serverAPI) {
         regions = new HashMap<>();
 
         this.regionSQL = regionSQL;
@@ -64,7 +64,7 @@ public class RegionManager {
         this.worldGuard = worldGuard;
         this.constants = constants;
 
-        new ServerJoinListener(plugin, player -> users.add(new RegionUser(player)));
+        new ServerJoinListener(plugin, player -> users.add(new RegionUser(player, constants, this, plotAPI)));
         new ServerQuitListener(plugin, player -> getUserByPlayer(player).ifPresent(users::remove));
         new RegionMoveListener(plugin, this, plotAPI, constants, globalSQL, eventAPI, serverAPI);
         new RegionTeleportListener(plugin, this, constants, plotAPI);
@@ -131,8 +131,7 @@ public class RegionManager {
     // Get the tag of the region for a specific player, or name if no tag is set.
     public String getTag(Region region, String uuid) {
         if (hasTag(region, uuid)) {
-            return regionSQL.getString(
-                    "SELECT tag FROM region_members WHERE region='" + region.regionName() + "' AND uuid='" + uuid + "';");
+            return regionSQL.getString("SELECT tag FROM region_members WHERE region='" + region.regionName() + "' AND uuid='" + uuid + "';");
         } else {
             return region.regionName();
         }
@@ -140,34 +139,27 @@ public class RegionManager {
 
     // Set the tag of the region for a specific player.
     public void setTag(Region region, String uuid, String tag) {
-        regionSQL.update("UPDATE region_members SET tag='" + tag.replace("'", "\\'") + "' WHERE" +
-                " region='" + region.regionName() + "' AND uuid='" + uuid + "';");
+        regionSQL.update("UPDATE region_members SET tag='" + tag.replace("'", "\\'") + "' WHERE" + " region='" + region.regionName() + "' AND uuid='" + uuid + "';");
     }
 
     // Return whether the region has a tag for the specified uuid.
     private boolean hasTag(Region region, String uuid) {
-        return (regionSQL.hasRow(
-                "SELECT region FROM region_members WHERE region='" + region.regionName() + "' AND uuid='" + uuid + "' AND tag " +
-                        "IS NOT NULL;"));
+        return (regionSQL.hasRow("SELECT region FROM region_members WHERE region='" + region.regionName() + "' AND uuid='" + uuid + "' AND tag " + "IS NOT NULL;"));
     }
 
     // Return whether the player has this region pinned.
     public boolean isPinned(Region region, String uuid) {
-        return regionSQL.hasRow(
-                "SELECT region FROM region_members WHERE region='" + region.regionName() + "' AND uuid='" + uuid + "' AND " +
-                        "pinned=1;");
+        return regionSQL.hasRow("SELECT region FROM region_members WHERE region='" + region.regionName() + "' AND uuid='" + uuid + "' AND " + "pinned=1;");
     }
 
     // Set the region to (un)pinned for a specific player.
     public void setPinned(Region region, String uuid, boolean pin) {
-        regionSQL.update("UPDATE region_members SET pinned=" + (pin ? "1" : "0") + " WHERE " +
-                "region='" + region.regionName() + "' AND uuid='" + uuid + "';");
+        regionSQL.update("UPDATE region_members SET pinned=" + (pin ? "1" : "0") + " WHERE " + "region='" + region.regionName() + "' AND uuid='" + uuid + "';");
     }
 
     // Get the server of the region.
     public String getServer(Region region) {
-        if (regionSQL.hasRow("SELECT region FROM regions WHERE region='" + region.regionName() + "' AND " +
-                "status='plot'")) {
+        if (regionSQL.hasRow("SELECT region FROM regions WHERE region='" + region.regionName() + "' AND " + "status='plot'")) {
             return (plotAPI.getRegionServer("SELECT server FROM regions WHERE region='" + region.regionName() + "';"));
         } else {
             return (globalSQL.getString("SELECT name FROM server_data WHERE type='EARTH';"));
@@ -176,23 +168,17 @@ public class RegionManager {
 
     // Return whether the uuid is the uuid of the region owner.
     public boolean isOwner(Region region, String uuid) {
-        return (regionSQL.hasRow(
-                "SELECT region FROM region_members WHERE region='" + region.regionName() + "' AND uuid='" + uuid + "' AND " +
-                        "is_owner=1;"));
+        return (regionSQL.hasRow("SELECT region FROM region_members WHERE region='" + region.regionName() + "' AND uuid='" + uuid + "' AND " + "is_owner=1;"));
     }
 
     // Return whether the uuid is the uuid of a region member.
     public boolean isMember(Region region, String uuid) {
-        return (regionSQL.hasRow(
-                "SELECT region FROM region_members WHERE region='" + region.regionName() + "' AND uuid='" + uuid + "' AND " +
-                        "is_owner=0;"));
+        return (regionSQL.hasRow("SELECT region FROM region_members WHERE region='" + region.regionName() + "' AND uuid='" + uuid + "' AND " + "is_owner=0;"));
     }
 
     // Return the region status.
     public RegionStatus status(Region region) {
-        String status =
-                regionSQL.getString("SELECT status FROM regions WHERE region='" + region.regionName() +
-                        "';");
+        String status = regionSQL.getString("SELECT status FROM regions WHERE region='" + region.regionName() + "';");
         if (status == null) {
             return RegionStatus.DEFAULT;
         } else {
@@ -202,26 +188,22 @@ public class RegionManager {
 
     // Return whether the region is claimable.
     public boolean isClaimable(Region region) {
-        return (regionSQL.hasRow("SELECT region FROM regions WHERE region='" + region.regionName() + "' " +
-                "AND (status='default' OR status='public' OR status='inactive');"));
+        return (regionSQL.hasRow("SELECT region FROM regions WHERE region='" + region.regionName() + "' " + "AND (status='default' OR status='public' OR status='inactive');"));
     }
 
     // Return whether the region has been claimed in the past.
     public boolean wasClaimed(Region region) {
-        return (regionSQL.hasRow(
-                "SELECT region FROM region_logs WHERE region='" + region.regionName() + "' AND is_owner=1;"));
+        return (regionSQL.hasRow("SELECT region FROM region_logs WHERE region='" + region.regionName() + "' AND is_owner=1;"));
     }
 
     // Set the region as inactive.
     public void setInactive(Region region) {
-        regionSQL.update("UPDATE regions SET status='inactive' WHERE region='" + region.regionName() +
-                "';");
+        regionSQL.update("UPDATE regions SET status='inactive' WHERE region='" + region.regionName() + "';");
     }
 
     // Check if the region is in the plot system.
     public boolean isPlot(Region region) {
-        return regionSQL.hasRow("SELECT region FROM regions WHERE region='" + region.regionName() + "' " +
-                "AND status='plot';");
+        return regionSQL.hasRow("SELECT region FROM regions WHERE region='" + region.regionName() + "' " + "AND status='plot';");
     }
 
     // Set the region to be for plots.
@@ -233,18 +215,14 @@ public class RegionManager {
             // Send message to user.
             // Is sent before actual removal so we can read the region tag.
             DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), uuid, "server",
-                    ChatUtils.error("You have been kicked from region %s, it has been moved to the plot system.",
-                            getTag(region, uuid)),
-                    true);
+                    ChatUtils.error("You have been kicked from region %s, it has been moved to the plot system.", getTag(region, uuid)), true);
             chat.sendDirectMessage(directMessage);
 
             // Leave region in database.
-            regionSQL.update("DELETE FROM region_members WHERE region='" + region.regionName() + "' AND " +
-                    "uuid='" + uuid + "';");
+            regionSQL.update("DELETE FROM region_members WHERE region='" + region.regionName() + "' AND " + "uuid='" + uuid + "';");
 
             // Close log of player in region.
-            regionSQL.update("UPDATE region_logs SET end_time=" + Time.currentTime()
-                    + " WHERE region='" + region.regionName() + "' AND uuid='" + uuid + "';");
+            regionSQL.update("UPDATE region_logs SET end_time=" + Time.currentTime() + " WHERE region='" + region.regionName() + "' AND uuid='" + uuid + "';");
 
             // Leave region in worldGuard.
             worldGuard.addMember(region.regionName(), uuid, constants.earthWorld());
@@ -257,8 +235,7 @@ public class RegionManager {
 
     // Return whether the region has an owner.
     public boolean hasOwner(Region region) {
-        return (regionSQL.hasRow(
-                "SELECT region FROM region_members WHERE region='" + region.regionName() + "' AND is_owner=1;"));
+        return (regionSQL.hasRow("SELECT region FROM region_members WHERE region='" + region.regionName() + "' AND is_owner=1;"));
     }
 
     // Return whether the region has an owner.
@@ -269,27 +246,23 @@ public class RegionManager {
 
     // Return whether the region has a member.
     public boolean hasMember(Region region) {
-        return (regionSQL.hasRow(
-                "SELECT region FROM region_members WHERE region='" + region.regionName() + "' AND is_owner=0;"));
+        return (regionSQL.hasRow("SELECT region FROM region_members WHERE region='" + region.regionName() + "' AND is_owner=0;"));
     }
 
     // Return whether the region has an active member.
     public boolean hasActiveMember(Region region, long time) {
-        return (regionSQL.hasRow(
-                "SELECT region FROM region_members WHERE region='" + region.regionName() + "' AND is_owner=0 AND last_enter>=" + time + ";"));
+        return (regionSQL.hasRow("SELECT region FROM region_members WHERE region='" + region.regionName() + "' AND is_owner=0 AND last_enter>=" + time + ";"));
     }
 
     // Return the number of members, if any.
     public int memberCount(Region region) {
-        return (regionSQL.getInt(
-                "SELECT COUNT(uuid) FROM region_members WHERE region='" + region.regionName() + "' AND is_owner=0;"));
+        return (regionSQL.getInt("SELECT COUNT(uuid) FROM region_members WHERE region='" + region.regionName() + "' AND is_owner=0;"));
     }
 
     // Return the uuid of the region owner, if exists.
     public String getOwner(Region region) {
         if (hasOwner(region)) {
-            return (regionSQL.getString(
-                    "SELECT uuid FROM region_members WHERE region='" + region.regionName() + "' AND is_owner=1;"));
+            return (regionSQL.getString("SELECT uuid FROM region_members WHERE region='" + region.regionName() + "' AND is_owner=1;"));
         } else {
             return "null";
         }
@@ -306,34 +279,28 @@ public class RegionManager {
 
     // Return string array of member uuids.
     public ArrayList<String> getMembers(Region region) {
-        return regionSQL.getStringList(
-                "SELECT uuid FROM region_members WHERE region='" + region.regionName() + "';");
+        return regionSQL.getStringList("SELECT uuid FROM region_members WHERE region='" + region.regionName() + "';");
     }
 
     // Get the coordinate id for the location the player has set.
     public int getCoordinateID(Region region, String uuid) {
-        return regionSQL.getInt(
-                "SELECT coordinate_id FROM region_members WHERE region='" + region.regionName() + "' AND uuid='" + uuid + "';");
+        return regionSQL.getInt("SELECT coordinate_id FROM region_members WHERE region='" + region.regionName() + "' AND uuid='" + uuid + "';");
     }
 
     // Set the coordinate id for the location of the specified player.
     public void setCoordinateID(Region region, String uuid, int id) {
-        regionSQL.update(
-                "UPDATE region_members SET coordinate_id=" + id + " WHERE region='" + region.regionName() + "' AND uuid='" + uuid + "';");
+        regionSQL.update("UPDATE region_members SET coordinate_id=" + id + " WHERE region='" + region.regionName() + "' AND uuid='" + uuid + "';");
     }
 
     // Set the last enter time for the region.
     public void setLastEnter(Region region, String uuid) {
-        regionSQL.update("UPDATE region_members SET last_enter=" + Time.currentTime() + " WHERE" +
-                " region='" + region.regionName() + "' AND uuid='" + uuid + "';");
+        regionSQL.update("UPDATE region_members SET last_enter=" + Time.currentTime() + " WHERE" + " region='" + region.regionName() + "' AND uuid='" + uuid + "';");
     }
 
     // Get the most recent member to enter the region.
     public String getRecentMember(Region region) {
         if (hasMember(region)) {
-            return regionSQL.getString(
-                    "SELECT uuid FROM region_members WHERE region='" + region.regionName() + "' AND is_owner=0 ORDER BY " +
-                            "last_enter DESC;");
+            return regionSQL.getString("SELECT uuid FROM region_members WHERE region='" + region.regionName() + "' AND is_owner=0 ORDER BY " + "last_enter DESC;");
         } else {
             return null;
         }
@@ -341,15 +308,13 @@ public class RegionManager {
 
     // Set the region to default.
     public void setDefault(Region region) {
-        regionSQL.update("UPDATE regions SET status='default' WHERE region='" + region.regionName() +
-                "';");
+        regionSQL.update("UPDATE regions SET status='default' WHERE region='" + region.regionName() + "';");
     }
 
     // Set the region to default.
     public void setDefault(Region region, String removeRole) {
         worldGuard.removeGroup(region.regionName(), removeRole, constants.earthWorld());
-        regionSQL.update("UPDATE regions SET status='default' WHERE region='" + region.regionName() +
-                "';");
+        regionSQL.update("UPDATE regions SET status='default' WHERE region='" + region.regionName() + "';");
     }
 
     // Set the region to public.
@@ -387,8 +352,7 @@ public class RegionManager {
     public void addToDatabase(Region region) {
         // Check if it's not already in the database.
         if (!inDatabase(region)) {
-            regionSQL.update("INSERT INTO regions(region,status) VALUES('" + region.regionName() + "'," +
-                    "'default');");
+            regionSQL.update("INSERT INTO regions(region,status) VALUES('" + region.regionName() + "'," + "'default');");
 
             createWorldGuardRegion(region);
         }
@@ -398,8 +362,7 @@ public class RegionManager {
     public void addToPlotsystem(Region region) {
         // Check if it's not already in the database.
         if (!inDatabase(region)) {
-            regionSQL.update("INSERT INTO regions(region,status) VALUES('" + region.regionName() + "'," +
-                    "'plot');");
+            regionSQL.update("INSERT INTO regions(region,status) VALUES('" + region.regionName() + "'," + "'plot');");
 
             createWorldGuardRegion(region);
         }
@@ -407,51 +370,42 @@ public class RegionManager {
 
     private void createWorldGuardRegion(Region region) {
         // Create region in worldguard.
-        worldGuard.createRegion(region.regionName(), Integer.parseInt(region.regionName().split(",")[0]) * 512,
-                Integer.parseInt(region.regionName().split(",")[1]) * 512,
-                Integer.parseInt(region.regionName().split(",")[0]) * 512 + 511,
-                Integer.parseInt(region.regionName().split(",")[1]) * 512 + 511,
-                constants.earthWorld());
+        worldGuard.createRegion(region.regionName(), Integer.parseInt(region.regionName().split(",")[0]) * 512, Integer.parseInt(region.regionName().split(",")[1]) * 512,
+                Integer.parseInt(region.regionName().split(",")[0]) * 512 + 511, Integer.parseInt(region.regionName().split(",")[1]) * 512 + 511, constants.earthWorld());
     }
 
     // Check if this region has any requests.
     public boolean hasRequests(Region region) {
-        return regionSQL.hasRow(
-                "SELECT region FROM region_requests WHERE region='" + region.regionName() + "';");
+        return regionSQL.hasRow("SELECT region FROM region_requests WHERE region='" + region.regionName() + "';");
     }
 
     // Check if the player has already requested to join this region.
     public boolean hasRequest(Region region, String uuid) {
-        return regionSQL.hasRow(
-                "SELECT region FROM region_requests WHERE region='" + region.regionName() + "' AND uuid='" + uuid + "';");
+        return regionSQL.hasRow("SELECT region FROM region_requests WHERE region='" + region.regionName() + "' AND uuid='" + uuid + "';");
     }
 
     // Check if the specified player has been invited to this region.
     public boolean hasInvite(Region region, String uuid) {
-        return regionSQL.hasRow(
-                "SELECT region FROM region_invites WHERE region='" + region.regionName() + "' AND uuid='" + uuid + "';");
+        return regionSQL.hasRow("SELECT region FROM region_invites WHERE region='" + region.regionName() + "' AND uuid='" + uuid + "';");
     }
 
     // Remove a region invite.
     public void removeInvite(Region region, String uuid) {
-        regionSQL.update("DELETE FROM region_invites WHERE region='" + region.regionName() + "' AND " +
-                "uuid='" + uuid + "';");
+        regionSQL.update("DELETE FROM region_invites WHERE region='" + region.regionName() + "' AND " + "uuid='" + uuid + "';");
     }
 
     // Accept any requests for this region.
     public void acceptRequests(Region region) {
 
         // Get all requests for this region by uuid.
-        ArrayList<String> uuids = regionSQL.getStringList("SELECT uuid FROM region_requests " +
-                "WHERE region='" + region.regionName() + "';");
+        ArrayList<String> uuids = regionSQL.getStringList("SELECT uuid FROM region_requests " + "WHERE region='" + region.regionName() + "';");
         int coordinate_id;
 
         // Add all users to the region.
         for (String uuid : uuids) {
 
             // Get coordinate id from request.
-            coordinate_id = regionSQL.getInt("SELECT coordinate_id FROM region_requests WHERE " +
-                    "region='" + region.regionName() + "' AND uuid='" + uuid + "';");
+            coordinate_id = regionSQL.getInt("SELECT coordinate_id FROM region_requests WHERE " + "region='" + region.regionName() + "' AND uuid='" + uuid + "';");
 
             // Join region.
             joinRegion(region, uuid, coordinate_id);
@@ -465,28 +419,24 @@ public class RegionManager {
     public void acceptRequest(Region region, String uuid) {
 
         // Get the coordinate id for the request.
-        int coordinate_id = regionSQL.getInt("SELECT coordinate_id FROM region_requests WHERE " +
-                "region='" + region.regionName() + "' AND uuid='" + uuid + "';");
+        int coordinate_id = regionSQL.getInt("SELECT coordinate_id FROM region_requests WHERE " + "region='" + region.regionName() + "' AND uuid='" + uuid + "';");
 
         // Add them to the region.
         joinRegion(region, uuid, coordinate_id);
 
         // Delete request.
-        regionSQL.update("DELETE FROM region_requests WHERE region='" + region.regionName() + "' AND " +
-                "uuid='" + uuid + "'; ");
+        regionSQL.update("DELETE FROM region_requests WHERE region='" + region.regionName() + "' AND " + "uuid='" + uuid + "'; ");
     }
 
     // Deny a request for a specific user.
     public void denyRequest(Region region, String uuid) {
 
         // Delete the request.
-        regionSQL.update("DELETE FROM region_requests WHERE region='" + region.regionName() + "' AND " +
-                "uuid='" + uuid + "';");
+        regionSQL.update("DELETE FROM region_requests WHERE region='" + region.regionName() + "' AND " + "uuid='" + uuid + "';");
 
         // Send message to user.
         DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), uuid, "server",
-                ChatUtils.success("Your request to join region %s has been denied.", region.regionName()),
-                true);
+                ChatUtils.success("Your request to join region %s has been denied.", region.regionName()), true);
         chat.sendDirectMessage(directMessage);
     }
 
@@ -494,8 +444,7 @@ public class RegionManager {
     public void cancelRequest(Region region, Player player) {
 
         // Delete request.
-        regionSQL.update("DELETE FROM region_requests WHERE region='" + region.regionName() + "' AND " +
-                "uuid='" + player.getUniqueId() + "'; ");
+        regionSQL.update("DELETE FROM region_requests WHERE region='" + region.regionName() + "' AND " + "uuid='" + player.getUniqueId() + "'; ");
 
         // Send message to player.
         player.sendMessage(ChatUtils.success("Cancelled region join request."));
@@ -519,36 +468,32 @@ public class RegionManager {
             // Staff request
 
             // Create request.
-            regionSQL.update("INSERT INTO region_requests(region,uuid,owner,staff_accept," +
-                    "coordinate_id) VALUES ('" + region.regionName() + "','" +
-                    player.getUniqueId() + "','" + getOwner(region) + "',0," + coordinate + ");");
+            regionSQL.update(
+                    "INSERT INTO region_requests(region,uuid,owner,staff_accept," + "coordinate_id) VALUES ('" + region.regionName() + "','" + player.getUniqueId() + "','" + getOwner(
+                            region) + "',0," + coordinate + ");");
 
             // Send message to player.
-            player.sendMessage(ChatUtils.success("Requested to join region ")
-                    .append(Component.text(region.regionName(), NamedTextColor.DARK_AQUA))
+            player.sendMessage(ChatUtils.success("Requested to join region ").append(Component.text(region.regionName(), NamedTextColor.DARK_AQUA))
                     .append(ChatUtils.success(", awaiting staff review.")));
 
             ChatMessage chatMessage = new ChatMessage(ChatChannels.REVIEWER.getChannelName(), "server",
-                    ChatUtils.success("A region join request has been submitted by %s for region %s",
-                            player.getName(), region.regionName()));
+                    ChatUtils.success("A region join request has been submitted by %s for region %s", player.getName(), region.regionName()));
             chat.sendChatMessage(chatMessage);
         } else {
             // Owner request
 
             // Create request.
-            regionSQL.update("INSERT INTO region_requests(region,uuid,owner,owner_accept," +
-                    "coordinate_id) VALUES ('" + region.regionName() + "','" +
-                    player.getUniqueId() + "','" + getOwner(region) + "',0," + coordinate + ");");
+            regionSQL.update(
+                    "INSERT INTO region_requests(region,uuid,owner,owner_accept," + "coordinate_id) VALUES ('" + region.regionName() + "','" + player.getUniqueId() + "','" + getOwner(
+                            region) + "',0," + coordinate + ");");
 
             // Send message to player.
-            player.sendMessage(ChatUtils.success("Requested to join region ")
-                    .append(Component.text(region.regionName(), NamedTextColor.DARK_AQUA))
+            player.sendMessage(ChatUtils.success("Requested to join region ").append(Component.text(region.regionName(), NamedTextColor.DARK_AQUA))
                     .append(ChatUtils.success(", awaiting owner review.")));
 
             // Send the owner a message.
             DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), getOwner(region), "server",
-                    ChatUtils.success("%s has requested to join region %s.", player.getName(), getTag(region, getOwner(region))),
-                    false);
+                    ChatUtils.success("%s has requested to join region %s.", player.getName(), getTag(region, getOwner(region))), false);
             chat.sendDirectMessage(directMessage);
         }
     }
@@ -563,20 +508,16 @@ public class RegionManager {
             int coordinateID = coordinateAPI.addCoordinate(LocationAdapter.adapt(player.getLocation()));
 
             // Join region as member.
-            regionSQL.update("INSERT INTO region_members(region,uuid,last_enter,coordinate_id) " +
-                    "VALUES('" + region.regionName() + "','" +
-                    player.getUniqueId() + "'," + Time.currentTime() + "," + coordinateID + ");");
+            regionSQL.update(
+                    "INSERT INTO region_members(region,uuid,last_enter,coordinate_id) " + "VALUES('" + region.regionName() + "','" + player.getUniqueId() + "'," + Time.currentTime() + "," + coordinateID + ");");
 
             // Start log of player in region.
-            regionSQL.update(
-                    "INSERT INTO region_logs(region,uuid,start_time) VALUES('" + region.regionName() + "','" +
-                            player.getUniqueId() + "'," + Time.currentTime() + ");");
+            regionSQL.update("INSERT INTO region_logs(region,uuid,start_time) VALUES('" + region.regionName() + "','" + player.getUniqueId() + "'," + Time.currentTime() + ");");
 
             // Join region in worldGuard.
             worldGuard.addMember(region.regionName(), player.getUniqueId().toString(), player.getWorld().getName());
 
-            player.sendMessage(ChatUtils.success("You have joined the region ")
-                    .append(Component.text(region.regionName(), NamedTextColor.DARK_AQUA))
+            player.sendMessage(ChatUtils.success("You have joined the region ").append(Component.text(region.regionName(), NamedTextColor.DARK_AQUA))
                     .append(ChatUtils.success(" as a member.")));
         } else {
 
@@ -586,22 +527,16 @@ public class RegionManager {
                 String owner = getOwner(region);
 
                 // Demote owner in database.
-                regionSQL.update(
-                        "UPDATE region_members SET is_owner=0 WHERE region='" + region.regionName() + "' AND uuid='" + owner + "';");
+                regionSQL.update("UPDATE region_members SET is_owner=0 WHERE region='" + region.regionName() + "' AND uuid='" + owner + "';");
 
                 // Close log for owner.
-                regionSQL.update("UPDATE region_logs SET end_time=" + Time.currentTime() + " " +
-                        "WHERE region='" + region.regionName() + "' AND uuid='" + owner + "';");
+                regionSQL.update("UPDATE region_logs SET end_time=" + Time.currentTime() + " " + "WHERE region='" + region.regionName() + "' AND uuid='" + owner + "';");
 
                 // Open log for previous owner as member.
-                regionSQL.update(
-                        "INSERT INTO region_logs(region,uuid,start_time) VALUES('" + region.regionName() + "','" +
-                                owner + "'," + Time.currentTime() + ");");
+                regionSQL.update("INSERT INTO region_logs(region,uuid,start_time) VALUES('" + region.regionName() + "','" + owner + "'," + Time.currentTime() + ");");
 
                 DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), owner, "server",
-                        ChatUtils.success("You have been demoted to a member in region %s due to inactivity.",
-                                getTag(region, owner)),
-                        true);
+                        ChatUtils.success("You have been demoted to a member in region %s due to inactivity.", getTag(region, owner)), true);
                 chat.sendDirectMessage(directMessage);
 
                 // Set region to default, since it would've been set to inactive previously.
@@ -612,20 +547,17 @@ public class RegionManager {
             int coordinateID = coordinateAPI.addCoordinate(LocationAdapter.adapt(player.getLocation()));
 
             // Join region as owner.
-            regionSQL.update("INSERT INTO region_members(region,uuid,is_owner,last_enter," +
-                    "coordinate_id) VALUES('" + region.regionName() + "','" +
-                    player.getUniqueId() + "',1," + Time.currentTime() + "," + coordinateID + ");");
+            regionSQL.update(
+                    "INSERT INTO region_members(region,uuid,is_owner,last_enter," + "coordinate_id) VALUES('" + region.regionName() + "','" + player.getUniqueId() + "',1," + Time.currentTime() + "," + coordinateID + ");");
 
             // Start log of player in region.
-            regionSQL.update("INSERT INTO region_logs(region,uuid,is_owner,start_time) VALUES" +
-                    "('" + region.regionName() + "','" +
-                    player.getUniqueId() + "',1," + Time.currentTime() + ");");
+            regionSQL.update(
+                    "INSERT INTO region_logs(region,uuid,is_owner,start_time) VALUES" + "('" + region.regionName() + "','" + player.getUniqueId() + "',1," + Time.currentTime() + ");");
 
             // Join region in worldGuard.
             worldGuard.addMember(region.regionName(), player.getUniqueId().toString(), player.getWorld().getName());
 
-            player.sendMessage(ChatUtils.success("You have joined the region ")
-                    .append(Component.text(region.regionName(), NamedTextColor.DARK_AQUA))
+            player.sendMessage(ChatUtils.success("You have joined the region ").append(Component.text(region.regionName(), NamedTextColor.DARK_AQUA))
                     .append(ChatUtils.success(" as the owner.")));
         }
     }
@@ -637,22 +569,18 @@ public class RegionManager {
         if (hasOwner(region)) {
 
             // Join region as member.
-            regionSQL.update("INSERT INTO region_members(region,uuid,last_enter,coordinate_id) " +
-                    "VALUES('" + region.regionName() + "','" +
-                    uuid + "'," + Time.currentTime() + "," + coordinateID + ");");
+            regionSQL.update(
+                    "INSERT INTO region_members(region,uuid,last_enter,coordinate_id) " + "VALUES('" + region.regionName() + "','" + uuid + "'," + Time.currentTime() + "," + coordinateID + ");");
 
             // Start log of player in region.
-            regionSQL.update(
-                    "INSERT INTO region_logs(region,uuid,start_time) VALUES('" + region.regionName() + "','" +
-                            uuid + "'," + Time.currentTime() + ");");
+            regionSQL.update("INSERT INTO region_logs(region,uuid,start_time) VALUES('" + region.regionName() + "','" + uuid + "'," + Time.currentTime() + ");");
 
             // Join region in worldGuard.
             worldGuard.addMember(region.regionName(), uuid, constants.earthWorld());
 
             // Send message to user.
             DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), uuid, "server",
-                    ChatUtils.success("You have joined the region %s as a member.", region.regionName()),
-                    true);
+                    ChatUtils.success("You have joined the region %s as a member.", region.regionName()), true);
             chat.sendDirectMessage(directMessage);
         } else {
 
@@ -662,41 +590,31 @@ public class RegionManager {
                 String owner = getOwner(region);
 
                 // Demote owner in database.
-                regionSQL.update(
-                        "UPDATE region_members SET is_owner=0 WHERE region='" + region.regionName() + "' AND uuid='" + owner + "';");
+                regionSQL.update("UPDATE region_members SET is_owner=0 WHERE region='" + region.regionName() + "' AND uuid='" + owner + "';");
 
                 // Close log for owner.
-                regionSQL.update("UPDATE region_logs SET end_time=" + Time.currentTime() + " " +
-                        "WHERE region='" + region.regionName() + "' AND uuid='" + owner + "';");
+                regionSQL.update("UPDATE region_logs SET end_time=" + Time.currentTime() + " " + "WHERE region='" + region.regionName() + "' AND uuid='" + owner + "';");
 
                 // Open log for previous owner as member.
-                regionSQL.update(
-                        "INSERT INTO region_logs(region,uuid,start_time) VALUES('" + region.regionName() + "','" +
-                                owner + "'," + Time.currentTime() + ");");
+                regionSQL.update("INSERT INTO region_logs(region,uuid,start_time) VALUES('" + region.regionName() + "','" + owner + "'," + Time.currentTime() + ");");
 
                 DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), owner, "server",
-                        ChatUtils.success("You have been demoted to a member in region %s due to inactivity.",
-                                getTag(region, owner)),
-                        true);
+                        ChatUtils.success("You have been demoted to a member in region %s due to inactivity.", getTag(region, owner)), true);
                 chat.sendDirectMessage(directMessage);
             }
 
             // Join region as owner.
-            regionSQL.update("INSERT INTO region_members(region,uuid,is_owner,last_enter," +
-                    "coordinate_id) VALUES('" + region.regionName() + "','" +
-                    uuid + "',1," + Time.currentTime() + "," + coordinateID + ");");
+            regionSQL.update(
+                    "INSERT INTO region_members(region,uuid,is_owner,last_enter," + "coordinate_id) VALUES('" + region.regionName() + "','" + uuid + "',1," + Time.currentTime() + "," + coordinateID + ");");
 
             // Start log of player in region.
-            regionSQL.update("INSERT INTO region_logs(region,uuid,is_owner,start_time) VALUES" +
-                    "('" + region.regionName() + "','" +
-                    uuid + "',1," + Time.currentTime() + ");");
+            regionSQL.update("INSERT INTO region_logs(region,uuid,is_owner,start_time) VALUES" + "('" + region.regionName() + "','" + uuid + "',1," + Time.currentTime() + ");");
 
             // Join region in worldGuard.
             worldGuard.addMember(region.regionName(), uuid, constants.earthWorld());
 
             DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), uuid, "server",
-                    ChatUtils.success("You have joined the region %s as the owner.", region.regionName()),
-                    true);
+                    ChatUtils.success("You have joined the region %s as the owner.", region.regionName()), true);
             chat.sendDirectMessage(directMessage);
         }
     }
@@ -710,25 +628,20 @@ public class RegionManager {
 
             // Send message to user.
             // Is sent before actual removal so we can read the region tag.
-            DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), uuid, "server",
-                    message, true);
+            DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), uuid, "server", message, true);
             chat.sendDirectMessage(directMessage);
 
             // Leave region in database.
-            regionSQL.update("DELETE FROM region_members WHERE region='" + region.regionName() + "' AND " +
-                    "uuid='" + uuid + "';");
+            regionSQL.update("DELETE FROM region_members WHERE region='" + region.regionName() + "' AND " + "uuid='" + uuid + "';");
 
             // Close log of player in region.
-            regionSQL.update("UPDATE region_logs SET end_time=" + Time.currentTime()
-                    + " WHERE region='" + region.regionName() + "' AND uuid='" + uuid + "';");
+            regionSQL.update("UPDATE region_logs SET end_time=" + Time.currentTime() + " WHERE region='" + region.regionName() + "' AND uuid='" + uuid + "';");
 
             // Leave region in worldGuard.
             worldGuard.removeMember(region.regionName(), uuid, constants.earthWorld());
         } else {
 
-            eventAPI.createEvent(uuid, "network", globalSQL.getString("SELECT name " +
-                            "FROM server_data WHERE type='EARTH';"),
-                    "region leave " + region.regionName(), message);
+            eventAPI.createEvent(uuid, "network", globalSQL.getString("SELECT name " + "FROM server_data WHERE type='EARTH';"), "region leave " + region.regionName(), message);
         }
     }
 
@@ -739,17 +652,13 @@ public class RegionManager {
         String uuid = getOwner(region);
 
         // Close log of player as owner.
-        regionSQL.update("UPDATE region_logs SET end_time=" + Time.currentTime()
-                + " WHERE region='" + region.regionName() + "' AND uuid='" + uuid + "';");
+        regionSQL.update("UPDATE region_logs SET end_time=" + Time.currentTime() + " WHERE region='" + region.regionName() + "' AND uuid='" + uuid + "';");
 
         // Open log of player as member.
-        regionSQL.update(
-                "INSERT INTO region_logs(region,uuid,start_time) VALUES('" + region.regionName() + "','" +
-                        uuid + "'," + Time.currentTime() + ");");
+        regionSQL.update("INSERT INTO region_logs(region,uuid,start_time) VALUES('" + region.regionName() + "','" + uuid + "'," + Time.currentTime() + ");");
 
         // Update region member to set as member.
-        regionSQL.update("UPDATE region_members SET is_owner=0 WHERE region='" + region.regionName() +
-                "' AND uuid='" + uuid + "';");
+        regionSQL.update("UPDATE region_members SET is_owner=0 WHERE region='" + region.regionName() + "' AND uuid='" + uuid + "';");
     }
 
     // Make a member the owner of the region.
@@ -759,17 +668,13 @@ public class RegionManager {
         if (isMember(region, uuid)) {
 
             // Close log of player as member.
-            regionSQL.update("UPDATE region_logs SET end_time=" + Time.currentTime()
-                    + " WHERE region='" + region.regionName() + "' AND uuid='" + uuid + "';");
+            regionSQL.update("UPDATE region_logs SET end_time=" + Time.currentTime() + " WHERE region='" + region.regionName() + "' AND uuid='" + uuid + "';");
 
             // Open log of player as owner.
-            regionSQL.update("INSERT INTO region_logs(region,uuid,is_owner,start_time) VALUES" +
-                    "('" + region.regionName() + "','" +
-                    uuid + "',1," + Time.currentTime() + ");");
+            regionSQL.update("INSERT INTO region_logs(region,uuid,is_owner,start_time) VALUES" + "('" + region.regionName() + "','" + uuid + "',1," + Time.currentTime() + ");");
 
             // Update region member to set as owner.
-            regionSQL.update(
-                    "UPDATE region_members SET is_owner=1 WHERE region='" + region.regionName() + "' AND uuid='" + uuid + "';");
+            regionSQL.update("UPDATE region_members SET is_owner=1 WHERE region='" + region.regionName() + "' AND uuid='" + uuid + "';");
 
             // If the region is currently set as inactive and the new owner isn't, set it to default.
             if (status(region) == RegionStatus.INACTIVE && hasActiveOwner(region)) {
@@ -785,8 +690,7 @@ public class RegionManager {
         // If there is an owner, update the owner row in the request.
         if (hasOwner(region)) {
 
-            regionSQL.update("UPDATE region_requests SET owner='" + getOwner(region) + "' WHERE " +
-                    "region='" + region.regionName() + "';");
+            regionSQL.update("UPDATE region_requests SET owner='" + getOwner(region) + "' WHERE " + "region='" + region.regionName() + "';");
         } else {
 
             acceptRequests(region);
@@ -800,20 +704,17 @@ public class RegionManager {
         if (hasOwner(region) || hasMember(region)) {
 
             // Get all members.
-            ArrayList<String> uuids = regionSQL.getStringList("SELECT uuid FROM region_members " +
-                    "WHERE region='" + region.regionName() + "';");
+            ArrayList<String> uuids = regionSQL.getStringList("SELECT uuid FROM region_members " + "WHERE region='" + region.regionName() + "';");
 
             for (String uuid : uuids) {
-                leaveRegion(region, uuid, success ? ChatUtils.success(message, getTag(region, uuid)) : ChatUtils.error(message,
-                        getTag(region, uuid)));
+                leaveRegion(region, uuid, success ? ChatUtils.success(message, getTag(region, uuid)) : ChatUtils.error(message, getTag(region, uuid)));
             }
         }
     }
 
     // Get time that a region member was last in this region.
     public long lastActive(Region region, String uuid) {
-        return (regionSQL.getLong(
-                "SELECT last_enter FROM region_members WHERE region='" + region.regionName() + "' AND uuid='" + uuid + "';"));
+        return (regionSQL.getLong("SELECT last_enter FROM region_members WHERE region='" + region.regionName() + "' AND uuid='" + uuid + "';"));
     }
 
     // Check if the player can build in this region.
@@ -827,10 +728,8 @@ public class RegionManager {
             // Check for inactive owners.
             // If the region has members, then make the most recently active member the new owner,
             // If the region has no members, then set it inactive.
-            List<Inactivity> inactive_owners = regionSQL.getInactives("SELECT rm.region,rm.uuid FROM region_members AS rm" +
-                    " INNER JOIN regions AS r ON rm.region=r.region WHERE rm.is_owner=1 AND rm.last_enter<" + (Time.currentTime() - constants.regionInactivity()) + " AND r" +
-                    ".status <> " +
-                    "'inactive';");
+            List<Inactivity> inactive_owners = regionSQL.getInactives(
+                    "SELECT rm.region,rm.uuid FROM region_members AS rm" + " INNER JOIN regions AS r ON rm.region=r.region WHERE rm.is_owner=1 AND rm.last_enter<" + (Time.currentTime() - constants.regionInactivity()) + " AND r" + ".status <> " + "'inactive';");
             long currentTime = Time.currentTime();
 
             for (Inactivity inactive : inactive_owners) {

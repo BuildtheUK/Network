@@ -20,7 +20,7 @@ public abstract class PmuteAction extends AbstractCommand {
     protected PmuteAction(Network instance, Component error) {
         this.instance = instance;
         this.error = error;
-        setTabCompleter(new PlayerSelector());
+        setTabCompleter(new PlayerSelector(instance));
     }
 
     public void onCommand(CommandSourceStack stack, String[] args, boolean mute) {

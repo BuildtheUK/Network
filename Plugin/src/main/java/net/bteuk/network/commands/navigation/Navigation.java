@@ -5,6 +5,7 @@ import lombok.extern.java.Log;
 import net.bteuk.network.Network;
 import net.bteuk.network.commands.AbstractCommand;
 import net.bteuk.network.commands.tabcompleters.NavigationTabCompleter;
+import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.navigation.AddLocation;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.sql.GlobalSQL;
@@ -28,11 +29,13 @@ public class Navigation extends AbstractCommand {
 
     private final Network instance;
     private final GlobalSQL globalSQL;
+    private final GuiProvider provider;
 
-    public Navigation(Network instance) {
+    public Navigation(Network instance, GuiProvider provider) {
         this.instance = instance;
         this.globalSQL = instance.getGlobalSQL();
-        setTabCompleter(new NavigationTabCompleter());
+        this.provider = provider;
+        setTabCompleter(new NavigationTabCompleter(globalSQL));
     }
 
     @Override
@@ -87,7 +90,7 @@ public class Navigation extends AbstractCommand {
             if (u.mainGui != null) {
                 u.mainGui.delete();
             }
-            u.mainGui = new AddLocation(AddLocationType.ADD);
+            u.mainGui = new AddLocation(provider, AddLocationType.ADD);
             u.mainGui.open(u.player);
         } else {
             u.sendMessage(ChatUtils.error("You do not have permission to use this command."));
@@ -144,7 +147,7 @@ public class Navigation extends AbstractCommand {
         }
         int coordinate_id = globalSQL.getInt("SELECT coordinate FROM location_data WHERE " +
                 "location='" + location + "';");
-        u.staffGui = new AddLocation(AddLocationType.UPDATE, location, coordinate_id, category, subcategory);
+        u.staffGui = new AddLocation(provider, AddLocationType.UPDATE, location, coordinate_id, category, subcategory);
         u.staffGui.open(u.player);
     }
 

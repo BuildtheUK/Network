@@ -100,7 +100,7 @@ public class AddLocation extends NetworkRefreshableGui {
                             locationNameListener.unregister();
                         }
 
-                        locationNameListener = new LocationNameListener(u.player, this);
+                        locationNameListener = new LocationNameListener(provider.instance(), u.player, this);
                         u.player.sendMessage(ChatUtils.success("Write the location name in chat, the first message " + "counts. You can include spaces in the name."));
                         u.player.closeInventory();
                     });
@@ -114,7 +114,7 @@ public class AddLocation extends NetworkRefreshableGui {
                             locationNameListener.unregister();
                         }
 
-                        locationNameListener = new LocationNameListener(u.player, this);
+                        locationNameListener = new LocationNameListener(provider.instance(), u.player, this);
                         u.player.sendMessage(ChatUtils.success("Write the location name in chat, the first message " + "counts. You can include spaces in the name."));
                         u.player.closeInventory();
                     });

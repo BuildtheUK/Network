@@ -36,7 +36,7 @@ public class Teleport extends AbstractCommand {
         this.serverAPI = serverAPI;
         this.globalSQL = instance.getGlobalSQL();
         this.constants = constants;
-        setTabCompleter(new PlayerSelector());
+        setTabCompleter(new PlayerSelector(instance));
     }
 
     @Override
@@ -67,8 +67,7 @@ public class Teleport extends AbstractCommand {
 
                 // If the player is on your server teleport.
                 // Else switch server and add teleport join event.
-                Optional<NetworkUser> optionalNetworkUser =
-                        instance.getNetworkUserByUuid(onlineUser.getUuid());
+                Optional<NetworkUser> optionalNetworkUser = instance.getNetworkUserByUuid(onlineUser.getUuid());
 
                 NetworkLocation currentLocation = LocationAdapter.adapt(player.getLocation());
                 optionalNetworkUser.ifPresentOrElse((NetworkUser user) -> {
@@ -79,8 +78,7 @@ public class Teleport extends AbstractCommand {
                     player.sendMessage(ChatUtils.success("Teleported to %s", onlineUser.getName()));
                 }, () -> {
                     if (!constants.standalone()) {
-                        eventAPI.createTeleportEvent(true, player.getUniqueId().toString(), "network", "teleport " +
-                                "player " + onlineUser.getUuid(), currentLocation);
+                        eventAPI.createTeleportEvent(true, player.getUniqueId().toString(), "network", "teleport " + "player " + onlineUser.getUuid(), currentLocation);
                         serverAPI.switchServer(PlayerAdapter.adapt(player), onlineUser.getServer());
                     }
                 });

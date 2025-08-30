@@ -31,7 +31,7 @@ public abstract class PromotionAction extends AbstractCommand {
         this.roles = roles;
         this.error = error;
         this.chat = customChat;
-        setTabCompleter(new MultiArgSelector(List.of(new PlayerSelector(false),
+        setTabCompleter(new MultiArgSelector(List.of(new PlayerSelector(instance, false),
                 new FixedArgSelector(roles.getRoles().stream().map(Role::getId).collect(Collectors.toList()), 1))));
     }
 

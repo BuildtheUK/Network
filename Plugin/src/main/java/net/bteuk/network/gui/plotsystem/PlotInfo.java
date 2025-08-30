@@ -295,7 +295,7 @@ public class PlotInfo extends NetworkRefreshableGui {
                                 "SELECT id FROM plot_review WHERE uuid='" + u.getUuid() + "' " + "AND plot_id=" + plotID + " AND accepted=1 AND completed=1;");
 
                         // Open the feedback book.
-                        u.player.openBook(ReviewFeedback.createFeedbackBook(reviewId));
+                        u.player.openBook(ReviewFeedback.createFeedbackBook(globalSQL, plotSQL, reviewId));
                     });
         }
 

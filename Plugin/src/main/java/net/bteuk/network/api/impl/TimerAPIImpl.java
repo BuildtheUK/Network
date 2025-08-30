@@ -26,6 +26,14 @@ public class TimerAPIImpl implements TimerAPI, ShutdownHook {
     }
 
     @Override
+    public void cancelTimer(int timerId) {
+        if (timers.containsKey(timerId)) {
+            instance.getServer().getScheduler().cancelTask(timerId);
+            timers.remove(timerId);
+        }
+    }
+
+    @Override
     public void shutdown() {
         timers.forEach((id, runnable) -> instance.getServer().getScheduler().cancelTask(id));
     }

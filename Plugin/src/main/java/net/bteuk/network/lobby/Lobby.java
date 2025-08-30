@@ -12,7 +12,14 @@ The reason the lobby functions have been separated is to prevent unnecessary res
  */
 
 import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.java.Log;
+import net.bteuk.network.CommandManager;
 import net.bteuk.network.Network;
+import net.bteuk.network.api.ServerAPI;
+import net.bteuk.network.core.Constants;
+import net.bteuk.network.eventing.events.EventManager;
+import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.utils.NetworkUser;
 import net.kyori.adventure.inventory.Book;
 import net.kyori.adventure.text.Component;
@@ -31,11 +38,16 @@ import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Set;
 
-import static net.bteuk.network.utils.NetworkConfig.CONFIG;
-
+@Log
 public class Lobby {
 
     private final Network instance;
+    private final Constants constants;
+    private final ServerAPI serverAPI;
+    private final EventManager eventManager;
+
+    @Setter
+    private GuiProvider guiProvider;
 
     private final ArrayList<Portal> portals;
     @Getter
@@ -44,9 +56,12 @@ public class Lobby {
     private Book rulesBook;
     private Map map;
 
-    public Lobby(Network instance) {
+    public Lobby(Network instance, Constants constants, ServerAPI serverAPI, EventManager eventManager) {
 
         this.instance = instance;
+        this.constants = constants;
+        this.serverAPI = serverAPI;
+        this.eventManager = eventManager;
         portals = new ArrayList<>();
     }
 
@@ -57,7 +72,7 @@ public class Lobby {
 
         // Clear the portals arrayList and stop the portals from running.
         if (portalTask != 0) {
-            Bukkit.getScheduler().cancelTask(portalTask);
+            instance.getTimerAPI().cancelTimer(portalTask);
         }
         portals.clear();
 
@@ -85,8 +100,7 @@ public class Lobby {
             return;
         }
 
-        Set<String> portalNames =
-                Objects.requireNonNull(portalsConfig.getConfigurationSection("portals")).getKeys(false);
+        Set<String> portalNames = Objects.requireNonNull(portalsConfig.getConfigurationSection("portals")).getKeys(false);
 
         // Create the portal from the config.
         for (String portalName : portalNames) {
@@ -94,19 +108,12 @@ public class Lobby {
             // Create new portal with given values from config.
             try {
 
-                portals.add(new Portal(
-                        portalsConfig.getInt("portals." + portalName + ".min.x"),
-                        portalsConfig.getInt("portals." + portalName + ".min.y"),
-                        portalsConfig.getInt("portals." + portalName + ".min.z"),
-                        portalsConfig.getInt("portals." + portalName + ".max.x"),
-                        portalsConfig.getInt("portals." + portalName + ".max.y"),
-                        portalsConfig.getInt("portals." + portalName + ".max.z"),
-                        Objects.requireNonNull(portalsConfig.getString("portals." + portalName + ".executes")).split(
-                                ",")
-                ));
+                portals.add(new Portal(eventManager, portalsConfig.getInt("portals." + portalName + ".min.x"), portalsConfig.getInt("portals." + portalName + ".min.y"),
+                        portalsConfig.getInt("portals." + portalName + ".min.z"), portalsConfig.getInt("portals." + portalName + ".max.x"),
+                        portalsConfig.getInt("portals." + portalName + ".max.y"), portalsConfig.getInt("portals." + portalName + ".max.z"),
+                        Objects.requireNonNull(portalsConfig.getString("portals." + portalName + ".executes")).split(",")));
             } catch (Exception e) {
-                Network.getInstance().getLogger().warning("Portal " + portalName + " configured incorrectly, please " +
-                        "check the portals.yml file.");
+                log.warning("Portal " + portalName + " configured incorrectly, please " + "check the portals.yml file.");
             }
         }
 
@@ -118,7 +125,7 @@ public class Lobby {
     // Events will run each second in order of how they are in the portals.yml file.
     private void runPortals() {
 
-        portalTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(Network.getInstance(), () -> {
+        portalTask = instance.getTimerAPI().registerTimer(() -> {
 
             // Check if any players are in the area of the portal.
             for (NetworkUser user : instance.getUsers()) {
@@ -147,7 +154,7 @@ public class Lobby {
                     user.wasInPortal = false;
                 }
             }
-        }, 0L, 1L);
+        }, 1L);
     }
 
     // Load the rules.
@@ -215,8 +222,7 @@ public class Lobby {
             return;
         }
 
-        Location l = new Location(world, rulesConfig.getInt("location.x"),
-                rulesConfig.getInt("location.y"), rulesConfig.getInt("location.z"));
+        Location l = new Location(world, rulesConfig.getInt("location.x"), rulesConfig.getInt("location.y"), rulesConfig.getInt("location.z"));
 
         // Check if plot is lectern.
         if (!(world.getType(l) == Material.LECTERN)) {
@@ -234,29 +240,26 @@ public class Lobby {
 
     /**
      * Reloads the map, this will be run when the plugin is enabled.
-     * As well as when the map is manually reloaded using /lobby reload map
-     * Map config is stored in map.yml as it is only necessary for a lobby server.
+     * As well as when the map is manually reloaded using /lobby reload map.
      */
-    public void reloadMap() {
+    public void reloadMap(CommandManager commandManager) {
 
         if (map == null) {
-            map = new Map(instance);
+            map = new Map(instance, constants, serverAPI, eventManager, guiProvider);
         }
         map.reload();
-        map.registerMapCommand();
+        map.registerMapCommand(commandManager);
     }
 
     public void setSpawn() {
 
         try {
-            spawn = new Location(Bukkit.getWorld(Objects.requireNonNull(CONFIG.getString("spawn.world"))),
-                    CONFIG.getDouble("spawn.x"), CONFIG.getDouble("spawn.y"),
-                    CONFIG.getDouble("spawn.z"), (float) CONFIG.getDouble("spawn.yaw"), (float) CONFIG.getDouble(
-                    "spawn.pitch"));
+            spawn = new Location(Bukkit.getWorld(Objects.requireNonNull(constants.spawnLocation().world())), constants.spawnLocation().x(), constants.spawnLocation().y(),
+                    constants.spawnLocation().z(), constants.spawnLocation().yaw(), constants.spawnLocation().pitch());
         } catch (Exception e) {
             instance.getLogger().warning("Spawn location could not be set!");
             // Set default spawn.
-            spawn = new Location(Bukkit.getWorlds().get(0), 0.0, 65.0, 0.0, 0, 0);
+            spawn = new Location(Bukkit.getWorlds().getFirst(), 0.0, 65.0, 0.0, 0, 0);
         }
     }
 

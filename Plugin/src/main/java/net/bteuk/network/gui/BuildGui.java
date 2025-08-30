@@ -1,6 +1,5 @@
 package net.bteuk.network.gui;
 
-import me.bteuk.progressmapper.guis.LocalFeaturesMenu;
 import net.bteuk.network.api.EventAPI;
 import net.bteuk.network.api.ServerAPI;
 import net.bteuk.network.api.entity.NetworkLocation;
@@ -12,7 +11,6 @@ import net.bteuk.network.gui.plotsystem.PlotMenu;
 import net.bteuk.network.gui.plotsystem.PlotServerLocations;
 import net.bteuk.network.gui.plotsystem.PlotsystemLocations;
 import net.bteuk.network.gui.plotsystem.ZoneMenu;
-import net.bteuk.network.gui.progressmap.LocalFeatureListGUI;
 import net.bteuk.network.gui.regions.RegionInfo;
 import net.bteuk.network.gui.regions.RegionMenu;
 import net.bteuk.network.lib.utils.ChatUtils;
@@ -386,23 +384,23 @@ public class BuildGui extends NetworkRefreshableGui {
             u.mainGui.open(u.player);
         });
 
-        if (constants.progressMap() && user.player.hasPermission("uknet.progressmap.edit")) {
-            // Progress map edit menu
-            setItem(0, Utils.createItem(Material.MAP, 1, Utils.title("Progress Map"), Utils.line("Edit or add areas to the progress map")), (NetworkUser u) -> {
-
-                LocalFeaturesMenu localFeatures = new LocalFeaturesMenu(constants.progressMapID(), constants.mapHubAPIKey(), u.player);
-
-                // Check to see if the location could be established
-                if (localFeatures.getPlayerCoordinates() == null) {
-                    u.player.sendMessage(ChatUtils.error("Could not locate you"));
-                } else {
-                    this.delete();
-                    // Switch to the local features menu
-                    u.mainGui = new LocalFeatureListGUI(provider, localFeatures, localFeatures.getGUI());
-                    u.mainGui.open(u.player);
-                }
-            });
-        }
+        // if (constants.progressMap() && user.player.hasPermission("uknet.progressmap.edit")) {
+        //     // Progress map edit menu
+        //     setItem(0, Utils.createItem(Material.MAP, 1, Utils.title("Progress Map"), Utils.line("Edit or add areas to the progress map")), (NetworkUser u) -> {
+        //
+        //         LocalFeaturesMenu localFeatures = new LocalFeaturesMenu(constants.progressMapID(), constants.mapHubAPIKey(), u.player);
+        //
+        //         // Check to see if the location could be established
+        //         if (localFeatures.getPlayerCoordinates() == null) {
+        //             u.player.sendMessage(ChatUtils.error("Could not locate you"));
+        //         } else {
+        //             this.delete();
+        //             // Switch to the local features menu
+        //             u.mainGui = new LocalFeatureListGUI(provider, localFeatures, localFeatures.getGUI());
+        //             u.mainGui.open(u.player);
+        //         }
+        //     });
+        // }
 
         // Return
         setItem(26, Utils.createItem(Material.SPRUCE_DOOR, 1, Utils.title("Return"), Utils.line("Open the navigator main menu.")), (NetworkUser u) -> {

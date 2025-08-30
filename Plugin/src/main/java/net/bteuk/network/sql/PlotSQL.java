@@ -6,6 +6,7 @@ import net.bteuk.network.lib.enums.PlotDifficulties;
 import net.bteuk.network.lib.utils.Reviewing;
 import net.bteuk.network.utils.TutorialRecommendation;
 import net.bteuk.network.utils.plotsystem.SubmittedPlot;
+import teachingtutorials.utils.DBConnection;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -425,10 +426,11 @@ public class PlotSQL extends AbstractSQL {
     /**
      * Fetches a list of tutorial recommendations for a given plot
      *
+     * @param tutorialsDBConnection Database connection for tutorials
      * @param iPlotID The ID of the plot to fetch the recommended tutorials of
      * @return A list of tutorial recommendations
      */
-    public TutorialRecommendation[] fetchTutorialRecommendationsForPlot(int iPlotID) {
+    public TutorialRecommendation[] fetchTutorialRecommendationsForPlot(DBConnection tutorialsDBConnection, int iPlotID) {
         // SQL objects
         String sql;
         ResultSet resultSet;
@@ -449,7 +451,7 @@ public class PlotSQL extends AbstractSQL {
             resultSet = statement.executeQuery();
             for (int i = 0; i < iCount; i++) {
                 resultSet.next();
-                recommendations[i] = new TutorialRecommendation(resultSet.getInt("recommendation_id"), iPlotID);
+                recommendations[i] = new TutorialRecommendation(tutorialsDBConnection, resultSet.getInt("recommendation_id"), iPlotID);
             }
         } catch (SQLException e) {
             log.warning("Error fetching tutorial recommendations for plot " + iPlotID + ": " + e.getLocalizedMessage());

@@ -22,7 +22,7 @@ public class Delhome extends AbstractCommand {
         this.globalSQL = instance.getGlobalSQL();
 
         // Set tab completer.
-        setTabCompleter(new HomeSelector());
+        setTabCompleter(new HomeSelector(globalSQL));
     }
 
     @Override

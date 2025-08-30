@@ -30,7 +30,7 @@ public class Server extends AbstractCommand {
         this.globalSQL = globalSQL;
         this.constants = constants;
         this.serverAPI = serverAPI;
-        setTabCompleter(new ServerSelector());
+        setTabCompleter(new ServerSelector(globalSQL, constants));
     }
 
     @Override

@@ -172,7 +172,7 @@ public class ModerationActionGui extends NetworkRefreshableGui {
                 Utils.line("the action gets " + "cancelled.")), (NetworkUser u) -> {
 
             // Prompt the user for a reason.
-            reasonListener = new ModerationReasonListener(u, this);
+            reasonListener = new ModerationReasonListener(provider.instance(), u, this);
 
             u.player.closeInventory();
             u.player.sendMessage(ChatUtils.success("Please write the reason in chat, the first message counts" + "."));

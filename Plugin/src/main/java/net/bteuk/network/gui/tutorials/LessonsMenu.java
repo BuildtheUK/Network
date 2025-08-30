@@ -78,7 +78,7 @@ public class LessonsMenu extends NetworkRefreshableGui {
 
         // Page back
         if (iPage > 1) {
-            ItemStack pageBack = Utils.createCustomSkullWithFallback("4eff72715e6032e90f50a38f4892529493c9f555b9af0d5e77a6fa5cddff3cd2", Material.ACACIA_BOAT, 1,
+            ItemStack pageBack = Utils.createCustomSkullWithFallback(provider.instance(), "4eff72715e6032e90f50a38f4892529493c9f555b9af0d5e77a6fa5cddff3cd2", Material.ACACIA_BOAT, 1,
                     Utils.title("Page back"));
             super.setItem(45, pageBack, (NetworkUser u) -> {
                 LessonsMenu.this.iPage--;
@@ -90,7 +90,7 @@ public class LessonsMenu extends NetworkRefreshableGui {
 
         // Page forwards
         if (iPage < iPages) {
-            ItemStack pageBack = Utils.createCustomSkullWithFallback("a7ba2aa14ae5b0b65573dc4971d3524e92a61dd779e4412e4642adabc2e56c44", Material.ACACIA_BOAT, 1,
+            ItemStack pageBack = Utils.createCustomSkullWithFallback(provider.instance(), "a7ba2aa14ae5b0b65573dc4971d3524e92a61dd779e4412e4642adabc2e56c44", Material.ACACIA_BOAT, 1,
                     Utils.title("Page forwards"));
             super.setItem(53, pageBack, (NetworkUser u) -> {
                 LessonsMenu.this.iPage++;

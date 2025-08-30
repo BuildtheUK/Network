@@ -6,8 +6,8 @@ import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedPolygonalRegion;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
+import net.bteuk.network.exceptions.RegionManagerNotFoundException;
 import net.bteuk.network.exceptions.RegionNotFoundException;
-import net.bteuk.network.minecraft.worldguard.exceptions.RegionManagerNotFoundException;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 

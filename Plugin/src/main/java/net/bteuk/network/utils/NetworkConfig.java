@@ -3,6 +3,7 @@ package net.bteuk.network.utils;
 import lombok.Getter;
 import lombok.extern.java.Log;
 import net.bteuk.network.Network;
+import net.bteuk.network.api.entity.NetworkLocation;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.ServerType;
 import org.apache.logging.log4j.util.Strings;
@@ -186,10 +187,22 @@ public class NetworkConfig {
 
         int navigationRadius = config.getInt("navigation_radius", 200);
 
+        int afkTime = config.getInt("afk", 5);
+
+        boolean mapEnabled = config.getBoolean("map.enabled");
+        String mapServer = config.getString("map.server");
+        NetworkLocation mapLocation = new NetworkLocation(config.getString("map.location.world"), config.getDouble("map.location.x", 0), config.getDouble("map.location.y", 0),
+                config.getDouble("map.location.z", 0), (float) config.getDouble("map.location.yaw", 0),
+                (float) config.getDouble("map.location.pitch", 0));
+
+        NetworkLocation spawnLocation = new NetworkLocation(config.getString("spawn.world"), config.getDouble("spawn.x"), config.getDouble("spawn.y"),
+                config.getDouble("spawn.z"), (float) config.getDouble("spawn.yaw"), (float) config.getDouble("spawn.pitch"));
+
         log.info("Loaded constants from config.");
         return new Constants(serverName, serverType, standalone, regionsEnabled, regionInactivity, tpllEnabled, tpllRequiredPermission, maxY, minY, earthWorld, staffChat, tips,
                 tutorials, llEnabled, progressMap, progression, announceOverallLevelUps, announceSeasonalLevelUps, sidebarEnabled, sidebarTitle, sidebarTextList, motdEnabled,
                 motdText, plotSystemEnabled, moderationEnabled, warpsEnabled, homesEnabled, announcePromotions, discordLink, skullsEnabled, progressMapLink, chatSocketOutputIP,
-                chatSocketOutputPort, chatSocketInputPort, tipsFrequency, regionStaffRequestAlways, regionStaffRequestRadius, progressMapID, mapHubAPIKey, navigationRadius, compulsoryTutorial);
+                chatSocketOutputPort, chatSocketInputPort, tipsFrequency, regionStaffRequestAlways, regionStaffRequestRadius, progressMapID, mapHubAPIKey, navigationRadius,
+                compulsoryTutorial, afkTime, mapEnabled, mapServer, mapLocation, spawnLocation);
     }
 }

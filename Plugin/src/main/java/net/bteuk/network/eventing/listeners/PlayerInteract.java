@@ -41,7 +41,7 @@ public class PlayerInteract implements Listener {
         }
 
         if (e.getItem() != null) {
-            if (e.getItem().equals(instance.navigatorItem)) {
+            if (e.getItem().equals(instance.getNavigatorItem())) {
                 e.setCancelled(true);
                 // Open navigator.
                 navigator.openNavigator(u);
@@ -67,7 +67,7 @@ public class PlayerInteract implements Listener {
         }
 
         // If item is navigator then open it.
-        if (e.getCurrentItem().equals(instance.navigatorItem)) {
+        if (e.getCurrentItem().equals(instance.getNavigatorItem())) {
             e.setCancelled(true);
 
             // If item is not in slot 8, delete it.
@@ -88,28 +88,28 @@ public class PlayerInteract implements Listener {
      */
     @EventHandler
     public void swapHands(PlayerSwapHandItemsEvent e) {
-        if (e.getOffHandItem().equals(instance.navigatorItem)) {
+        if (e.getOffHandItem().equals(instance.getNavigatorItem())) {
             e.setCancelled(true);
         }
     }
 
     @EventHandler
     public void dropItem(PlayerDropItemEvent e) {
-        if (e.getItemDrop().getItemStack().equals(instance.navigatorItem)) {
+        if (e.getItemDrop().getItemStack().equals(instance.getNavigatorItem())) {
             e.setCancelled(true);
         }
     }
 
     @EventHandler
     public void dragItem(InventoryMoveItemEvent e) {
-        if (e.getItem().equals(instance.navigatorItem)) {
+        if (e.getItem().equals(instance.getNavigatorItem())) {
             e.setCancelled(true);
         }
     }
 
     @EventHandler
     public void dragItem(InventoryDragEvent e) {
-        if (e.getOldCursor().equals(instance.navigatorItem)) {
+        if (e.getOldCursor().equals(instance.getNavigatorItem())) {
             e.setCancelled(true);
         }
 
@@ -117,7 +117,7 @@ public class PlayerInteract implements Listener {
             return;
         }
 
-        if (e.getCursor().equals(instance.navigatorItem)) {
+        if (e.getCursor().equals(instance.getNavigatorItem())) {
             e.setCancelled(true);
         }
     }

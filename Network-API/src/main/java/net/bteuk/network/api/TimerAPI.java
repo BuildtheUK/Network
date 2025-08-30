@@ -27,4 +27,6 @@ public interface TimerAPI {
      * @return the timer id
      */
     int registerTimer(Runnable runnable, long intervalMillis, long delay);
+
+    void cancelTimer(int timerId);
 }

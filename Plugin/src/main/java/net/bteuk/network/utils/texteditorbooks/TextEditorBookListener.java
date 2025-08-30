@@ -2,6 +2,7 @@ package net.bteuk.network.utils.texteditorbooks;
 
 import lombok.Getter;
 import net.bteuk.minecraft.gui.Gui;
+import net.bteuk.network.Network;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
 import net.kyori.adventure.text.Component;
@@ -21,7 +22,6 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerEditBookEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.List;
 import java.util.logging.Level;
@@ -33,7 +33,7 @@ public class TextEditorBookListener implements Listener {
     /**
      * A reference to the instance of the plugin
      */
-    private final JavaPlugin plugin;
+    private final Network instance;
 
     /**
      * A reference to the interface object which defines the intended behaviour on book close
@@ -59,14 +59,14 @@ public class TextEditorBookListener implements Listener {
     /**
      * Constructs the object, gets the book ready
      *
-     * @param plugin          A reference to the instance of the plugin
+     * @param instance          A reference to the instance of the plugin
      * @param user            A reference to the User
      * @param szBookTitle     The intended title for the book
      * @param bookCloseAction The action to perform on book close
      */
 
-    public TextEditorBookListener(JavaPlugin plugin, NetworkUser user, Gui parentGUI, String szBookTitle, BookCloseAction bookCloseAction, String... initialValue) {
-        this.plugin = plugin;
+    public TextEditorBookListener(Network instance, NetworkUser user, Gui parentGUI, String szBookTitle, BookCloseAction bookCloseAction, String... initialValue) {
+        this.instance = instance;
         this.bookCloseAction = bookCloseAction;
         this.user = user;
         this.parentGUI = parentGUI;
@@ -105,10 +105,10 @@ public class TextEditorBookListener implements Listener {
             }
         }
 
-        if (!bPlayerHasItem) Utils.giveItem(user.player, this.book, szBookName);
+        if (!bPlayerHasItem) Utils.giveItem(instance, user.player, this.book, szBookName);
 
         // Registers the book close listener
-        Bukkit.getServer().getPluginManager().registerEvents(this, plugin);
+        Bukkit.getServer().getPluginManager().registerEvents(this, instance);
     }
 
     /**
@@ -116,7 +116,7 @@ public class TextEditorBookListener implements Listener {
      */
     public void unregister() {
         HandlerList.unregisterAll(this);
-        plugin.getLogger().log(Level.INFO, "Unregistering book listener");
+        instance.getLogger().log(Level.INFO, "Unregistering book listener");
     }
 
     /**
@@ -163,7 +163,7 @@ public class TextEditorBookListener implements Listener {
     @EventHandler
     public void bookDestroyed(ItemDespawnEvent event) {
         if (event.getEntity().getItemStack().equals(this.book)) {
-            plugin.getLogger().log(Level.INFO, "Book destroyed");
+            instance.getLogger().log(Level.INFO, "Book destroyed");
             unregister();
         }
     }
@@ -171,19 +171,19 @@ public class TextEditorBookListener implements Listener {
     @EventHandler
     public void bookTouched(InventoryClickEvent event) {
         if (event.getCurrentItem() != null) if (event.getCurrentItem().equals(this.book)) {
-            plugin.getLogger().log(Level.INFO, "Book touched, cancelling");
+            instance.getLogger().log(Level.INFO, "Book touched, cancelling");
             event.setCancelled(true);
 
             // Closing the inv will cancel the copying/dragging process. We then want to reopen.
             user.player.closeInventory();
-            Bukkit.getScheduler().runTaskLater(plugin, () -> parentGUI.open(user.player), 1);
+            Bukkit.getScheduler().runTaskLater(instance, () -> parentGUI.open(user.player), 1);
         }
     }
 
     @EventHandler
     public void bookDragged(InventoryDragEvent event) {
         if (event.getOldCursor().equals(this.book)) {
-            plugin.getLogger().log(Level.INFO, "Book dragged, cancelling");
+            instance.getLogger().log(Level.INFO, "Book dragged, cancelling");
             event.setCancelled(true);
         }
     }
@@ -191,7 +191,7 @@ public class TextEditorBookListener implements Listener {
     @EventHandler
     public void bookMoved(InventoryMoveItemEvent event) {
         if (event.getItem().equals(this.book)) {
-            plugin.getLogger().log(Level.INFO, "Book moved, cancelling");
+            instance.getLogger().log(Level.INFO, "Book moved, cancelling");
             event.setCancelled(true);
         }
     }
@@ -199,7 +199,7 @@ public class TextEditorBookListener implements Listener {
     @EventHandler
     public void bookDropped(PlayerDropItemEvent event) {
         if (event.getItemDrop().getItemStack().equals(this.book)) {
-            plugin.getLogger().log(Level.INFO, "Book dropped, cancelling");
+            instance.getLogger().log(Level.INFO, "Book dropped, cancelling");
             event.setCancelled(true);
         }
     }

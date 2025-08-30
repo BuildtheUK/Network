@@ -1,15 +1,17 @@
 package net.bteuk.network.lobby;
 
-import net.bteuk.network.Network;
+import net.bteuk.network.eventing.events.EventManager;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 public class Portal {
 
+    private final EventManager eventManager;
     private final double x1, y1, z1, x2, y2, z2;
     private final String[] events;
 
-    public Portal(int x1, int y1, int z1, int x2, int y2, int z2, String[] events) {
+    public Portal(EventManager eventManager, int x1, int y1, int z1, int x2, int y2, int z2, String[] events) {
+        this.eventManager = eventManager;
 
         // Check if the min/max area configured correctly.
         // Else which them out.
@@ -56,8 +58,7 @@ public class Portal {
                 // Send command by using chat.
                 p.chat(event);
             } else {
-                Network.getInstance().getTimers().getEventManager().event(p.getUniqueId().toString(),
-                        event.split(" "), null);
+                eventManager.event(p.getUniqueId().toString(), event.split(" "), null);
             }
         }
     }

@@ -8,10 +8,12 @@ import net.bteuk.network.building_companion.BuildingCompanion;
 import net.bteuk.network.commands.Nightvision;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.Time;
+import net.bteuk.network.eventing.events.EventManager;
 import net.bteuk.network.lib.dto.FocusEvent;
 import net.bteuk.network.lib.dto.UserConnectReply;
 import net.bteuk.network.lib.dto.UserDisconnect;
 import net.bteuk.network.lib.utils.ChatUtils;
+import net.bteuk.network.regions.RegionUser;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -97,12 +99,15 @@ public class NetworkUser {
     @Getter
     private boolean focusEnabled;
 
-    public NetworkUser(Player player, UserConnectReply reply, Network instance, Constants constants, Roles roles) {
+    private final RegionUser regionUser;
+
+    public NetworkUser(Player player, UserConnectReply reply, Network instance, Constants constants, Roles roles, Nightvision nightvision, EventManager eventManager, RegionUser regionUser) {
 
         this.instance = instance;
         this.constants = constants;
 
         this.player = player;
+        this.regionUser = regionUser;
 
         navigatorEnabled = reply.isNavigatorEnabled();
         teleportEnabled = reply.isTeleportEnabled();
@@ -135,21 +140,21 @@ public class NetworkUser {
             ItemStack slot8 = player.getInventory().getItem(8);
 
             if (slot8 != null) {
-                if (slot8.equals(instance.navigatorItem)) {
+                if (slot8.equals(instance.getNavigatorItem())) {
                     player.getInventory().setItem(8, null);
                 }
             }
         }
 
-        runEvents();
+        runEvents(eventManager);
 
         // Give the player nightvision if enabled or remove it if disabled.
         if (nightvisionEnabled) {
 
-            Nightvision.giveNightvision(player);
+            nightvision.giveNightvision(player);
         } else {
 
-            Nightvision.removeNightvision(player);
+            nightvision.removeNightvision(player);
         }
 
         // If focus mode is enabled hide other players.
@@ -192,7 +197,7 @@ public class NetworkUser {
         );
     }
 
-    private void runEvents() {
+    private void runEvents(EventManager eventManager) {
 
         // Check if the player has any join events, if try run them.
         // Delay by 1 second for all plugins to run their join events.
@@ -220,8 +225,7 @@ public class NetworkUser {
                         " type='network';");
 
                 // Send the event to the event handler.
-                // TODO: Timers
-                instance.getTimers().getEventManager().event(player.getUniqueId().toString(), aEvent, message);
+                eventManager.event(player.getUniqueId().toString(), aEvent, message);
             }
         }, 20L);
     }
@@ -262,13 +266,12 @@ public class NetworkUser {
         player.sendMessage(message);
     }
 
-    // TODO: Use regionUser instance to determine coordinate transformation.
     public Location getLocationWithCoordinateTransform() {
         return new Location(
                 player.getWorld(),
-                player.getLocation().getX() + dx,
+                player.getLocation().getX() + regionUser.getDeltaX(),
                 player.getLocation().getY(),
-                player.getLocation().getZ() + dz,
+                player.getLocation().getZ() + regionUser.getDeltaZ(),
                 player.getLocation().getYaw(),
                 player.getLocation().getPitch()
         );

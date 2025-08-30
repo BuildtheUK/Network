@@ -1,6 +1,6 @@
 package net.bteuk.network.commands.tabcompleters;
 
-import net.bteuk.network.Network;
+import net.bteuk.network.api.SQLAPI;
 import net.bteuk.network.utils.enums.Category;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -12,6 +12,12 @@ import java.util.stream.Collectors;
 
 public class NavigationTabCompleter extends AbstractTabCompleter {
 
+    private final SQLAPI globalSQL;
+
+    public NavigationTabCompleter(SQLAPI globalSQL) {
+        this.globalSQL = globalSQL;
+    }
+
     @Override
     public @NotNull Collection<String> onTabComplete(@NotNull CommandSender sender, @NotNull String[] args) {
         Collection<String> result = new ArrayList<>();
@@ -19,7 +25,7 @@ public class NavigationTabCompleter extends AbstractTabCompleter {
             switch (args[0].toUpperCase()) {
 
                 // If arg[0] is remove, update or suggested, then use locations as arg[1] selector.
-                case "UPDATE", "REMOVE", "SUGGESTED" -> result.addAll(LocationSelector.locationSelectorOnArg(args, 1));
+                case "UPDATE", "REMOVE", "SUGGESTED" -> result.addAll(LocationSelector.locationSelectorOnArg(globalSQL, args, 1));
 
                 // If arg[0] is subcategory then the selector depends on the next argument.
                 case "SUBCATEGORY" -> {
@@ -30,7 +36,7 @@ public class NavigationTabCompleter extends AbstractTabCompleter {
                                 Arrays.stream(Category.values()).filter(Category::isSelectable).map(Category::toString)
                                         .collect(Collectors.toList()), 2));
                     } else if (args.length > 1 && args[1].equalsIgnoreCase("remove")) {
-                        result.addAll(onTabCompleteArg(args, Network.getInstance().getGlobalSQL().getStringList(
+                        result.addAll(onTabCompleteArg(args, globalSQL.getStringList(
                                 "SELECT name FROM location_subcategory"), 2));
                     }
                 }

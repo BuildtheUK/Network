@@ -67,7 +67,6 @@ import net.bteuk.network.commands.staff.Unmute;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.ServerType;
 import net.bteuk.network.core.Time;
-import net.bteuk.network.core.sql.DatabaseInit;
 import net.bteuk.network.eventing.events.EventManager;
 import net.bteuk.network.eventing.events.InviteEvent;
 import net.bteuk.network.eventing.events.KickEvent;
@@ -78,7 +77,6 @@ import net.bteuk.network.eventing.listeners.NetworkMoveListener;
 import net.bteuk.network.eventing.listeners.NetworkTeleportListener;
 import net.bteuk.network.eventing.listeners.PlayerInteract;
 import net.bteuk.network.eventing.listeners.PreJoinServer;
-import net.bteuk.network.gui.NavigatorGui;
 import net.bteuk.network.lib.dto.OnlineUser;
 import net.bteuk.network.lib.dto.OnlineUserAdd;
 import net.bteuk.network.lib.dto.OnlineUserRemove;
@@ -101,6 +99,7 @@ import net.bteuk.network.utils.Tips;
 import net.bteuk.network.utils.Utils;
 import net.bteuk.network.utils.staff.Moderation;
 import net.bteuk.network.utils.worldguard.WorldGuard;
+import net.bteuk.proxy.database.DatabaseInit;
 import net.bteuk.teachingtutorials.services.PromotionService;
 import net.buildtheearth.terraminusminus.TerraConfig;
 import org.bukkit.Material;
@@ -127,9 +126,9 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
     // If the server can shut down.
     public boolean allowShutdown;
-    // Guis
-    public NavigatorGui navigatorGui;
-    public ItemStack navigatorItem;
+
+    @Getter
+    private ItemStack navigatorItem;
     public RegionSQL regionSQL;
     // Movement listeners.
     public NetworkMoveListener moveListener;
@@ -218,22 +217,27 @@ public final class Network extends JavaPlugin implements NetworkAPI {
             String password = networkConfig.getConfig().getString("password");
 
             // Global Database
-            String global_database = networkConfig.getConfig().getString("database.global");
-            DataSource global_dataSource = init.mysqlSetup(global_database, host, port, username, password);
-            globalSQL = new GlobalSQL(global_dataSource, constants);
+            String globalDatabase = networkConfig.getConfig().getString("database.global");
+            DataSource globalDataSource = init.mysqlSetup(globalDatabase, host, port, username, password);
+            globalSQL = new GlobalSQL(globalDataSource, constants);
 
             // Region Database
+            String regionDatabase = networkConfig.getConfig().getString("database.region");
+            DataSource regionDataSource = init.mysqlSetup(regionDatabase, host, port, username, password);
             if (constants.regionsEnabled()) {
-                String region_database = networkConfig.getConfig().getString("database.region");
-                DataSource region_dataSource = init.mysqlSetup(region_database, host, port, username, password);
-                regionSQL = new RegionSQL(region_dataSource);
+                regionSQL = new RegionSQL(regionDataSource);
             }
 
             // Plot Database
+            String plotDatabase = networkConfig.getConfig().getString("database.plot");
+            DataSource plotDataSource = init.mysqlSetup(plotDatabase, host, port, username, password);
             if (constants.plotSystemEnabled()) {
-                String plot_database = networkConfig.getConfig().getString("database.plot");
-                DataSource plot_dataSource = init.mysqlSetup(plot_database, host, port, username, password);
-                plotSQL = new PlotSQL(plot_dataSource);
+                plotSQL = new PlotSQL(plotDataSource);
+            }
+
+            // Init and update the schemas if standalone, since there is no proxy to do it.
+            if (constants.standalone()) {
+                init.initializeSchemas(globalDataSource, plotDataSource, regionDataSource);
             }
         } catch (SQLException | RuntimeException e) {
             getLogger().severe("Failed to connect to the database, please check that you have set the config values " + "correctly.");
@@ -304,7 +308,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         Roles roles = new Roles(this, plotSQL);
 
         if (!constants.standalone()) {
-            serverAPI = new SwitchServer(constants);
+            serverAPI = new SwitchServer(this, constants);
         }
 
         if (constants.plotSystemEnabled()) {
@@ -319,9 +323,11 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         Afk afk = new Afk(this, chat);
         commandManager.registerCommand(afk);
 
+        Nightvision nightvision = new Nightvision(this);
+
         // Setup connect, this handles all connections to the server.
         // Listener and manager of server connections.
-        Connect connect = new Connect(this, constants, tab, roles, globalSQL, networkGuiManager);
+        Connect connect = new Connect(this, constants, tab, roles, globalSQL, networkGuiManager, nightvision, eventManager, regionManager);
 
         Moderation moderation = new Moderation(this, eventManager);
 
@@ -349,37 +355,9 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         timerAPI = new TimerAPIImpl(this);
 
         // Set up the lobby, most features are only enabled in the lobby server.
-        Lobby lobby = new Lobby(this);
-        // Create the rules book.
-        lobby.loadRules();
-        if (!constants.standalone()) {
-            if (constants.serverType() == ServerType.LOBBY) {
-
-                // Set spawn location and enable auto-spawn teleport when falling in the void.
-                lobby.setSpawn();
-                lobby.enableVoidTeleport();
-
-                lobby.reloadPortals();
-
-                // Set the rules lectern.
-                lobby.setLectern();
-            }
-
-            // Set up the map.
-            lobby.reloadMap();
-        }
+        Lobby lobby = new Lobby(this, constants, serverAPI, eventManager);
 
         // Enable commands
-        if (constants.tpllEnabled()) {
-            TerraConfig.reducedConsoleMessages = true;
-            tpll = new Tpll(this, constants.tpllRequiresPermission());
-            commandManager.registerCommand(tpll);
-        }
-
-        if (constants.ll()) {
-            commandManager.registerCommand(new Where(plotSQL, constants));
-        }
-
         if (constants.moderationEnabled()) {
             commandManager.registerCommand(new Kick(this, moderation));
             commandManager.registerCommand(new Mute(this, moderation));
@@ -394,10 +372,14 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         commandManager.registerCommand(new Teleport(this, back, eventManager, serverAPI, constants));
         commandManager.registerCommand(new TpToggle(this));
 
-        if (constants.warpsEnabled()) {
-            new Warp(this, constants, plotAPI, back, eventManager, serverAPI);
-            new Warps(this);
-            new Navigation(this);
+        if (constants.tpllEnabled()) {
+            TerraConfig.reducedConsoleMessages = true;
+            tpll = new Tpll(this, constants.tpllRequiresPermission(), regionManager, constants, plotSQL, eventManager, serverAPI, back, globalSQL);
+            commandManager.registerCommand(tpll);
+        }
+
+        if (constants.ll()) {
+            commandManager.registerCommand(new Where(plotSQL, constants));
         }
 
         if (!constants.standalone()) {
@@ -413,13 +395,6 @@ public final class Network extends JavaPlugin implements NetworkAPI {
             commandManager.registerCommand(new Homes(this));
         }
 
-        if (constants.plotSystemEnabled()) {
-            commandManager.registerCommand(new Plot(this, eventManager, plotSQL));
-            commandManager.registerCommand(new Zone(plotSQL, eventManager));
-        }
-
-        commandManager.registerCommand(new Staff(this, constants, globalSQL, chat));
-
         /*
          * Utility commands.
          */
@@ -429,7 +404,6 @@ public final class Network extends JavaPlugin implements NetworkAPI {
             commandManager.registerCommand(new Focus(this, constants));
         }
 
-        Nightvision nightvision = new Nightvision(this);
         commandManager.registerCommand(nightvision);
         commandManager.registerCommand(new Speed());
         commandManager.registerCommand(new Help(constants, roles));
@@ -439,7 +413,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         commandManager.registerCommand(new GiveLight(this));
         commandManager.registerCommand(new GiveBarrier(this));
         commandManager.registerCommand(new Gamemode(constants));
-        commandManager.registerCommand(new Phead(globalSQL));
+        commandManager.registerCommand(new Phead(this, globalSQL));
         if (constants.skullsEnabled()) {
             commandManager.registerCommand(new Hdb());
         }
@@ -476,8 +450,41 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         commandManager.registerCommand(navigator);
         new PlayerInteract(this, navigator);
 
+        if (constants.warpsEnabled()) {
+            new Warp(this, constants, plotAPI, back, eventManager, serverAPI);
+            new Warps(this);
+            new Navigation(this, navigator.getProvider());
+        }
+
+        if (constants.plotSystemEnabled()) {
+            commandManager.registerCommand(new Plot(navigator.getProvider()));
+            commandManager.registerCommand(new Zone(plotSQL, eventManager));
+        }
+
+        commandManager.registerCommand(new Staff(navigator.getProvider()));
+
         // Register the command pre-process to make sure network versions of commands run and not that of another plugin.
         new CommandPreProcess(this, constants, afk, connect, serverAPI);
+
+        // Create the rules-book.
+        lobby.setGuiProvider(navigator.getProvider());
+        lobby.loadRules();
+        if (!constants.standalone()) {
+            if (constants.serverType() == ServerType.LOBBY) {
+
+                // Set spawn-location and enable auto-spawn teleport when falling in the void.
+                lobby.setSpawn();
+                lobby.enableVoidTeleport();
+
+                lobby.reloadPortals();
+
+                // Set the rules-lectern.
+                lobby.setLectern();
+            }
+
+            // Set up the map.
+            lobby.reloadMap(commandManager);
+        }
 
         commandManager.enableCommands();
 
@@ -509,6 +516,9 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         eventManager.registerEvent("teleport", new TeleportEvent(globalSQL, plotAPI, regionManager, constants, serverAPI, eventManager, tpll, lobby));
         eventManager.registerEvent("region", new RegionEvent(regionManager, chat, globalSQL, coordinateAPI));
         eventManager.registerEvent("kick", new KickEvent());
+
+        // Start the Network timers.
+        new Timers(this, globalSQL, eventManager, constants, afk);
 
         // Let the Proxy know that the server is enabled.
         chat.sendSocketMessage(new ServerStartup(constants.serverName()));

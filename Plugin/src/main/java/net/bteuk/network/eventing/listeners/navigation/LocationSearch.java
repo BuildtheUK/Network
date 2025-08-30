@@ -1,7 +1,7 @@
 package net.bteuk.network.eventing.listeners.navigation;
 
 import io.papermc.paper.event.player.AsyncChatEvent;
-import net.bteuk.network.Network;
+import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.navigation.LocationMenu;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.NetworkUser;
@@ -14,18 +14,20 @@ import org.bukkit.scheduler.BukkitTask;
 
 public class LocationSearch implements Listener {
 
+    private final GuiProvider provider;
     private final NetworkUser u;
 
     private final BukkitTask task;
 
-    public LocationSearch(NetworkUser u) {
+    public LocationSearch(GuiProvider provider, NetworkUser u) {
 
-        Bukkit.getServer().getPluginManager().registerEvents(this, Network.getInstance());
+        Bukkit.getServer().getPluginManager().registerEvents(this, provider.instance());
 
+        this.provider = provider;
         this.u = u;
 
         // Start timer to automatically close the listener.
-        task = Bukkit.getScheduler().runTaskLater(Network.getInstance(), () -> {
+        task = Bukkit.getScheduler().runTaskLater(provider.instance(), () -> {
             // Send message to player telling them it's been timer out.
             if (u.player != null) {
                 u.player.sendMessage(ChatUtils.error("'Find Location' cancelled."));
@@ -48,7 +50,7 @@ public class LocationSearch implements Listener {
             } else {
 
                 LocationMenu gui =
-                        new LocationMenu("Search: " + PlainTextComponentSerializer.plainText().serialize(e.message())
+                        new LocationMenu(provider, "Search: " + PlainTextComponentSerializer.plainText().serialize(e.message())
                                 , u, Category.SEARCH, Category.EXPLORE,
                                 PlainTextComponentSerializer.plainText().serialize(e.message()));
 
@@ -59,7 +61,7 @@ public class LocationSearch implements Listener {
                     u.player.sendMessage(ChatUtils.error("No locations have been found."));
                 } else {
                     // Open the location menu with these locations.
-                    Bukkit.getScheduler().runTask(Network.getInstance(), () -> {
+                    Bukkit.getScheduler().runTask(provider.instance(), () -> {
 
                         u.mainGui.delete();
                         u.mainGui = gui;

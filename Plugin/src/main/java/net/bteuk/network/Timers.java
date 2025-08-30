@@ -7,12 +7,9 @@ import net.bteuk.network.core.Time;
 import net.bteuk.network.eventing.events.EventManager;
 import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.utils.NetworkUser;
-import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
-
-import static net.bteuk.network.utils.NetworkConfig.CONFIG;
 
 @Log
 public class Timers {
@@ -21,8 +18,7 @@ public class Timers {
     private final Network instance;
     // Users
     private final ArrayList<NetworkUser> users;
-    // Timers
-    private final ArrayList<Integer> timers;
+
     // SQL
     private final GlobalSQL globalSQL;
 
@@ -48,8 +44,6 @@ public class Timers {
 
         this.globalSQL = globalSQL;
 
-        this.timers = new ArrayList<>();
-
         this.eventManager = eventManager;
         events = new ArrayList<>();
 
@@ -58,18 +52,18 @@ public class Timers {
         this.afk = afk;
 
         // Minutes * 60 seconds * 1000 milliseconds
-        afkTime = CONFIG.getInt("afk") * 60L * 1000L;
+        afkTime = constants.afkTime() * 60L * 1000L;
+
+        startTimers();
     }
 
     public void startTimers() {
 
-        // 1 tick timer.
-        timers.add(instance.getServer().getScheduler().scheduleSyncRepeatingTask(instance, () -> {
+        // 1-tick timer (50ms)
+        instance.getTimerAPI().registerTimer(() -> {
 
             // Check for new server_events.
-            // TODO: Make this asynchronous.
-            if (globalSQL.hasRow("SELECT uuid FROM server_events WHERE server='" + constants.serverName() + "' AND type='network" +
-                    "';")) {
+            if (globalSQL.hasRow("SELECT uuid FROM server_events WHERE server='" + constants.serverName() + "' AND type='network" + "';")) {
 
                 // If events are not empty, skip this iteration.
                 // Additionally, isBusy needs to be false, implying that the server is not still running a previous
@@ -98,10 +92,10 @@ public class Timers {
                     isBusy = false;
                 }
             }
-        }, 0L, 1L));
+        }, 50L);
 
-        // 1-second timer.
-        timers.add(instance.getServer().getScheduler().scheduleSyncRepeatingTask(instance, () -> {
+        // 1-second timer (1000ms)
+        instance.getTimerAPI().registerTimer(() -> {
 
             // Get current time.
             long time = Time.currentTime();
@@ -113,9 +107,9 @@ public class Timers {
                     slot9 = user.player.getInventory().getItem(8);
 
                     if (slot9 == null) {
-                        user.player.getInventory().setItem(8, instance.navigatorItem);
-                    } else if (!(slot9.equals(instance.navigatorItem))) {
-                        user.player.getInventory().setItem(8, instance.navigatorItem);
+                        user.player.getInventory().setItem(8, instance.getNavigatorItem());
+                    } else if (!(slot9.equals(instance.getNavigatorItem()))) {
+                        user.player.getInventory().setItem(8, instance.getNavigatorItem());
                     }
                 }
 
@@ -129,14 +123,6 @@ public class Timers {
                     afk.updateAfkStatus(user, true);
                 }
             }
-        }, 0L, 20L));
-    }
-
-    public void close() {
-
-        // Cancel all timers.
-        for (int timer : timers) {
-            Bukkit.getScheduler().cancelTask(timer);
-        }
+        }, 1000L);
     }
 }

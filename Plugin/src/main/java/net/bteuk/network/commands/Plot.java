@@ -2,13 +2,11 @@ package net.bteuk.network.commands;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import lombok.extern.java.Log;
-import net.bteuk.network.Network;
-import net.bteuk.network.api.EventAPI;
 import net.bteuk.network.commands.tabcompleters.FixedArgSelector;
+import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.plotsystem.PlotInfo;
 import net.bteuk.network.gui.plotsystem.PlotMenu;
 import net.bteuk.network.lib.utils.ChatUtils;
-import net.bteuk.network.sql.PlotSQL;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
 import net.bteuk.network.utils.enums.PlotStatus;
@@ -22,14 +20,10 @@ import java.util.List;
 @Log
 public class Plot extends AbstractCommand {
 
-    private final Network instance;
-    private final EventAPI eventAPI;
-    private final PlotSQL plotSQL;
+    private final GuiProvider provider;
 
-    public Plot(Network instance, EventAPI eventAPI, PlotSQL plotSQL) {
-        this.instance = instance;
-        this.eventAPI = eventAPI;
-        this.plotSQL = plotSQL;
+    public Plot(GuiProvider guiProvider) {
+        this.provider = guiProvider;
         setTabCompleter(new FixedArgSelector(Arrays.asList("info", "join"), 0));
     }
 
@@ -69,7 +63,7 @@ public class Plot extends AbstractCommand {
 
     private void menu(Player p) {
         // Get the user.
-        NetworkUser u = instance.getUser(p);
+        NetworkUser u = provider.instance().getUser(p);
         if (u == null) {
             p.sendMessage(ChatUtils.error("An error occurred, please rejoin!"));
             log.severe("No user exists for player " + p.getName());
@@ -79,7 +73,7 @@ public class Plot extends AbstractCommand {
         if (u.mainGui != null) {
             u.mainGui.delete();
         }
-        u.mainGui = new PlotMenu(u);
+        u.mainGui = new PlotMenu(provider, u);
         u.mainGui.open(u.player);
     }
 
@@ -89,13 +83,13 @@ public class Plot extends AbstractCommand {
             return;
         }
         // Check if the plot exists and is not deleted.
-        PlotStatus status = PlotStatus.fromDatabaseValue(plotSQL.getString("SELECT status FROM plot_data WHERE id=" + plot + ";"));
+        PlotStatus status = PlotStatus.fromDatabaseValue(provider.plotSQL().getString("SELECT status FROM plot_data WHERE id=" + plot + ";"));
         if (status == null || status == PlotStatus.DELETED) {
             p.sendMessage(ChatUtils.error("This plot does not exist."));
             return;
         }
         // Get the user.
-        NetworkUser u = instance.getUser(p);
+        NetworkUser u = provider.instance().getUser(p);
         if (u == null) {
             p.sendMessage(ChatUtils.error("An error occurred, please rejoin!"));
             log.severe("No user exists for player " + p.getName());
@@ -105,7 +99,7 @@ public class Plot extends AbstractCommand {
         if (u.mainGui != null) {
             u.mainGui.delete();
         }
-        u.mainGui = new PlotInfo(u, plot);
+        u.mainGui = new PlotInfo(provider, u, plot);
         u.mainGui.open(u.player);
     }
 
@@ -116,15 +110,15 @@ public class Plot extends AbstractCommand {
         }
 
         // Check if they have an invitation for this plot.
-        if (plotSQL.hasRow("SELECT id FROM plot_invites WHERE id=" + plot + " AND uuid='" + p.getUniqueId() + "';")) {
+        if (provider.plotSQL().hasRow("SELECT id FROM plot_invites WHERE id=" + plot + " AND uuid='" + p.getUniqueId() + "';")) {
 
             // Add server event to join plot.
-            eventAPI.createEvent(p.getUniqueId().toString(), "plotsystem",
-                    plotSQL.getString("SELECT server FROM " + "location_data WHERE name='" + plotSQL.getString("SELECT location FROM plot_data WHERE id=" + plot + ";") + "';"),
+            provider.eventAPI().createEvent(p.getUniqueId().toString(), "plotsystem",
+                    provider.plotSQL().getString("SELECT server FROM " + "location_data WHERE name='" + provider.plotSQL().getString("SELECT location FROM plot_data WHERE id=" + plot + ";") + "';"),
                     "join plot " + plot);
 
             // Remove invite.
-            plotSQL.update("DELETE FROM plot_invites WHERE id=" + plot + " AND uuid='" + p.getUniqueId() + "';");
+            provider.plotSQL().update("DELETE FROM plot_invites WHERE id=" + plot + " AND uuid='" + p.getUniqueId() + "';");
         } else {
             p.sendMessage(ChatUtils.error("You have not been invited to join this plot."));
         }
@@ -138,30 +132,30 @@ public class Plot extends AbstractCommand {
         // Check if the player is the owner of a member of the plot.
         // Then open the latest feedback.
         // And set their Main gui to the plot info of this plot.
-        if (!plotSQL.hasRow("SELECT id FROM plot_members WHERE id=" + plot + " AND uuid='" + player.getUniqueId() + "';")) {
+        if (!provider.plotSQL().hasRow("SELECT id FROM plot_members WHERE id=" + plot + " AND uuid='" + player.getUniqueId() + "';")) {
             player.sendMessage(ChatUtils.error("You are no longer the owner or a member of this plot."));
             return;
         }
 
         // Find the latest attempt.
-        String uuid = plotSQL.getString("SELECT uuid FROM plot_members WHERE id=" + plot + " AND is_owner=1;");
-        int latestAttempt = plotSQL.getInt("SELECT MAX(attempt) FROM plot_review WHERE plot_id=" + plot + " AND " + "uuid='" + uuid + "' AND accepted=0 AND completed=1;");
+        String uuid = provider.plotSQL().getString("SELECT uuid FROM plot_members WHERE id=" + plot + " AND is_owner=1;");
+        int latestAttempt = provider.plotSQL().getInt("SELECT MAX(attempt) FROM plot_review WHERE plot_id=" + plot + " AND " + "uuid='" + uuid + "' AND accepted=0 AND completed=1;");
 
         if (latestAttempt == 0) {
             player.sendMessage(Utils.error("There is no feedback available for this plot."));
             return;
         }
 
-        NetworkUser user = instance.getUser(player);
+        NetworkUser user = provider.instance().getUser(player);
         if (user != null) {
-            user.mainGui = new PlotInfo(user, plot);
+            user.mainGui = new PlotInfo(provider, user, plot);
         }
 
         // Create book.
-        int reviewId = plotSQL.getInt("SELECT id FROM plot_review WHERE plot_id=" + plot + " AND uuid='" + uuid + "' " + "AND attempt=" + latestAttempt + ";");
+        int reviewId = provider.plotSQL().getInt("SELECT id FROM plot_review WHERE plot_id=" + plot + " AND uuid='" + uuid + "' " + "AND attempt=" + latestAttempt + ";");
 
         // Open the book.
-        player.openBook(ReviewFeedback.createFeedbackBook(reviewId));
+        player.openBook(ReviewFeedback.createFeedbackBook(provider.globalSQL(), provider.plotSQL(), reviewId));
     }
 
     private void error(Player p) {

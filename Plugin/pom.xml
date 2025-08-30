@@ -27,15 +27,6 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>${maven.compiler.version}</version>
-                <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>${maven.shade.version}</version>
                 <executions>
@@ -138,6 +129,11 @@
             <artifactId>Minecraft</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.github.BTEUK.Proxy</groupId>
+            <artifactId>database</artifactId>
+        </dependency>
+
         <!-- Server api | scope provided -->
         <dependency>
             <groupId>io.papermc.paper</groupId>
@@ -175,8 +171,6 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.34</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>io.papermc</groupId>
@@ -212,11 +206,11 @@
         </dependency>
 
         <!-- Internal libraries -->
-        <dependency>
-            <groupId>com.github.BTEUK</groupId>
-            <artifactId>ProgressMapper</artifactId>
-            <version>231624865f</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.github.BTEUK</groupId>-->
+<!--            <artifactId>ProgressMapper</artifactId>-->
+<!--            <version>231624865f</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>com.github.BTEUK</groupId>
             <artifactId>NetworkLib</artifactId>

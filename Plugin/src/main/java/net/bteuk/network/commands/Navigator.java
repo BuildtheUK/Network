@@ -1,6 +1,7 @@
 package net.bteuk.network.commands;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
+import lombok.Getter;
 import lombok.extern.java.Log;
 import net.bteuk.minecraft.gui.GuiManager;
 import net.bteuk.network.Network;
@@ -35,6 +36,7 @@ import static net.bteuk.network.core.ServerType.TUTORIAL;
 @Log
 public class Navigator extends AbstractCommand {
 
+    @Getter
     private final GuiProvider provider;
     private final Network instance;
     private final Constants constants;

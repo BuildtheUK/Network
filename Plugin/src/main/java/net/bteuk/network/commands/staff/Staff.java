@@ -3,13 +3,10 @@ package net.bteuk.network.commands.staff;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import lombok.extern.java.Log;
 import net.bteuk.network.CustomChat;
-import net.bteuk.network.Network;
-import net.bteuk.network.api.ChatAPI;
 import net.bteuk.network.commands.AbstractCommand;
-import net.bteuk.network.core.Constants;
+import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.staff.StaffGui;
 import net.bteuk.network.lib.utils.ChatUtils;
-import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.utils.NetworkUser;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
@@ -23,16 +20,10 @@ import static net.bteuk.network.lib.enums.ChatChannels.STAFF;
 @Log
 public class Staff extends AbstractCommand {
 
-    private final Network instance;
-    private final Constants constants;
-    private final GlobalSQL globalSQL;
-    private final ChatAPI chatAPI;
+    private final GuiProvider guiProvider;
 
-    public Staff(Network instance, Constants constants, GlobalSQL globalSQL, ChatAPI chatAPI) {
-        this.instance = instance;
-        this.constants = constants;
-        this.globalSQL = globalSQL;
-        this.chatAPI = chatAPI;
+    public Staff(GuiProvider guiProvider) {
+        this.guiProvider = guiProvider;
     }
 
     public void openStaffMenu(NetworkUser u) {
@@ -42,12 +33,9 @@ public class Staff extends AbstractCommand {
         // If no gui exists open the staff menu.
 
         if (u.staffGui != null) {
-
-            u.staffGui.refresh();
             u.staffGui.open(u.player);
         } else {
-
-            u.staffGui = new StaffGui(u);
+            u.staffGui = new StaffGui(guiProvider, u);
             u.staffGui.open(u.player);
         }
     }
@@ -61,7 +49,7 @@ public class Staff extends AbstractCommand {
             return;
         }
 
-        NetworkUser u = instance.getUser(p);
+        NetworkUser u = guiProvider.instance().getUser(p);
 
         // Check if user is member of staff.
         // Architects can open the menu but not use the staff chat.
@@ -80,8 +68,8 @@ public class Staff extends AbstractCommand {
         }
 
         // If the first arg is chat, switch the player to and from staff chat if enabled.
-        if (!constants.standalone()) {
-            if (args.length > 0 && constants.staffChat()) {
+        if (!guiProvider.constants().standalone()) {
+            if (args.length > 0 && guiProvider.constants().staffChat()) {
                 if (args[0].equalsIgnoreCase("chat")) {
                     String channel = GLOBAL.getChannelName();
                     if (u.getChatChannel().equals(STAFF.getChannelName())) {
@@ -93,11 +81,11 @@ public class Staff extends AbstractCommand {
                     }
                     // Set channel.
                     u.setChatChannel(channel);
-                    globalSQL.update("UPDATE player_data SET chat_channel='" + channel + "' " + "WHERE uuid='" + p.getUniqueId() + "';");
+                    guiProvider.globalSQL().update("UPDATE player_data SET chat_channel='" + channel + "' " + "WHERE uuid='" + p.getUniqueId() + "';");
                 } else {
                     // Send a message in staff-chat, by temporarily setting the player's channel to staff.
                     u.setChatChannel(STAFF.getChannelName());
-                    chatAPI.sendChatMessage(CustomChat.getChatMessage(Component.text(String.join(" ", args)), u));
+                    guiProvider.chatAPI().sendChatMessage(CustomChat.getChatMessage(Component.text(String.join(" ", args)), u));
                     u.setChatChannel(GLOBAL.getChannelName());
                 }
                 return;
