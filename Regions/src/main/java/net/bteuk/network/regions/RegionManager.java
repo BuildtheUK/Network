@@ -164,7 +164,7 @@ public class RegionManager {
     // Get the server of the region.
     public String getServer(Region region) {
         if (constants.plotSystemEnabled() && regionSQL.hasRow("SELECT region FROM regions WHERE region='" + region.regionName() + "' AND " + "status='plot'")) {
-            return (plotAPI.getRegionServer("SELECT server FROM regions WHERE region='" + region.regionName() + "';"));
+            return (plotAPI.getRegionServer(region.regionName()));
         } else {
             return (globalSQL.getString("SELECT name FROM server_data WHERE type='EARTH';"));
         }

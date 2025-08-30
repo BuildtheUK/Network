@@ -16,11 +16,16 @@ public class Afk extends AbstractCommand {
 
     private final Network instance;
 
-    private final CustomChat chat;
+    private CustomChat chat;
 
-    public Afk(Network instance, CustomChat chat) {
+    public Afk(Network instance) {
         this.instance = instance;
-        this.chat = chat;
+    }
+
+    public void registerChat(CustomChat chat) {
+        if (this.chat == null) {
+            this.chat = chat;
+        }
     }
 
     public void updateAfkStatus(NetworkUser user, boolean afk) {

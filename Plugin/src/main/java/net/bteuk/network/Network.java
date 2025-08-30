@@ -323,10 +323,16 @@ public final class Network extends JavaPlugin implements NetworkAPI {
             tab = new TabManager(this, constants, roles);
         }
 
-        Afk afk = new Afk(this, chat);
+        Afk afk = new Afk(this);
         commandManager.registerCommand(afk);
 
         Nightvision nightvision = new Nightvision(this);
+
+        // Create the region manager if enabled.
+        if (constants.regionsEnabled()) {
+            regionManager = new RegionManager(regionSQL, this, coordinateAPI, eventManager, worldGuardAPI, constants, this, serverAPI);
+            commandManager.registerCommand(new RegionCommand(regionManager, eventManager));
+        }
 
         // Setup connect, this handles all connections to the server.
         // Listener and manager of server connections.
@@ -336,6 +342,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
         // Enables chat, both global chat and normal chat are handled through it.
         chat = new CustomChat(this, constants, afk, globalSQL, connect, moderation, tab, roles);
+        afk.registerChat(chat);
 
         // Create the navigator.
         navigatorItem = Utils.createItem(Material.NETHER_STAR, 1, Utils.title("Navigator"), Utils.line("Click to open the navigator."));
@@ -344,12 +351,6 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         new PreJoinServer(this, constants, moderation);
 
         new GuiListener(networkGuiManager).register(this);
-
-        // Create the region manager if enabled.
-        if (constants.regionsEnabled()) {
-            regionManager = new RegionManager(regionSQL, this, coordinateAPI, eventManager, worldGuardAPI, constants, this, serverAPI);
-            commandManager.registerCommand(new RegionCommand(regionManager, eventManager));
-        }
 
         moveListener = new NetworkMoveListener(this, afk);
         teleportListener = new NetworkTeleportListener(this);
