@@ -53,7 +53,8 @@ public class Tpll extends AbstractCommand {
     private final Back back;
     private final GlobalSQL globalSQL;
 
-    public Tpll(Network instance, boolean requiresPermission, RegionManager regionManager, Constants constants, PlotSQL plotSQL, EventAPI eventAPI, ServerAPI serverAPI, Back back, GlobalSQL globalSQL) {
+    public Tpll(Network instance, boolean requiresPermission, RegionManager regionManager, Constants constants, PlotSQL plotSQL, EventAPI eventAPI, ServerAPI serverAPI, Back back,
+                GlobalSQL globalSQL) {
         this.instance = instance;
         this.requiresPermission = requiresPermission;
         this.regionManager = regionManager;
@@ -230,7 +231,9 @@ public class Tpll extends AbstractCommand {
 
             // Check if the player is allowed to teleport here.
             if (!canTeleportHere(p, region)) {
-                p.sendMessage(ChatUtils.error("The terrain for this region has not been generated, you must be at least " + "Jr.Builder to load new terrain."));
+                p.sendMessage(ChatUtils.error("The terrain for this region has not been generated, " +
+                        "you do not have permission to load new terrain."));
+                return;
             }
 
             if (!constants.standalone()) {

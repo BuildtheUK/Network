@@ -23,7 +23,7 @@ server_name: server_name
 server_type: EARTH
 standalone: false
 
-# Lobby info, only necessary if server type is LOBBY.
+# Lobby info, only necessary if the server type is LOBBY.
 spawn:
   world: Lobby
   x: 1000.5
@@ -167,8 +167,8 @@ sidebar:
 # Sends a message to the player on joining
 motd:
   enabled: false
-  # Use MiniMessage format to define the text. (https://webui.advntr.dev/). Use %player% as player name placeholder
+  # Use MiniMessage format to define the text. (https://webui.advntr.dev/). Use %player% as the player name placeholder
   text: ""
 
-# Whether the skulls plugin is used as head database.
+# Whether the skulls plugin is used as the head database.
 skulls_plugin_enabled: true

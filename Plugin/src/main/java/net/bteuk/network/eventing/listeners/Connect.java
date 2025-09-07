@@ -96,7 +96,10 @@ public class Connect implements Listener {
             }
 
             log.info(String.format("User connect reply received from the proxy, creating NetworkUser for %s", player.getName()));
-            RegionUser regionUser = regionManager.getUserByPlayer(player).orElseThrow();
+            RegionUser regionUser = null;
+            if (constants.regionsEnabled()) {
+                regionUser = regionManager.getUserByPlayer(player).orElse(null);
+            }
             NetworkUser user = new NetworkUser(player, reply, instance, constants, roles, nightvision, eventManager, regionUser);
             instance.addUser(user);
 
@@ -150,7 +153,10 @@ public class Connect implements Listener {
 
             UserConnectReply reply = new UserConnectReply(player.getUniqueId().toString(), navigatorEnabled, teleportEnabled, nightVisionEnabled, chatChannel, tipsEnabled,
                     components, false);
-            RegionUser regionUser = regionManager.getUserByPlayer(player).orElseThrow();
+            RegionUser regionUser = null;
+            if (constants.regionsEnabled()) {
+                regionUser = regionManager.getUserByPlayer(player).orElse(null);
+            }
             NetworkUser user = new NetworkUser(player, reply, instance, constants, roles, nightvision, eventManager, regionUser);
 
             OnlineUserAdd onlineUserAdd = new OnlineUserAdd();

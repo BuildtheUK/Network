@@ -515,7 +515,9 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         // Register all the events.
         eventManager.registerEvent("invite", new InviteEvent(globalSQL, plotAPI, regionManager));
         eventManager.registerEvent("teleport", new TeleportEvent(globalSQL, plotAPI, regionManager, constants, serverAPI, eventManager, tpll, lobby));
-        eventManager.registerEvent("region", new RegionEvent(regionManager, chat, globalSQL, coordinateAPI));
+        if (constants.regionsEnabled()) {
+            eventManager.registerEvent("region", new RegionEvent(regionManager, chat, globalSQL, coordinateAPI));
+        }
         eventManager.registerEvent("kick", new KickEvent());
 
         // Start the Network timers.
@@ -616,16 +618,6 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
     public Optional<OnlineUser> getOnlineUserByNameIgnoreCase(String name) {
         return onlineUsers.stream().filter(onlineUser -> onlineUser.getName().equalsIgnoreCase(name)).findFirst();
-    }
-
-    // Check if a user is on this server.
-    public boolean hasPlayer(String uuid) {
-        for (NetworkUser u : getUsers()) {
-            if (u.player.getUniqueId().toString().equals(uuid)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public PlotAPI getPlotAPI() {

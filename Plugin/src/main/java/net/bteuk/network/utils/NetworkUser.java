@@ -269,9 +269,9 @@ public class NetworkUser {
     public Location getLocationWithCoordinateTransform() {
         return new Location(
                 player.getWorld(),
-                player.getLocation().getX() + regionUser.getDeltaX(),
+                player.getLocation().getX() + (constants.regionsEnabled() ? regionUser.getDeltaX() : 0),
                 player.getLocation().getY(),
-                player.getLocation().getZ() + regionUser.getDeltaZ(),
+                player.getLocation().getZ() + (constants.regionsEnabled() ? regionUser.getDeltaZ() : 0),
                 player.getLocation().getYaw(),
                 player.getLocation().getPitch()
         );

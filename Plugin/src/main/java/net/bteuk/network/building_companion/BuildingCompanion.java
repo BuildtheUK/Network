@@ -274,13 +274,13 @@ public class BuildingCompanion {
      *
      * @param outline   the {@link SavedOutline} outline
      * @param block     the block to draw the outline with
-     * @param permanent should the outline be a real block, or temporary
+     * @param permanent should the outline be a real block, or a temporary block?
      * @return whether the player has permission to build here, else don't draw the outline
      */
     private boolean drawOutlines(SavedOutline outline, BlockData block, boolean permanent) {
         ProtectedRegion wgRegion = null;
         if (constants.serverType() == ServerType.PLOT) {
-            // Get region at first corner. If no region is found return false.
+            // Get the region in the first corner. If no region is found, return false.
             try {
                 wgRegion = WorldguardUtils.getRegionAt(world, BlockVector3.at(outline.corners()[0][0], 1,
                         outline.corners()[0][1]));

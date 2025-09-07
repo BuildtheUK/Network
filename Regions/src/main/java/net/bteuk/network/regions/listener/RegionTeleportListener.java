@@ -35,7 +35,6 @@ public class RegionTeleportListener extends AbstractMoveListener implements List
         this.plotAPI = plotAPI;
     }
 
-    @Deprecated
     @EventHandler
     public void onPlayerTeleport(PlayerTeleportEvent e) {
 
@@ -60,7 +59,7 @@ public class RegionTeleportListener extends AbstractMoveListener implements List
                 // Get region.
                 region = regionManager.getRegion(location.getX(), location.getZ());
             }
-        } else if (constants.serverType() == PLOT) {
+        } else if (constants.plotSystemEnabled() && constants.serverType() == PLOT) {
             // Check if the player is teleporting to a buildable world in the plot system.
             if (plotAPI.hasLocation(location.getWorld().getName())) {
 
