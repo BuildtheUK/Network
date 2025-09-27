@@ -124,6 +124,7 @@ public class RegionInfo extends NetworkRefreshableGui {
                         u.player.teleport(l);
                         u.player.sendMessage(ChatUtils.success("Teleported to region ").append(Component.text(regionManager.getTag(region, uuid), NamedTextColor.DARK_AQUA)));
                     } else {
+                        u.player.closeInventory();
 
                         // Create teleport region event.
                         provider.eventAPI().createTeleportEvent(true, u.player.getUniqueId().toString(), "network", "teleport region " + region.regionName(),

@@ -136,6 +136,7 @@ public class NavigatorGui extends NetworkGui {
                 } else {
 
                     // Set teleport event to go to spawn.
+                    u.player.closeInventory();
                     eventAPI.createTeleportEvent(true, u.player.getUniqueId().toString(), "network", "teleport spawn", location);
                     serverAPI.switchServer(PlayerAdapter.adapt(u.player), globalSQL.getString("SELECT " + "name FROM server_data WHERE type='LOBBY';"));
                 }

@@ -156,6 +156,8 @@ public class LocationMenu extends NetworkRefreshableGui {
                                 u.player.sendMessage(ChatUtils.success("Teleported to ").append(Component.text(location.getKey(), NamedTextColor.DARK_AQUA)));
                             } else {
 
+                                u.player.closeInventory();
+
                                 // Create teleport event.
                                 provider.eventAPI().createTeleportEvent(true, u.player.getUniqueId().toString(), "network", "teleport location " + location.getKey(),
                                         LocationAdapter.adapt(u.player.getLocation()));

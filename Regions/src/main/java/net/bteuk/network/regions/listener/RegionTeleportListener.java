@@ -47,7 +47,7 @@ public class RegionTeleportListener extends AbstractMoveListener implements List
 
         Region newRegion = getRegion(regionUser, e.getTo());
 
-        if (Objects.equals(newRegion, regionUser.getTrackedRegion())) {
+        if (!Objects.equals(newRegion, regionUser.getTrackedRegion())) {
             e.setCancelled(switchRegion(regionUser, newRegion));
         }
     }

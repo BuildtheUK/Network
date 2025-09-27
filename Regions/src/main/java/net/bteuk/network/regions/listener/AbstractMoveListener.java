@@ -42,7 +42,7 @@ public abstract class AbstractMoveListener {
             // Add the region to the database if not exists.
             regionManager.addToDatabase(newRegion);
 
-            // If the player is the region owner update last enter and send the message.
+            // If the player is the region owner update the last enter time and send the message.
             if (regionManager.isOwner(newRegion, regionUser.getPlayer().getUniqueId().toString())) {
 
                 sendRegionOwnerEnterMessage(regionUser, newRegion);

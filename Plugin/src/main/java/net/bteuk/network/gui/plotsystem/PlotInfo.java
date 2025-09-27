@@ -128,6 +128,8 @@ public class PlotInfo extends NetworkRefreshableGui {
             if (server.equals(constants.serverName())) {
                 eventAPI.createTeleportEvent(false, u.player.getUniqueId().toString(), "plotsystem", "teleport plot " + plotID, location);
             } else {
+                u.player.closeInventory();
+
                 // Set the server join event.
                 eventAPI.createTeleportEvent(true, u.player.getUniqueId().toString(), "plotsystem", "teleport plot " + plotID, location);
 
@@ -346,12 +348,13 @@ public class PlotInfo extends NetworkRefreshableGui {
                         u.player.closeInventory();
                         eventAPI.createEvent(u.getUuid(), "plotsystem", constants.serverName(), "review plot " + plotID);
                     } else {
+                        u.player.closeInventory();
+
                         // Player is not on the current server.
                         // Set the server join event.
                         eventAPI.createJoinEvent(u.getUuid(), "plotsystem", "review plot " + plotID);
 
                         // Teleport them to the server.
-                        u.player.closeInventory();
                         serverAPI.switchServer(PlayerAdapter.adapt(u.player), server);
                     }
                 } else {
@@ -373,12 +376,13 @@ public class PlotInfo extends NetworkRefreshableGui {
                         u.player.closeInventory();
                         eventAPI.createEvent(u.getUuid(), "plotsystem", constants.serverName(), "verify plot " + plotID);
                     } else {
+                        u.player.closeInventory();
+
                         // Player is not on the current server.
                         // Set the server join event.
                         eventAPI.createJoinEvent(u.getUuid(), "plotsystem", "verify plot " + plotID);
 
                         // Teleport them to the server.
-                        u.player.closeInventory();
                         serverAPI.switchServer(PlayerAdapter.adapt(u.player), server);
                     }
                 } else {

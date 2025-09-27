@@ -125,6 +125,7 @@ public class ReviewRegionRequest extends NetworkRefreshableGui {
                         u.player.teleport(l);
                         u.player.sendMessage(ChatUtils.success("Teleported to region ").append(Component.text(request.region, NamedTextColor.DARK_AQUA)));
                     } else {
+                        u.player.closeInventory();
 
                         // Create teleport event.
                         provider.eventAPI().createTeleportEvent(true, u.player.getUniqueId().toString(), "network",

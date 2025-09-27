@@ -140,6 +140,8 @@ public class VerificationInfo extends NetworkRefreshableGui {
                         provider.eventAPI().createTeleportEvent(false, u.player.getUniqueId().toString(), "plotsystem",
                                 "teleport plot " + plotId, location);
                     } else {
+                        u.player.closeInventory();
+
                         // Set the server join event.
                         provider.eventAPI().createTeleportEvent(true, u.player.getUniqueId().toString(), "plotsystem",
                                 "teleport plot " + plotId, location);

@@ -97,7 +97,7 @@ public class PlotsystemLocations extends NetworkRefreshableGui {
                                             "location_data WHERE name='" + name + "';"), location);
 
                             // Teleport them to another server.
-                            this.delete();
+                            u.player.closeInventory();
                             provider.serverAPI().switchServer(PlayerAdapter.adapt(u.player), server);
                         }
                     });

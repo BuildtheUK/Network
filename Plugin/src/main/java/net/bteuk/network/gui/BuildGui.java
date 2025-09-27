@@ -116,12 +116,12 @@ public class BuildGui extends NetworkRefreshableGui {
 
                                 eventAPI.createTeleportEvent(false, u.player.getUniqueId().toString(), "plotsystem", "teleport plot " + id, location);
                             } else {
+                                u.player.closeInventory();
 
                                 // Set the server join event.
                                 eventAPI.createTeleportEvent(true, u.player.getUniqueId().toString(), "plotsystem", "teleport plot " + id, location);
 
                                 // Teleport them to another server.
-                                u.player.closeInventory();
                                 serverAPI.switchServer(PlayerAdapter.adapt(u.player), server);
                             }
                         }

@@ -114,7 +114,7 @@ public class NetworkConfig {
         boolean regionsEnabled = config.getBoolean("regions.enabled");
 
         // days * 24 hours * 60 minutes * 60 seconds * 1000 milliseconds
-        long regionInactivity = config.getInt("region.inactivity_days") * 24L * 60L * 60L * 1000L;
+        long regionInactivity = config.getInt("regions.inactivity_days") * 24L * 60L * 60L * 1000L;
 
         boolean tpllEnabled = config.getBoolean("tpll.enabled");
         boolean tpllRequiredPermission = config.getBoolean("tpll.requires_permission");
@@ -179,8 +179,8 @@ public class NetworkConfig {
 
         int tipsFrequency = config.getInt("chat.tips.frequency");
 
-        boolean regionStaffRequestAlways = config.getBoolean("region.staff_request.always");
-        int regionStaffRequestRadius = config.getInt("region.staff_request.radius", 0);
+        boolean regionStaffRequestAlways = config.getBoolean("regions.staff_request.always");
+        int regionStaffRequestRadius = config.getInt("regions.staff_request.radius", 0);
 
         int progressMapID = config.getInt("ProgressMap.ProgressMapID");
         String mapHubAPIKey = config.getString("ProgressMap.MapHubAPIKey");

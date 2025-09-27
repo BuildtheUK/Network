@@ -70,6 +70,7 @@ public class ZoneInfo extends NetworkRefreshableGui {
 
                         provider.eventAPI().createTeleportEvent(false, u.player.getUniqueId().toString(), "plotsystem", "teleport zone " + zoneID, location);
                     } else {
+                        u.player.closeInventory();
 
                         // Set the server join event.
                         provider.eventAPI().createTeleportEvent(true, u.player.getUniqueId().toString(), "plotsystem", "teleport zone " + zoneID, location);

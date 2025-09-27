@@ -733,7 +733,7 @@ public class RegionManager {
             // If the region has members, then make the most recently active member the new owner,
             // If the region has no members, then set it inactive.
             List<Inactivity> inactive_owners = regionSQL.getInactives(
-                    "SELECT rm.region,rm.uuid FROM region_members AS rm" + " INNER JOIN regions AS r ON rm.region=r.region WHERE rm.is_owner=1 AND rm.last_enter<" + (Time.currentTime() - constants.regionInactivity()) + " AND r" + ".status <> " + "'inactive';");
+                    "SELECT rm.region,rm.uuid FROM region_members AS rm INNER JOIN regions AS r ON rm.region=r.region WHERE rm.is_owner=1 AND rm.last_enter<" + (Time.currentTime() - constants.regionInactivity()) + " AND r.status <> " + "'inactive';");
             long currentTime = Time.currentTime();
 
             for (Inactivity inactive : inactive_owners) {
