@@ -23,7 +23,7 @@
 
         <paper.api.version>1.21.8-R0.1-SNAPSHOT</paper.api.version>
 
-        <bteuk.proxy.version>c75ba196a4</bteuk.proxy.version>
+        <bteuk.proxy.version>d3134be6b5</bteuk.proxy.version>
         <bteuk.lib.version>5958727df9</bteuk.lib.version>
 
         <lombok.version>1.18.34</lombok.version>

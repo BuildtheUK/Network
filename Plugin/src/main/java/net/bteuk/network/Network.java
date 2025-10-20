@@ -328,6 +328,12 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
         Nightvision nightvision = new Nightvision(this);
 
+        Moderation moderation = new Moderation(this, eventManager);
+
+        // Enables chat, both global chat and normal chat are handled through it.
+        chat = new CustomChat(this, constants, afk, globalSQL, moderation, roles);
+        afk.registerChat(chat);
+
         // Create the region manager if enabled.
         if (constants.regionsEnabled()) {
             regionManager = new RegionManager(regionSQL, this, coordinateAPI, eventManager, worldGuardAPI, constants, this, serverAPI);
@@ -337,12 +343,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         // Setup connect, this handles all connections to the server.
         // Listener and manager of server connections.
         Connect connect = new Connect(this, constants, tab, roles, globalSQL, networkGuiManager, nightvision, eventManager, regionManager);
-
-        Moderation moderation = new Moderation(this, eventManager);
-
-        // Enables chat, both global chat and normal chat are handled through it.
-        chat = new CustomChat(this, constants, afk, globalSQL, connect, moderation, tab, roles);
-        afk.registerChat(chat);
+        new SocketHandlerImpl(this, chat, tab, connect);
 
         // Create the navigator.
         navigatorItem = Utils.createItem(Material.NETHER_STAR, 1, Utils.title("Navigator"), Utils.line("Click to open the navigator."));
@@ -452,9 +453,9 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         new PlayerInteract(this, navigator);
 
         if (constants.warpsEnabled()) {
-            new Warp(this, constants, plotAPI, back, eventManager, serverAPI);
-            new Warps(this);
-            new Navigation(this, navigator.getProvider());
+            commandManager.registerCommand(new Warp(this, constants, plotAPI, back, eventManager, serverAPI));
+            commandManager.registerCommand(new Warps(this));
+            commandManager.registerCommand(new Navigation(this, navigator.getProvider()));
         }
 
         if (constants.plotSystemEnabled()) {

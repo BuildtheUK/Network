@@ -6,19 +6,12 @@ import net.bteuk.network.api.ChatAPI;
 import net.bteuk.network.commands.Afk;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.Time;
-import net.bteuk.network.eventing.listeners.Connect;
 import net.bteuk.network.exceptions.NotMutedException;
 import net.bteuk.network.lib.dto.AbstractTransferObject;
-import net.bteuk.network.lib.dto.AddTeamEvent;
 import net.bteuk.network.lib.dto.ChatMessage;
 import net.bteuk.network.lib.dto.DirectMessage;
 import net.bteuk.network.lib.dto.DiscordLinking;
 import net.bteuk.network.lib.dto.DiscordRole;
-import net.bteuk.network.lib.dto.OnlineUserAdd;
-import net.bteuk.network.lib.dto.OnlineUserRemove;
-import net.bteuk.network.lib.dto.OnlineUsersReply;
-import net.bteuk.network.lib.dto.UserConnectReply;
-import net.bteuk.network.lib.dto.UserRemove;
 import net.bteuk.network.lib.dto.UserUpdate;
 import net.bteuk.network.lib.enums.ChatChannels;
 import net.bteuk.network.lib.socket.InputSocket;
@@ -41,7 +34,7 @@ import org.bukkit.event.Listener;
 import static net.bteuk.network.lib.enums.ChatChannels.STAFF;
 
 @Log
-public class CustomChat implements Listener, SocketHandler, ChatAPI {
+public class CustomChat implements Listener, ChatAPI {
 
     private static final String AFK = "%s is now afk";
     private static final String NOT_AFK = "%s is no longer afk";
@@ -50,20 +43,18 @@ public class CustomChat implements Listener, SocketHandler, ChatAPI {
     private final Constants constants;
     private final Afk afk;
     private final GlobalSQL globalSQL;
-    private final Connect connect;
     private final Moderation moderation;
-    private final TabManager tabManager;
     private final Roles roles;
 
-    public CustomChat(Network instance, Constants constants, Afk afk, GlobalSQL globalSQL, Connect connect, Moderation moderation, TabManager tabManager, Roles roles) {
+    private InputSocket inputSocket;
+
+    public CustomChat(Network instance, Constants constants, Afk afk, GlobalSQL globalSQL, Moderation moderation, Roles roles) {
 
         this.instance = instance;
         this.constants = constants;
         this.afk = afk;
         this.globalSQL = globalSQL;
-        this.connect = connect;
         this.moderation = moderation;
-        this.tabManager = tabManager;
         this.roles = roles;
 
         instance.getServer().getPluginManager().registerEvents(this, instance);
@@ -78,12 +69,15 @@ public class CustomChat implements Listener, SocketHandler, ChatAPI {
                 log.severe("Input socket port is not set in config or is set to 0. Please set a valid port!");
             } else {
                 // Create the input socket.
-                InputSocket inputSocket = new InputSocket(inputSocketPort);
-                inputSocket.start(this);
+                inputSocket = new InputSocket(inputSocketPort);
             }
         }
 
         log.info("Successfully enabled Chat!");
+    }
+
+    public void registerSocketHandler(SocketHandler socketHandler) {
+        inputSocket.start(socketHandler);
     }
 
     public static ChatMessage getChatMessage(Component component, NetworkUser u) {
@@ -193,25 +187,7 @@ public class CustomChat implements Listener, SocketHandler, ChatAPI {
         }
     }
 
-    @Override
-    public AbstractTransferObject handle(AbstractTransferObject abstractTransferObject) {
-        switch (abstractTransferObject) {
-            case DirectMessage directMessage -> handleDirectMessage(directMessage);
-            case DiscordLinking discordLinking -> handleDiscordLinking(discordLinking);
-            case AddTeamEvent addTeamEvent -> tabManager.handle(addTeamEvent);
-            case UserConnectReply userConnectReply -> connect.handleUserConnectReply(userConnectReply);
-            case UserRemove userRemove -> connect.handleUserRemove(userRemove);
-            case UserUpdate userUpdate -> handleUserUpdate(userUpdate);
-            case OnlineUsersReply onlineUsersReply -> instance.handleOnlineUsersReply(onlineUsersReply);
-            case OnlineUserAdd onlineUserAdd -> instance.handleOnlineUserAdd(onlineUserAdd);
-            case OnlineUserRemove onlineUserRemove -> instance.handleOnlineUserRemove(onlineUserRemove);
-            default -> log.warning(String.format("Socket object has an unrecognised type %s",
-                    abstractTransferObject.getClass().getTypeName()));
-        }
-        return null;
-    }
-
-    private void handleDirectMessage(DirectMessage message) {
+    public void handleDirectMessage(DirectMessage message) {
         // Send the message if the player is on this server.
         instance.getServer().getOnlinePlayers().stream()
                 .filter(player -> player.getUniqueId().toString().equals(message.getRecipient()))
@@ -236,7 +212,7 @@ public class CustomChat implements Listener, SocketHandler, ChatAPI {
                 });
     }
 
-    private void handleDiscordLinking(DiscordLinking discordLinking) {
+    public void handleDiscordLinking(DiscordLinking discordLinking) {
 
         if (discordLinking.isUnlink() && discordLinking.getDiscordId() != -1) {
             // Unlink, this is only used if the user is no longer in the discord server.
@@ -282,7 +258,7 @@ public class CustomChat implements Listener, SocketHandler, ChatAPI {
                 });
     }
 
-    private void handleUserUpdate(UserUpdate userUpdate) {
+    public void handleUserUpdate(UserUpdate userUpdate) {
         // If the user is online check if anything needs updating.
         instance.getUsers().stream().filter((NetworkUser user) -> user.player.getUniqueId().toString().equals(userUpdate.getUuid()))
                 .findFirst().ifPresent((NetworkUser user) -> {
