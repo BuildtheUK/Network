@@ -25,6 +25,7 @@
 
         <bteuk.proxy.version>d3134be6b5</bteuk.proxy.version>
         <bteuk.lib.version>5958727df9</bteuk.lib.version>
+        <bteuk.networklib.version>a781b6371c</bteuk.networklib.version>
 
         <lombok.version>1.18.34</lombok.version>
     </properties>
@@ -84,6 +85,12 @@
                 <groupId>com.github.BTEUK.BTEUKLib</groupId>
                 <artifactId>Minecraft</artifactId>
                 <version>${bteuk.lib.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.BTEUK</groupId>
+                <artifactId>NetworkLib</artifactId>
+                <version>${bteuk.networklib.version}</version>
             </dependency>
 
             <dependency>

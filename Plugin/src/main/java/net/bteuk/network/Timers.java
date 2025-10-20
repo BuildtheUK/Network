@@ -73,7 +73,7 @@ public class Timers {
                     isBusy = true;
 
                     // Get events for this server.
-                    events = globalSQL.getEvents(constants.serverName(), "network", events);
+                    events = globalSQL.getEvents(constants.serverName(), events);
 
                     for (String[] event : events) {
 

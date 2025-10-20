@@ -1,9 +1,18 @@
 package net.bteuk.network.api;
 
+import net.bteuk.network.api.entity.Event;
 import net.bteuk.network.api.entity.NetworkLocation;
 import net.kyori.adventure.text.Component;
 
 public interface EventAPI {
+
+    /**
+     * Registers an {@link Event} to the Event manager.
+     *
+     * @param name the name of the event
+     * @param event the event
+     */
+    void registerEvent(String name, Event event);
 
     void createJoinEvent(String uuid, String type, String event);
 

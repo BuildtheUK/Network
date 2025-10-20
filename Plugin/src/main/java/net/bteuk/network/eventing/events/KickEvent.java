@@ -1,7 +1,7 @@
 package net.bteuk.network.eventing.events;
 
 import lombok.extern.java.Log;
-import net.bteuk.network.core.Event;
+import net.bteuk.network.api.entity.Event;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;

@@ -2,10 +2,10 @@ package net.bteuk.network.eventing.events;
 
 import lombok.extern.java.Log;
 import net.bteuk.network.api.EventAPI;
+import net.bteuk.network.api.entity.Event;
 import net.bteuk.network.api.entity.NetworkLocation;
 import net.bteuk.network.commands.navigation.Back;
 import net.bteuk.network.core.Constants;
-import net.bteuk.network.core.Event;
 import net.bteuk.network.sql.GlobalSQL;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;

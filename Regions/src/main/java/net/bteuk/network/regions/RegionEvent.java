@@ -3,7 +3,7 @@ package net.bteuk.network.regions;
 import net.bteuk.network.api.ChatAPI;
 import net.bteuk.network.api.CoordinateAPI;
 import net.bteuk.network.api.SQLAPI;
-import net.bteuk.network.core.Event;
+import net.bteuk.network.api.entity.Event;
 import net.bteuk.network.lib.dto.DirectMessage;
 import net.bteuk.network.lib.enums.ChatChannels;
 import net.bteuk.network.lib.utils.ChatUtils;

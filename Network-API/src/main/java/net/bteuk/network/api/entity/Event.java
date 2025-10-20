@@ -1,4 +1,4 @@
-package net.bteuk.network.core;
+package net.bteuk.network.api.entity;
 
 /**
  * Abstract class for events.

@@ -2,7 +2,7 @@ package net.bteuk.network.eventing.events;
 
 import net.bteuk.network.api.PlotAPI;
 import net.bteuk.network.api.SQLAPI;
-import net.bteuk.network.core.Event;
+import net.bteuk.network.api.entity.Event;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.regions.Region;
 import net.bteuk.network.regions.RegionManager;

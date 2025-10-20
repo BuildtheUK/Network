@@ -30,13 +30,13 @@ public class GlobalSQL extends AbstractSQL {
         this.constants = constants;
     }
 
-    // Get a hashmap of all events for this server for the Network plugin.
-    public ArrayList<String[]> getEvents(String serverName, String type, ArrayList<String[]> list) {
+    // Get a hashmap of all events for this server.
+    public ArrayList<String[]> getEvents(String serverName, ArrayList<String[]> list) {
 
         // Try and get all events for this server.
         try (
                 Connection conn = conn();
-                PreparedStatement statement = conn.prepareStatement("SELECT uuid,event,message FROM server_events " + "WHERE server='" + serverName + "' AND type='" + type + "';");
+                PreparedStatement statement = conn.prepareStatement("SELECT uuid,event,message FROM server_events " + "WHERE server='" + serverName + "';");
                 ResultSet results = statement.executeQuery()
         ) {
 
@@ -52,7 +52,7 @@ public class GlobalSQL extends AbstractSQL {
         // Try and delete all events for this server.
         try (
                 Connection conn = conn();
-                PreparedStatement statement = conn.prepareStatement("DELETE FROM server_events WHERE server='" + serverName + "' AND " + "type='" + type + "';")
+                PreparedStatement statement = conn.prepareStatement("DELETE FROM server_events WHERE server='" + serverName + "';")
         ) {
 
             statement.executeUpdate();
