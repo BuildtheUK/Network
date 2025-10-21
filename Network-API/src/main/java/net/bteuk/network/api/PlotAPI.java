@@ -94,4 +94,14 @@ public interface PlotAPI {
     String getPlotOwner(int plotID);
 
     String getZoneOwner(int zoneID);
+
+    boolean isPlotOwner(int plotID, String uuid);
+
+    boolean isPlotMember(int plotID, String uuid);
+
+    boolean isPlotClaimed(int plotID);
+
+    int getNumberOfPlots(String uuid);
+
+
 }

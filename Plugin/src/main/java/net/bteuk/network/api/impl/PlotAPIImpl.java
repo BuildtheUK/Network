@@ -216,4 +216,26 @@ public class PlotAPIImpl implements PlotAPI {
     public String getZoneOwner(int zoneID) {
         return plotSQL.getString("SELECT uuid FROM zone_members WHERE id=" + zoneID + " AND is_owner=1;");
     }
+
+    @Override
+    public boolean isPlotOwner(int plotID, String uuid) {
+        return plotSQL.hasRow("SELECT id FROM plot_members WHERE id=" + plotID + " AND uuid='" + uuid + "' AND is_owner=1;");
+    }
+
+    @Override
+    public boolean isPlotMember(int plotID, String uuid) {
+        return plotSQL.hasRow("SELECT id FROM plot_members WHERE id=" + plotID + " AND uuid='" + uuid + "' AND is_owner=0;");
+
+    }
+
+    @Override
+    public boolean isPlotClaimed(int plotID) {
+        return plotSQL.hasRow("SELECT id FROM plot_data WHERE id=" + plotID + " AND status='claimed';");
+    }
+
+    @Override
+    public int getNumberOfPlots(String uuid) {
+        return plotSQL.getInt("SELECT count(id) FROM plot_members WHERE uuid='" + uuid + "';");
+    }
+
 }

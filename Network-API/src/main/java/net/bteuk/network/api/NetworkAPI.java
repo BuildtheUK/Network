@@ -12,6 +12,8 @@ public interface NetworkAPI {
 
     TimerAPI getTimerAPI();
 
+    boolean isTutorialsEnabled();
+
     /**
      * Register a shutdown hook to run on server shutdown.
      *

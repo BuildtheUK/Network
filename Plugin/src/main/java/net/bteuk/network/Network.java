@@ -628,6 +628,10 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         return plotAPI;
     }
 
+    public boolean isTutorialsEnabled() {
+        return constants.tutorials();
+    }
+
     @Override
     public void registerShutdownHook(ShutdownHook hook) {
         shutdownHooks.add(hook);
