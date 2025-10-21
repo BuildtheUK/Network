@@ -63,7 +63,7 @@ public class Timers {
         instance.getTimerAPI().registerTimer(() -> {
 
             // Check for new server_events.
-            if (globalSQL.hasRow("SELECT uuid FROM server_events WHERE server='" + constants.serverName() + "' AND type='network" + "';")) {
+            if (globalSQL.hasRow("SELECT uuid FROM server_events WHERE server='" + constants.serverName() + "';")) {
 
                 // If events are not empty, skip this iteration.
                 // Additionally, isBusy needs to be false, implying that the server is not still running a previous

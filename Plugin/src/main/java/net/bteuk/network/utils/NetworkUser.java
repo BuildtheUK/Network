@@ -101,7 +101,8 @@ public class NetworkUser {
 
     private final RegionUser regionUser;
 
-    public NetworkUser(Player player, UserConnectReply reply, Network instance, Constants constants, Roles roles, Nightvision nightvision, EventManager eventManager, RegionUser regionUser) {
+    public NetworkUser(Player player, UserConnectReply reply, Network instance, Constants constants, Roles roles, Nightvision nightvision, EventManager eventManager,
+                       RegionUser regionUser) {
 
         this.instance = instance;
         this.constants = constants;
@@ -202,27 +203,19 @@ public class NetworkUser {
         // Check if the player has any join events, if try run them.
         // Delay by 1 second for all plugins to run their join events.
         Bukkit.getScheduler().scheduleSyncDelayedTask(instance, () -> {
-            if (instance.getGlobalSQL().hasRow("SELECT uuid FROM join_events WHERE uuid='" + player.getUniqueId() +
-                    "' AND type='network';")) {
+            if (instance.getGlobalSQL().hasRow("SELECT uuid FROM join_events WHERE uuid='" + player.getUniqueId() + ";")) {
 
                 // Get the event from the database.
-                String event =
-                        instance.getGlobalSQL().getString(
-                                "SELECT event FROM join_events WHERE uuid='" + player.getUniqueId() + "' AND " +
-                                        "type='network'");
+                String event = instance.getGlobalSQL().getString("SELECT event FROM join_events WHERE uuid='" + player.getUniqueId() + "';");
 
                 // Get message.
-                String message =
-                        instance.getGlobalSQL().getString(
-                                "SELECT message FROM join_events WHERE uuid='" + player.getUniqueId() + "' AND " +
-                                        "type='network'");
+                String message = instance.getGlobalSQL().getString("SELECT message FROM join_events WHERE uuid='" + player.getUniqueId() + "';");
 
                 // Split the event by word.
                 String[] aEvent = event.split(" ");
 
                 // Clear the events.
-                instance.getGlobalSQL().update("DELETE FROM join_events WHERE uuid='" + player.getUniqueId() + "' AND" +
-                        " type='network';");
+                instance.getGlobalSQL().update("DELETE FROM join_events WHERE uuid='" + player.getUniqueId() + "';");
 
                 // Send the event to the event handler.
                 eventManager.event(player.getUniqueId().toString(), aEvent, message);

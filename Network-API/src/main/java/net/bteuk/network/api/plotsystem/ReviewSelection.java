@@ -1,4 +1,4 @@
-package net.bteuk.network.utils.plotsystem;
+package net.bteuk.network.api.plotsystem;
 
 import lombok.Getter;
 import net.kyori.adventure.text.Component;

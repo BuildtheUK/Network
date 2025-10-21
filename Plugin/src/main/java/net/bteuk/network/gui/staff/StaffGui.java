@@ -1,5 +1,6 @@
 package net.bteuk.network.gui.staff;
 
+import net.bteuk.network.api.plotsystem.SubmittedPlot;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.NetworkRefreshableGui;
@@ -9,7 +10,6 @@ import net.bteuk.network.papercore.PlayerAdapter;
 import net.bteuk.network.regions.RegionUser;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
-import net.bteuk.network.utils.plotsystem.SubmittedPlot;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;

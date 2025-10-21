@@ -1,12 +1,12 @@
 package net.bteuk.network.gui.plotsystem;
 
+import net.bteuk.network.api.plotsystem.ReviewFeedback;
 import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.sql.PlotSQL;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
-import net.bteuk.network.utils.plotsystem.ReviewFeedback;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;

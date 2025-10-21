@@ -12,6 +12,8 @@ public interface NetworkAPI {
 
     TimerAPI getTimerAPI();
 
+    EventAPI getEventAPI();
+
     boolean isTutorialsEnabled();
 
     /**

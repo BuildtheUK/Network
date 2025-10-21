@@ -1,4 +1,4 @@
-package net.bteuk.network.utils.plotsystem;
+package net.bteuk.network.api.plotsystem;
 
 import net.bteuk.network.api.SQLAPI;
 import net.bteuk.network.lib.utils.ChatUtils;

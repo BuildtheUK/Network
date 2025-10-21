@@ -1,4 +1,4 @@
-package net.bteuk.network.utils.plotsystem;
+package net.bteuk.network.api.plotsystem;
 
 public record SubmittedPlot(int id, long submitTime) {
 }

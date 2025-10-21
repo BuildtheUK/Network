@@ -1,11 +1,11 @@
 package net.bteuk.network.sql;
 
 import lombok.extern.java.Log;
+import net.bteuk.network.api.plotsystem.SubmittedPlot;
 import net.bteuk.network.core.sql.AbstractSQL;
 import net.bteuk.network.lib.enums.PlotDifficulties;
 import net.bteuk.network.lib.utils.Reviewing;
 import net.bteuk.network.utils.TutorialRecommendation;
-import net.bteuk.network.utils.plotsystem.SubmittedPlot;
 import teachingtutorials.utils.DBConnection;
 
 import javax.sql.DataSource;
