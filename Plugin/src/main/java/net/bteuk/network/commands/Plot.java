@@ -2,6 +2,7 @@ package net.bteuk.network.commands;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import lombok.extern.java.Log;
+import net.bteuk.network.api.plotsystem.PlotStatus;
 import net.bteuk.network.api.plotsystem.ReviewFeedback;
 import net.bteuk.network.commands.tabcompleters.FixedArgSelector;
 import net.bteuk.network.gui.GuiProvider;
@@ -10,7 +11,6 @@ import net.bteuk.network.gui.plotsystem.PlotMenu;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
-import net.bteuk.network.utils.enums.PlotStatus;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 

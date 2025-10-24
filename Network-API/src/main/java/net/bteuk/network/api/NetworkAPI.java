@@ -16,6 +16,10 @@ public interface NetworkAPI {
 
     boolean isTutorialsEnabled();
 
+    int getMinY();
+
+    int getMaxY();
+
     /**
      * Register a shutdown hook to run on server shutdown.
      *

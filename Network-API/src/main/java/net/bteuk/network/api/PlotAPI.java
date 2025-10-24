@@ -103,5 +103,9 @@ public interface PlotAPI {
 
     int getNumberOfPlots(String uuid);
 
+    String getPlotLocation(int plotId);
 
+    String getZoneLocation(int zoneId);
+
+    String getLocationServer(String location);
 }

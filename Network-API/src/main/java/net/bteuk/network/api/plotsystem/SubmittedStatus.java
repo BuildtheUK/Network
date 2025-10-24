@@ -1,4 +1,4 @@
-package net.bteuk.network.utils.enums;
+package net.bteuk.network.api.plotsystem;
 
 import java.util.Objects;
 

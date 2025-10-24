@@ -635,6 +635,14 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         return constants.tutorials();
     }
 
+    public int getMinY() {
+        return constants.minY();
+    }
+
+    public int getMaxY() {
+        return constants.maxY();
+    }
+
     @Override
     public void registerShutdownHook(ShutdownHook hook) {
         shutdownHooks.add(hook);
