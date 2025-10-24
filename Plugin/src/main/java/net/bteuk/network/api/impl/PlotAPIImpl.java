@@ -238,4 +238,19 @@ public class PlotAPIImpl implements PlotAPI {
         return plotSQL.getInt("SELECT count(id) FROM plot_members WHERE uuid='" + uuid + "';");
     }
 
+    @Override
+    public String getPlotLocation(int plotId) {
+        return "";
+    }
+
+    @Override
+    public String getZoneLocation(int zoneId) {
+        return "";
+    }
+
+    @Override
+    public String getLocationServer(String location) {
+        return "";
+    }
+
 }
