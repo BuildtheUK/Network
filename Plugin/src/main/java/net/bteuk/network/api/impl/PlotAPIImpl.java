@@ -1,6 +1,7 @@
 package net.bteuk.network.api.impl;
 
 import net.bteuk.network.api.PlotAPI;
+import net.bteuk.network.api.plotsystem.PlotStatus;
 import net.bteuk.network.sql.PlotSQL;
 
 import java.util.List;
@@ -251,6 +252,41 @@ public class PlotAPIImpl implements PlotAPI {
     @Override
     public String getLocationServer(String location) {
         return "";
+    }
+
+    @Override
+    public PlotStatus getPlotStatus(int plotId) {
+        return null;
+    }
+
+    @Override
+    public int getPlotDifficulty(int plotId) {
+        return 0;
+    }
+
+    @Override
+    public int getPlotSize(int plotId) {
+        return 0;
+    }
+
+    @Override
+    public boolean isPlotUnclaimed(int plotId) {
+        return plotSQL.hasRow("SELECT id FROM plot_data WHERE id=" + plotId + " AND status='unclaimed';");
+    }
+
+    @Override
+    public boolean createPlotOwner(int plotId, String uuid) {
+        return false;
+    }
+
+    @Override
+    public boolean hasPlotOwnerOrMember(int plotId) {
+        return false;
+    }
+
+    @Override
+    public boolean isZonePublic(int zoneId) {
+        return false;
     }
 
 }

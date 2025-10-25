@@ -1,5 +1,7 @@
 package net.bteuk.network.api;
 
+import net.bteuk.network.api.plotsystem.PlotStatus;
+
 import java.util.List;
 
 public interface PlotAPI {
@@ -108,4 +110,18 @@ public interface PlotAPI {
     String getZoneLocation(int zoneId);
 
     String getLocationServer(String location);
+
+    PlotStatus getPlotStatus(int plotId);
+
+    int getPlotDifficulty(int plotId);
+
+    int getPlotSize(int plotId);
+
+    boolean isPlotUnclaimed(int plotId);
+
+    boolean createPlotOwner(int plotId, String uuid);
+
+    boolean hasPlotOwnerOrMember(int plotId);
+
+    boolean isZonePublic(int zoneId);
 }
