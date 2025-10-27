@@ -289,4 +289,39 @@ public class PlotAPIImpl implements PlotAPI {
         return false;
     }
 
+    @Override
+    public int getPlotCoordinate(int plotId) {
+        return 0;
+    }
+
+    @Override
+    public boolean isZoneOwner(String uuid) {
+        return false;
+    }
+
+    @Override
+    public int getNumberOfZones() {
+        return 0;
+    }
+
+    @Override
+    public boolean plotExists(int plotId) {
+        return false;
+    }
+
+    @Override
+    public List<String> getBookPages(int bookId) {
+        return List.of();
+    }
+
+    @Override
+    public void updatePlotCategoryFeedback(int reviewId, String category, String selection, int bookId) {
+
+    }
+
+    @Override
+    public int getHighestBookId() {
+        return 0;
+    }
+
 }
