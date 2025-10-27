@@ -7,4 +7,6 @@ public interface CoordinateAPI {
     int addCoordinate(NetworkLocation location);
 
     int copyCoordinate(int coordinateID);
+
+    void updateCoordinate(int coordinateID, NetworkLocation location);
 }

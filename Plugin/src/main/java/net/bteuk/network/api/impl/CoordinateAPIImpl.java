@@ -31,4 +31,9 @@ public class CoordinateAPIImpl implements CoordinateAPI {
         }
         return -1;
     }
+
+    @Override
+    public void updateCoordinate(int coordinateID, NetworkLocation location) {
+        globalSQL.updateCoordinate(coordinateID, location);
+    }
 }

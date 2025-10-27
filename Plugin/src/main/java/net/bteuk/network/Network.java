@@ -174,6 +174,9 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
     private final List<ShutdownHook> shutdownHooks = new ArrayList<>();
 
+    @Getter
+    private CoordinateAPI coordinateAPI;
+
     @Override
     public void onEnable() {
 
@@ -307,7 +310,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
         CommandManager commandManager = new CommandManager(this);
 
-        CoordinateAPI coordinateAPI = new CoordinateAPIImpl(globalSQL);
+        this.coordinateAPI = new CoordinateAPIImpl(globalSQL);
         this.eventAPI = new EventManager(globalSQL, constants);
         WorldGuardAPI worldGuardAPI = new WorldGuard();
 

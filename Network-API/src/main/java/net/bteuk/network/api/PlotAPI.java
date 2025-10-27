@@ -124,4 +124,18 @@ public interface PlotAPI {
     boolean hasPlotOwnerOrMember(int plotId);
 
     boolean isZonePublic(int zoneId);
+
+    int getPlotCoordinate(int plotId);
+
+    boolean isZoneOwner(String uuid);
+
+    int getNumberOfZones();
+
+    boolean plotExists(int plotId);
+
+    List<String> getBookPages(int bookId);
+
+    void updatePlotCategoryFeedback(int reviewId, String category, String selection, int bookId);
+
+    int getHighestBookId();
 }
