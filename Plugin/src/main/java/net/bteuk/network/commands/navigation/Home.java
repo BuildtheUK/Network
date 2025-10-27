@@ -102,7 +102,7 @@ public class Home extends AbstractCommand {
         } else if (!constants.standalone()) {
 
             // Switch server with join event.
-            eventAPI.createTeleportEvent(true, player.getUniqueId().toString(), "network", "teleport coordinateID " + coordinateId, "&aTeleported to your default home.",
+            eventAPI.createTeleportEvent(true, player.getUniqueId().toString(), "teleport coordinateID " + coordinateId, "&aTeleported to your default home.",
                     LocationAdapter.adapt(player.getLocation()));
 
             // Switch server.

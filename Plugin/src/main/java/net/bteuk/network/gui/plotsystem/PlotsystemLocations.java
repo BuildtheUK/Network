@@ -82,7 +82,7 @@ public class PlotsystemLocations extends NetworkRefreshableGui {
                             double y = Objects.requireNonNull(world).getHighestBlockYAt((int) x, (int) z);
                             y++;
 
-                            provider.eventAPI().createTeleportEvent(false, u.player.getUniqueId().toString(), "network",
+                            provider.eventAPI().createTeleportEvent(false, u.player.getUniqueId().toString(),
                                     "teleport " + name + " " + x + " " + y + " " + z + " "
                                             + u.player.getLocation().getYaw() + " " + u.player.getLocation().getPitch(),
                                     "&aTeleported to location &3" + plotSQL.getString("SELECT alias FROM " +
@@ -90,7 +90,7 @@ public class PlotsystemLocations extends NetworkRefreshableGui {
                         } else {
 
                             // Set the server join event.
-                            provider.eventAPI().createTeleportEvent(true, u.player.getUniqueId().toString(), "network",
+                            provider.eventAPI().createTeleportEvent(true, u.player.getUniqueId().toString(),
                                     "teleport " + name + " " + x + " " + z + " "
                                             + u.player.getLocation().getYaw() + " " + u.player.getLocation().getPitch(),
                                     "&aTeleported to location &3" + plotSQL.getString("SELECT alias FROM " +

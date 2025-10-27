@@ -172,7 +172,7 @@ public class Map extends AbstractReloadableComponent {
             PaperLib.teleportAsync(p, mapLocation);
         } else {
             // Create teleport event.
-            eventAPI.createTeleportEvent(true, p.getUniqueId().toString(), "network",
+            eventAPI.createTeleportEvent(true, p.getUniqueId().toString(),
                     String.format("teleport %s " + "%f %f %f %f %f", constants.mapLocation().world(), mapLocation.getX(), mapLocation.getY(), mapLocation.getZ(),
                             mapLocation.getYaw(), mapLocation.getPitch()), "&aTeleporting to the map.", LocationAdapter.adapt(p.getLocation()));
 

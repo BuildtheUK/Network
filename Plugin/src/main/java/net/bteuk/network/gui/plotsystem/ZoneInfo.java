@@ -182,7 +182,7 @@ public class ZoneInfo extends NetworkRefreshableGui {
                         }, 20L);
 
                         // Add server event to leave plot.
-                        globalSQL.update("INSERT INTO server_events(uuid,type,server,event) VALUES('" + u.player.getUniqueId() + "','plotsystem','" + plotSQL.getString(
+                        globalSQL.update("INSERT INTO server_events(uuid,server,event) VALUES('" + u.player.getUniqueId() + "','" + plotSQL.getString(
                                 "SELECT server FROM location_data WHERE name='" + plotSQL.getString(
                                         "SELECT location FROM zones WHERE id=" + zoneID + ";") + "';") + "','leave zone " + zoneID + "');");
                     });

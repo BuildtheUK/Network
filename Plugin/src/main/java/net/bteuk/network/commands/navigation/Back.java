@@ -66,7 +66,7 @@ public class Back extends AbstractCommand {
 
             // Teleport the player to the correct server with a join event to teleport to the coordinate id.
             // Create teleport event for location of coordinate id
-            eventAPI.createTeleportEvent(true, player.getUniqueId().toString(), "network",
+            eventAPI.createTeleportEvent(true, player.getUniqueId().toString(),
                     "teleport " + globalSQL.getString("SELECT world FROM coordinates WHERE id=" + coordinateID + ";") + " " + globalSQL.getDouble(
                             "SELECT x FROM coordinates WHERE id=" + coordinateID + ";") + " " + globalSQL.getDouble(
                             "SELECT y FROM coordinates WHERE id=" + coordinateID + ";") + " " + globalSQL.getDouble(

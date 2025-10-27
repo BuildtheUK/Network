@@ -127,6 +127,8 @@ public interface PlotAPI {
 
     int getPlotCoordinate(int plotId);
 
+    void updatePlotCoordinate(int plotId, int coordinateId);
+
     boolean isZoneOwner(String uuid);
 
     int getNumberOfZones();

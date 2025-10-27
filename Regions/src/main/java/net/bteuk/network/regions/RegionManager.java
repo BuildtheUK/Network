@@ -645,7 +645,7 @@ public class RegionManager {
             worldGuard.removeMember(region.regionName(), uuid, constants.earthWorld());
         } else {
 
-            eventAPI.createEvent(uuid, "network", globalSQL.getString("SELECT name " + "FROM server_data WHERE type='EARTH';"), "region leave " + region.regionName(), message);
+            eventAPI.createEvent(uuid, globalSQL.getString("SELECT name " + "FROM server_data WHERE type='EARTH';"), "region leave " + region.regionName(), message);
         }
     }
 

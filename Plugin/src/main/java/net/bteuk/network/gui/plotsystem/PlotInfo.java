@@ -217,7 +217,7 @@ public class PlotInfo extends NetworkRefreshableGui {
                     u.player.closeInventory();
 
                     // Add server event to submit plot.
-                    globalSQL.update("INSERT INTO server_events(uuid,type,server,event) VALUES('" + u.player.getUniqueId() + "','plotsystem','" + plotSQL.getString(
+                    globalSQL.update("INSERT INTO server_events(uuid,server,event) VALUES('" + u.player.getUniqueId() + "','" + plotSQL.getString(
                             "SELECT server FROM location_data WHERE name='" + plotSQL.getString(
                                     "SELECT location FROM plot_data WHERE id=" + plotID + ";") + "';") + "','submit plot " + plotID + "');");
                 });
@@ -231,7 +231,7 @@ public class PlotInfo extends NetworkRefreshableGui {
                             u.player.closeInventory();
 
                             // Add server event to retract plot submission.
-                            globalSQL.update("INSERT INTO server_events(uuid,type,server,event) VALUES('" + u.player.getUniqueId() + "','plotsystem','" + plotSQL.getString(
+                            globalSQL.update("INSERT INTO server_events(uuid,server,event) VALUES('" + u.player.getUniqueId() + "','" + plotSQL.getString(
                                     "SELECT server FROM location_data WHERE name='" + plotSQL.getString(
                                             "SELECT location FROM plot_data WHERE id=" + plotID + ";") + "';") + "','retract plot " + plotID + "');");
                         });
@@ -267,7 +267,7 @@ public class PlotInfo extends NetworkRefreshableGui {
                         }, 20L);
 
                         // Add server event to leave plot.
-                        globalSQL.update("INSERT INTO server_events(uuid,type,server,event) VALUES('" + u.player.getUniqueId() + "','plotsystem','" + plotSQL.getString(
+                        globalSQL.update("INSERT INTO server_events(uuid,server,event) VALUES('" + u.player.getUniqueId() + "','" + plotSQL.getString(
                                 "SELECT server FROM location_data WHERE name='" + plotSQL.getString(
                                         "SELECT location FROM plot_data WHERE id=" + plotID + ";") + "';") + "','leave plot " + plotID + "');");
                     });
@@ -553,7 +553,7 @@ public class PlotInfo extends NetworkRefreshableGui {
 
         boolean switchServer = constants.serverType() != ServerType.EARTH;
 
-        eventAPI.createTeleportEvent(switchServer, user.player.getUniqueId().toString(), "network",
+        eventAPI.createTeleportEvent(switchServer, user.player.getUniqueId().toString(),
                 "teleport " + constants.earthWorld() + " " + x + " " + z + " " + user.player.getLocation().getYaw() + " " + user.player.getLocation().getPitch(),
                 PlainTextComponentSerializer.plainText().serialize(teleportMessage), LocationAdapter.adapt(user.player.getLocation()));
 

@@ -64,7 +64,7 @@ public class RegionInfo extends NetworkRefreshableGui {
         setItem(8, Utils.createItem(Material.RED_CONCRETE, 1, Utils.title("Leave Region")), (NetworkUser u) -> {
 
             // Send leave event to server events.
-            provider.eventAPI().createEvent(u.player.getUniqueId().toString(), "network", globalSQL.getString("SELECT name FROM server_data WHERE type='EARTH';"),
+            provider.eventAPI().createEvent(u.player.getUniqueId().toString(), globalSQL.getString("SELECT name FROM server_data WHERE type='EARTH';"),
                     "region leave " + region.regionName(), "&aYou have left region &3" + regionManager.getTag(region, u.player.getUniqueId().toString()));
 
             // Return to region menu and close inventory.
@@ -189,8 +189,8 @@ public class RegionInfo extends NetworkRefreshableGui {
                             // Make sure this is done on the correct server.
                             // Create teleport region event.
                             if (regionManager.hasRequests(region)) {
-                                globalSQL.update("INSERT INTO server_events(uuid,type,server,event) VALUES('" + u.player.getUniqueId() + "','network'," + globalSQL.getString(
-                                        "SELECT name FROM server_data WHERE type='EARTH';") + "'region request accept " + region.regionName() + "');");
+                                globalSQL.update("INSERT INTO server_events(uuid,server,event) VALUES('" + u.player.getUniqueId() + "','" + globalSQL.getString(
+                                        "SELECT name FROM server_data WHERE type='EARTH';") + "','region request accept " + region.regionName() + "');");
                             }
 
                             u.player.sendMessage(ChatUtils.success("Region ").append(Component.text(regionManager.getTag(region, uuid), NamedTextColor.DARK_AQUA))

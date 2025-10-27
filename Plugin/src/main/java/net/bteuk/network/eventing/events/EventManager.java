@@ -37,38 +37,36 @@ public class EventManager implements EventAPI, Event {
         events.put(name, event);
     }
 
-    public void createJoinEvent(String uuid, String type, String event) {
+    public void createJoinEvent(String uuid, String event) {
         globalSQL.update(
-                "INSERT INTO join_events(uuid,type,event) " + "VALUES('" + uuid + "','" + type + "','" + event + "') " + "ON DUPLICATE KEY UPDATE type='" + type + "', event='" + event + "';");
+                "INSERT INTO join_events(uuid,event) " + "VALUES('" + uuid + "','" + event + "') " + "ON DUPLICATE KEY UPDATE event='" + event + "';");
     }
 
-    public void createJoinEvent(String uuid, String type, String event, String message) {
+    public void createJoinEvent(String uuid, String event, String message) {
         globalSQL.update(
-                "INSERT INTO join_events(uuid,type,event,message) " + "VALUES('" + uuid + "','" + type + "','" + event + "','" + message + "') " + "ON DUPLICATE KEY " + "UPDATE " +
-                        "type='" + type + "', event='" + event + "', message='" + message + "';");
+                "INSERT INTO join_events(uuid,event,message) " + "VALUES('" + uuid + "','" + event + "','" + message + "') " + "ON DUPLICATE KEY " + "UPDATE event='" + event +
+                        "', message='" + message + "';");
     }
 
-    public void createJoinEvent(String uuid, String type, String event, Component message) {
+    public void createJoinEvent(String uuid, String event, Component message) {
         String messageString = PlainTextComponentSerializer.plainText().serialize(message);
         globalSQL.update(
-                "INSERT INTO join_events(uuid,type,event,message) " + "VALUES('" + uuid + "','" + type + "','" + event + "','" + message + "') " + "ON DUPLICATE KEY " + "UPDATE " +
-                        "type='" + type + "', event='" + event + "', message='" + messageString + "';");
+                "INSERT INTO join_events(uuid,event,message) " + "VALUES('" + uuid + "','" + event + "','" + message + "') " + "ON DUPLICATE KEY " + "UPDATE event='" + event +
+                        "', message='" + messageString + "';");
     }
 
     /**
      * Creates an event with the following input parameters:
      *
      * @param uuid   the uuid of the player to which the event should apply
-     * @param type   the type of event, this means the plugin which should run this event (network, plotsystem or a
-     *               custom implementation)
      * @param server the server name where the event should occur
      * @param event  the event arguments in String format
      */
-    public void createEvent(String uuid, String type, String server, String event) {
+    public void createEvent(String uuid, String server, String event) {
         if (uuid == null) {
-            globalSQL.update("INSERT INTO server_events(type,server,event) " + "VALUES('" + type + "','" + server + "','" + event + "');");
+            globalSQL.update("INSERT INTO server_events(server,event) " + "VALUES('" + server + "','" + event + "');");
         } else {
-            globalSQL.update("INSERT INTO server_events(uuid,type,server,event) " + "VALUES('" + uuid + "','" + type + "','" + server + "','" + event + "');");
+            globalSQL.update("INSERT INTO server_events(uuid,server,event) " + "VALUES('" + uuid + "','" + server + "','" + event + "');");
         }
     }
 
@@ -76,18 +74,16 @@ public class EventManager implements EventAPI, Event {
      * Creates an event with the following input parameters:
      *
      * @param uuid    the uuid of the player to which the event should apply
-     * @param type    the type of event, this means the plugin which should run this event (network, plotsystem or a
-     *                custom implementation)
      * @param server  the server name where the event should occur
      * @param event   the event arguments in String format
      * @param message message to be sent to the player on success
      */
-    public void createEvent(String uuid, String type, String server, String event, String message) {
+    public void createEvent(String uuid, String server, String event, String message) {
         if (uuid == null) {
-            globalSQL.update("INSERT INTO server_events(type,server,event,message) " + "VALUES('" + type + "','" + server + "','" + event + "','" + message + "');");
+            globalSQL.update("INSERT INTO server_events(server,event,message) " + "VALUES('" + server + "','" + event + "','" + message + "');");
         } else {
             globalSQL.update(
-                    "INSERT INTO server_events(uuid,type,server,event,message) " + "VALUES('" + uuid + "','" + type + "','" + server + "','" + event + "','" + message + "');");
+                    "INSERT INTO server_events(uuid,server,event,message) " + "VALUES('" + uuid + "','" + server + "','" + event + "','" + message + "');");
         }
     }
 
@@ -95,57 +91,54 @@ public class EventManager implements EventAPI, Event {
      * Creates an event with the following input parameters:
      *
      * @param uuid    the uuid of the player to which the event should apply
-     * @param type    the type of event, this means the plugin which should run this event (network, plotsystem or a
-     *                custom implementation)
      * @param server  the server name where the event should occur
      * @param event   the event arguments in String format
      * @param message message to be sent to the player on success
      */
-    public void createEvent(String uuid, String type, String server, String event, Component message) {
+    public void createEvent(String uuid, String server, String event, Component message) {
         String messageString = PlainTextComponentSerializer.plainText().serialize(message);
         if (uuid == null) {
-            globalSQL.update("INSERT INTO server_events(type,server,event,message) " + "VALUES('" + type + "','" + server + "','" + event + "','" + messageString + "');");
+            globalSQL.update("INSERT INTO server_events(server,event,message) " + "VALUES('" + server + "','" + event + "','" + messageString + "');");
         } else {
             globalSQL.update(
-                    "INSERT INTO server_events(uuid,type,server,event,message) " + "VALUES('" + uuid + "','" + type + "','" + server + "','" + event + "','" + messageString +
-                            "');");
+                    "INSERT INTO server_events(uuid,server,event,message) " + "VALUES('" + uuid + "','" + server + "','" + event + "','" + messageString + "');");
         }
     }
 
-    public void createTeleportEvent(boolean join, String uuid, String type, String event, NetworkLocation previousLocation) {
+    public void createTeleportEvent(boolean join, String uuid, String event, NetworkLocation previousLocation) {
 
         back.setPreviousCoordinate(uuid, previousLocation);
 
         // Create event
         if (join) {
-            createJoinEvent(uuid, type, event);
+            createJoinEvent(uuid, event);
         } else {
-            createEvent(uuid, type, constants.serverName(), event);
+            createEvent(uuid, constants.serverName(), event);
         }
     }
 
-    public void createTeleportEvent(boolean join, String uuid, String type, String event, String message, NetworkLocation previousLocation) {
+    public void createTeleportEvent(boolean join, String uuid, String event, String message, NetworkLocation previousLocation) {
 
         back.setPreviousCoordinate(uuid, previousLocation);
 
         // Create event
         if (join) {
-            createJoinEvent(uuid, type, event, message);
+            createJoinEvent(uuid, event, message);
         } else {
-            createEvent(uuid, type, constants.serverName(), event, message);
+            createEvent(uuid, constants.serverName(), event, message);
         }
     }
 
-    public void createTeleportEvent(boolean join, String uuid, String type, String event, Component message, NetworkLocation previousLocation) {
+    public void createTeleportEvent(boolean join, String uuid, String event, Component message, NetworkLocation previousLocation) {
 
         String messageString = PlainTextComponentSerializer.plainText().serialize(message);
         back.setPreviousCoordinate(uuid, previousLocation);
 
         // Create event
         if (join) {
-            createJoinEvent(uuid, type, event, messageString);
+            createJoinEvent(uuid, event, messageString);
         } else {
-            createEvent(uuid, type, constants.serverName(), event, messageString);
+            createEvent(uuid, constants.serverName(), event, messageString);
         }
     }
 

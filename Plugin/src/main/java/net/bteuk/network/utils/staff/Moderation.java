@@ -96,7 +96,7 @@ public class Moderation {
     // Kick the player.
     public void kick(String uuid, String reason) {
         // Kick them with the reason, if online.
-        instance.getOnlineUserByUuid(uuid).ifPresent(onlineUser -> eventAPI.createEvent(uuid, "network", onlineUser.getServer(), "kick", reason));
+        instance.getOnlineUserByUuid(uuid).ifPresent(onlineUser -> eventAPI.createEvent(uuid, onlineUser.getServer(), "kick", reason));
     }
 
     /**

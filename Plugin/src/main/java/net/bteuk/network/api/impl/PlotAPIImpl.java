@@ -295,6 +295,11 @@ public class PlotAPIImpl implements PlotAPI {
     }
 
     @Override
+    public void updatePlotCoordinate(int plotId, int coordinateId) {
+
+    }
+
+    @Override
     public boolean isZoneOwner(String uuid) {
         return false;
     }
