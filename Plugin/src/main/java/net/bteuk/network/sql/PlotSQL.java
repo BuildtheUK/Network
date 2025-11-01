@@ -427,7 +427,7 @@ public class PlotSQL extends AbstractSQL {
      * Fetches a list of tutorial recommendations for a given plot
      *
      * @param tutorialsDBConnection Database connection for tutorials
-     * @param iPlotID The ID of the plot to fetch the recommended tutorials of
+     * @param iPlotID               The ID of the plot to fetch the recommended tutorials of
      * @return A list of tutorial recommendations
      */
     public TutorialRecommendation[] fetchTutorialRecommendationsForPlot(DBConnection tutorialsDBConnection, int iPlotID) {
@@ -459,5 +459,63 @@ public class PlotSQL extends AbstractSQL {
         }
 
         return recommendations;
+    }
+
+    public boolean createLocation(String locationName, String alias, String server, int coordMin, int coordMax, int xTransform, int yTransform) {
+        try (
+                Connection conn = conn();
+                PreparedStatement statement = conn.prepareStatement(
+                        "INSERT INTO location_data" + "(name, alias, server, coordMin, coordMax, xTransform, zTransform) VALUES(?, ?, ?, ?, ?, ?, ?);")
+        ) {
+
+            statement.setString(1, locationName);
+            statement.setString(2, alias);
+            statement.setString(3, server);
+            statement.setInt(4, coordMin);
+            statement.setInt(5, coordMax);
+            statement.setInt(6, xTransform);
+            statement.setInt(7, yTransform);
+            statement.executeUpdate();
+            return true;
+
+        } catch (SQLException sql) {
+            log.severe("An error occurred while creating a location: " + sql);
+            return false;
+        }
+    }
+
+    public boolean createRegion(String regionName, String server, String locationName) {
+        try (
+                Connection conn = conn();
+                PreparedStatement statement = conn.prepareStatement("INSERT INTO regions" + "(region, server, location) VALUES(?, ?, ?);")
+        ) {
+
+            statement.setString(1, regionName);
+            statement.setString(2, server);
+            statement.setString(3, locationName);
+            statement.executeUpdate();
+            return true;
+
+        } catch (SQLException sql) {
+            log.severe("An error occurred while creating a region: " + sql);
+            return false;
+        }
+    }
+
+    public boolean updateLocationAlias(String location, String alias) {
+        try (
+                Connection conn = conn();
+                PreparedStatement statement = conn.prepareStatement("UPDATE location_data SET alias=? WHERE name=?;")
+        ) {
+
+            statement.setString(1, alias);
+            statement.setString(2, location);
+            statement.executeUpdate();
+            return true;
+
+        } catch (SQLException sql) {
+            log.severe("An error occurred while updating a location alias: " + sql);
+            return false;
+        }
     }
 }

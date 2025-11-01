@@ -2,6 +2,7 @@ package net.bteuk.network.api.impl;
 
 import net.bteuk.network.api.PlotAPI;
 import net.bteuk.network.api.plotsystem.PlotStatus;
+import net.bteuk.network.core.Time;
 import net.bteuk.network.sql.PlotSQL;
 
 import java.util.List;
@@ -32,89 +33,93 @@ public class PlotAPIImpl implements PlotAPI {
     }
 
     @Override
-    public boolean createLocation(String locationName, String alias, String server, int coordMin, int coordMax, int xTransform, int yTransform) {
+    public List<Integer> getActivePlotsForLocation(String location) {
+        return plotSQL.getIntList("SELECT pd.id FROM plot_data AS pd WHERE pd.location='" + location + "' AND pd.status IN ('unclaimed','claimed','submitted');");
+    }
 
-        return false;
+    @Override
+    public boolean createLocation(String locationName, String alias, String server, int coordMin, int coordMax, int xTransform, int zTransform) {
+        return plotSQL.createLocation(locationName, alias, server, coordMin, coordMax, xTransform, zTransform);
     }
 
     @Override
     public boolean createPlotRegion(String regionName, String server, String locationName) {
-        return false;
+        return plotSQL.createRegion(regionName, server, locationName);
     }
 
     @Override
     public boolean setLocationAlias(String locationName, String alias) {
-        return false;
+        return plotSQL.updateLocationAlias(locationName, alias);
     }
 
     @Override
     public String getLocationAlias(String locationName) {
-        return "";
+        return plotSQL.getString("SELECT alias FROM location_data WHERE name='" + locationName + "';");
     }
 
     @Override
     public boolean setPlotDifficulty(int plotId, int difficulty) {
-        return false;
+        return plotSQL.update("UPDATE plot_data SET difficulty=" + difficulty + " WHERE id=" + plotId + ";");
     }
 
     @Override
     public boolean clearZoneMembers(int zoneId) {
-        return false;
+        return plotSQL.update("DELETE FROM zone_members WHERE id=" + zoneId + ";");
     }
 
     @Override
     public boolean setPlotStatus(int plotId, String status) {
-        return false;
+        return plotSQL.update("UPDATE plot_data SET status='" + status + "' WHERE id=" + plotId + ";");
     }
 
     @Override
     public boolean setZoneStatus(int zoneId, String status) {
-        return false;
+        return plotSQL.update("UPDATE zones SET status='" + status + "' WHERE id=" + zoneId + ";");
     }
 
     @Override
     public boolean clearPlotMembers(int plotId) {
-        return false;
+        return plotSQL.update("DELETE FROM plot_members WHERE id=" + plotId + ";");
     }
 
     @Override
     public boolean setPlotSubmissionStatus(int plotId, String status) {
-        return false;
+        return plotSQL.update("UPDATE plot_submission SET status='" + status + "' WHERE plot_id=" + plotId + ";");
     }
 
     @Override
     public boolean removePlotSubmission(int plotId) {
-        return false;
+        return plotSQL.update("DELETE FROM plot_submission WHERE plot_id=" + plotId + ";");
     }
 
     @Override
     public boolean createPlotMember(int plotId, String uuid) {
-        return false;
+        return plotSQL.update("INSERT INTO plot_members(id, uuid, is_owner) VALUES(" + plotId + ", '" + uuid + "', 0);");
     }
 
     @Override
     public boolean removePlotMember(int plotId, String uuid) {
-        return false;
+        return plotSQL.update("DELETE FROM plot_members WHERE id=" + plotId + " AND uuid='" + uuid + "';");
     }
 
     @Override
     public boolean createZoneOwner(int zoneId, String uuid) {
-        return false;
+        return plotSQL.update("INSERT INTO zone_members(id, uuid, is_owner) VALUES(" + zoneId + ", '" + uuid + "', 1);");
     }
 
     @Override
     public boolean createZoneMember(int zoneId, String uuid) {
-        return false;
+        return plotSQL.update("INSERT INTO zone_members(id, uuid, is_owner) VALUES(" + zoneId + ", '" + uuid + "', 0);");
     }
 
     @Override
     public boolean removeZoneMember(int zoneId, String uuid) {
-        return false;
+        return plotSQL.update("DELETE FROM zone_members WHERE id=" + zoneId + " AND uuid='" + uuid + "';");
     }
 
     @Override
     public boolean setPlotLastEnter(int plotId, String uuid) {
-        return false;
+        return plotSQL.update("UPDATE plot_members SET last_enter='" + Time.currentTime() + "' WHERE id=" + plotId + " AND uuid='" + uuid + "';");
     }
 
     @Override
@@ -129,17 +134,17 @@ public class PlotAPIImpl implements PlotAPI {
 
     @Override
     public boolean setPlotInactivityNotice(int plotId, String uuid) {
-        return false;
+        return plotSQL.update("UPDATE plot_members SET inactivity_notice=1 WHERE id=" + plotId + " AND uuid='" + uuid + "';");
     }
 
     @Override
     public boolean createPlotCorner(int plotId, int cornerIndex, int x, int z) {
-        return false;
+        return plotSQL.update("INSERT INTO plot_corners(id, corner, x, z) VALUES(" + plotId + ", " + cornerIndex + ", " + x + ", " + z + ");");
     }
 
     @Override
     public boolean createZoneCorner(int zoneId, int cornerIndex, int x, int z) {
-        return false;
+        return plotSQL.update("INSERT INTO zone_corners(id, corner, x, z) VALUES(" + zoneId + ", " + cornerIndex + ", " + x + ", " + z + ");");
     }
 
     @Override
@@ -246,32 +251,32 @@ public class PlotAPIImpl implements PlotAPI {
 
     @Override
     public String getPlotLocation(int plotId) {
-        return "";
+        return plotSQL.getString("SELECT location FROM plot_data WHERE id=" + plotId + ";");
     }
 
     @Override
     public String getZoneLocation(int zoneId) {
-        return "";
+        return plotSQL.getString("SELECT location FROM zones WHERE id=" + zoneId + ";");
     }
 
     @Override
     public String getLocationServer(String location) {
-        return "";
+        return plotSQL.getString("SELECT server FROM location_data WHERE name='" + location + "';");
     }
 
     @Override
     public PlotStatus getPlotStatus(int plotId) {
-        return null;
+        return PlotStatus.fromDatabaseValue(plotSQL.getString("SELECT status FROM plot_data WHERE id=" + plotId + ";"));
     }
 
     @Override
     public int getPlotDifficulty(int plotId) {
-        return 0;
+        return plotSQL.getInt("SELECT difficulty FROM plot_data WHERE id=" + plotId + ";");
     }
 
     @Override
     public int getPlotSize(int plotId) {
-        return 0;
+        return plotSQL.getInt("SELECT size FROM plot_data WHERE id=" + plotId + ";");
     }
 
     @Override
@@ -281,67 +286,87 @@ public class PlotAPIImpl implements PlotAPI {
 
     @Override
     public boolean createPlotOwner(int plotId, String uuid) {
-        return false;
+        return plotSQL.update("INSERT INTO plot_members(id, uuid, is_owner, last_enter) VALUES(" + plotId + ", '" + uuid + "', 1, " + Time.currentTime() + ");");
     }
 
     @Override
     public boolean hasPlotOwnerOrMember(int plotId) {
-        return false;
+        return plotSQL.hasRow("SELECT 1 FROM plot_members WHERE id=" + plotId + ";");
     }
 
     @Override
     public boolean isZonePublic(int zoneId) {
-        return false;
+        return plotSQL.hasRow("SELECT 1 FROM zones WHERE id=" + zoneId + " AND is_public=1;");
     }
 
     @Override
     public int getPlotCoordinate(int plotId) {
-        return 0;
+        return plotSQL.getInt("SELECT coordinate_id FROM plot_data WHERE id=" + plotId + ";");
     }
 
     @Override
     public void updatePlotCoordinate(int plotId, int coordinateId) {
-
+        plotSQL.update("UPDATE plot_data SET coordinate_id=" + coordinateId + " WHERE id=" + plotId + ";");
     }
 
     @Override
     public boolean isZoneOwner(String uuid) {
-        return false;
+        return plotSQL.hasRow("SELECT 1 FROM zone_members WHERE uuid='" + uuid + "' AND is_owner=1;");
     }
 
     @Override
     public int getNumberOfZones() {
-        return 0;
+        return plotSQL.getInt("SELECT count(id) FROM zones;");
     }
 
     @Override
     public boolean plotExists(int plotId) {
-        return false;
+        return plotSQL.hasRow("SELECT 1 FROM plot_data WHERE id=" + plotId + ";");
     }
 
     @Override
     public List<String> getBookPages(int bookId) {
-        return List.of();
+        return plotSQL.getStringList("SELECT contents FROM book_data WHERE id=" + bookId + " ORDER BY page ASC;");
     }
 
     @Override
     public void updatePlotCategoryFeedback(int reviewId, String category, String selection, int bookId) {
-
+        plotSQL.update("UPDATE plot_category_feedback SET category='" + category + "', selection='" + selection + "', book_id=" + bookId + " WHERE review_id=" + reviewId + ";");
     }
 
     @Override
     public int getHighestBookId() {
-        return 0;
+        return plotSQL.getInt("SELECT MAX(id) FROM book_data;");
     }
 
     @Override
     public int getLocationCoordMin(String location) {
-        return 0;
+        return plotSQL.getInt("SELECT coordMin FROM location_data WHERE name='" + location + "';");
     }
 
     @Override
     public int getLocationCoordMax(String location) {
-        return 0;
+        return plotSQL.getInt("SELECT coordMax FROM location_data WHERE name='" + location + "';");
+    }
+
+    @Override
+    public List<String> getLocationRegions(String location) {
+        return plotSQL.getStringList("SELECT region FROM regions WHERE location='" + location + "';");
+    }
+
+    @Override
+    public boolean locationExists(String location) {
+        return plotSQL.hasRow("SELECT name FROM location_data WHERE name='" + location + "';");
+    }
+
+    @Override
+    public void deleteLocation(String location) {
+        plotSQL.update("DELETE FROM location_data WHERE name='" + location + "';");
+    }
+
+    @Override
+    public void deleteRegionsForLocation(String location) {
+        plotSQL.update("DELETE FROM regions WHERE location='" + location + "';");
     }
 
 }

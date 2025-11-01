@@ -23,6 +23,8 @@ public interface PlotAPI {
      */
     List<Integer> getActivePlots(String serverName);
 
+    List<Integer> getActivePlotsForLocation(String location);
+
     boolean createLocation(String locationName, String alias, String server, int coordMin, int coordMax, int xTransform, int yTransform);
 
     boolean createPlotRegion(String regionName, String server, String locationName);
@@ -146,4 +148,12 @@ public interface PlotAPI {
     int getLocationCoordMin(String location);
 
     int getLocationCoordMax(String location);
+
+    List<String> getLocationRegions(String location);
+
+    boolean locationExists(String location);
+
+    void deleteLocation(String location);
+
+    void deleteRegionsForLocation(String location);
 }
