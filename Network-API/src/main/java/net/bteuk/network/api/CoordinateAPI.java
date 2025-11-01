@@ -9,4 +9,10 @@ public interface CoordinateAPI {
     int copyCoordinate(int coordinateID);
 
     void updateCoordinate(int coordinateID, NetworkLocation location);
+
+    double getX(int coordinateID);
+
+    double getZ(int coordinateID);
+
+    NetworkLocation getLocation(int coordinateID);
 }

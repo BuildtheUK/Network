@@ -48,6 +48,11 @@ public class PlotAPIImpl implements PlotAPI {
     }
 
     @Override
+    public String getLocationAlias(String locationName) {
+        return "";
+    }
+
+    @Override
     public boolean setPlotDifficulty(int plotId, int difficulty) {
         return false;
     }
@@ -326,6 +331,16 @@ public class PlotAPIImpl implements PlotAPI {
 
     @Override
     public int getHighestBookId() {
+        return 0;
+    }
+
+    @Override
+    public int getLocationCoordMin(String location) {
+        return 0;
+    }
+
+    @Override
+    public int getLocationCoordMax(String location) {
         return 0;
     }
 

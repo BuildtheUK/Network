@@ -29,6 +29,8 @@ public interface PlotAPI {
 
     boolean setLocationAlias(String locationName, String alias);
 
+    String getLocationAlias(String locationName);
+
     boolean setPlotDifficulty(int plotId, int difficulty);
 
     boolean clearZoneMembers(int zoneId);
@@ -140,4 +142,8 @@ public interface PlotAPI {
     void updatePlotCategoryFeedback(int reviewId, String category, String selection, int bookId);
 
     int getHighestBookId();
+
+    int getLocationCoordMin(String location);
+
+    int getLocationCoordMax(String location);
 }
