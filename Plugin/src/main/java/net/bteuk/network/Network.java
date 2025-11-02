@@ -167,6 +167,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
     private Constants constants;
 
+    @Getter
     private ServerAPI serverAPI;
 
     @Getter

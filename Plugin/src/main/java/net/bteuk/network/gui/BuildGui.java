@@ -114,12 +114,12 @@ public class BuildGui extends NetworkRefreshableGui {
                                 // Set current location for /back
                                 back.setPreviousCoordinate(u.player.getUniqueId().toString(), location);
 
-                                eventAPI.createTeleportEvent(false, u.player.getUniqueId().toString(), "plotsystem", "teleport plot " + id, location);
+                                eventAPI.createTeleportEvent(false, u.player.getUniqueId().toString(), "plotsystemteleport plot " + id, location);
                             } else {
                                 u.player.closeInventory();
 
                                 // Set the server join event.
-                                eventAPI.createTeleportEvent(true, u.player.getUniqueId().toString(), "plotsystem", "teleport plot " + id, location);
+                                eventAPI.createTeleportEvent(true, u.player.getUniqueId().toString(), "plotsystemteleport plot " + id, location);
 
                                 // Teleport them to another server.
                                 serverAPI.switchServer(PlayerAdapter.adapt(u.player), server);
@@ -183,7 +183,7 @@ public class BuildGui extends NetworkRefreshableGui {
 
                 // Set the claim event.
                 u.player.closeInventory();
-                eventAPI.createEvent(u.player.getUniqueId().toString(), "plotsystem", constants.serverName(), "claim plot");
+                eventAPI.createEvent(u.player.getUniqueId().toString(), constants.serverName(), "claim plot");
             });
         } else if (constants.regionsEnabled()) {
 

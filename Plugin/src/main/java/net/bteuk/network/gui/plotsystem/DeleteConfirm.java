@@ -47,7 +47,7 @@ public class DeleteConfirm extends NetworkRefreshableGui {
                         u.sendMessage(ChatUtils.success("Deleting plot %s...", String.valueOf(id)));
 
                         // Add server event to delete plot or zone.
-                        provider.eventAPI().createEvent(u.player.getUniqueId().toString(), "plotsystem", plotSQL.getString(
+                        provider.eventAPI().createEvent(u.player.getUniqueId().toString(), plotSQL.getString(
                                         "SELECT server FROM location_data WHERE name='" + plotSQL.getString("SELECT location FROM plot_data WHERE id=" + id + ";") + "';"),
                                 "delete plot " + id);
                     } else if (regionType == RegionType.ZONE) {
@@ -57,7 +57,7 @@ public class DeleteConfirm extends NetworkRefreshableGui {
                         u.sendMessage(ChatUtils.success("Deleting zone %s...", String.valueOf(id)));
 
                         // Add server event to delete plot or zone.
-                        provider.eventAPI().createEvent(u.player.getUniqueId().toString(), "plotsystem",
+                        provider.eventAPI().createEvent(u.player.getUniqueId().toString(),
                                 plotSQL.getString("SELECT server FROM location_data WHERE name='" + plotSQL.getString("SELECT location FROM zones WHERE id=" + id + ";") + "';"),
                                 "delete" + " zone " + id);
                     }

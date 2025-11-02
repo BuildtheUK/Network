@@ -316,7 +316,7 @@ public class CustomChat implements Listener, ChatAPI {
 
     @Override
     public void sendPlotMessage(PlotMessage message) {
-        if (!constants.standalone()) {
+        if (!constants.standalone() && constants.plotSystemEnabled()) {
             sendSocketMessage(message);
         }
     }

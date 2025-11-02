@@ -16,6 +16,8 @@ public interface NetworkAPI {
 
     CoordinateAPI getCoordinateAPI();
 
+    ServerAPI getServerAPI();
+
     boolean isTutorialsEnabled();
 
     int getMinY();

@@ -52,7 +52,7 @@ public class Zone extends AbstractCommand {
         if (plotSQL.hasRow("SELECT id FROM zone_invites WHERE id=" + zoneID + " AND uuid='" + player.getUniqueId() + "';")) {
 
             // Add server event to join the plot.
-            eventAPI.createEvent(player.getUniqueId().toString(), "plotsystem",
+            eventAPI.createEvent(player.getUniqueId().toString(),
                     plotSQL.getString("SELECT server " + "FROM location_data WHERE name='" + plotSQL.getString("SELECT location FROM zones WHERE id=" + zoneID + ";") + "';"),
                     "join zone " + zoneID);
 

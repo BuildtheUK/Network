@@ -113,8 +113,9 @@ public class Plot extends AbstractCommand {
         if (provider.plotSQL().hasRow("SELECT id FROM plot_invites WHERE id=" + plot + " AND uuid='" + p.getUniqueId() + "';")) {
 
             // Add server event to join plot.
-            provider.eventAPI().createEvent(p.getUniqueId().toString(), "plotsystem",
-                    provider.plotSQL().getString("SELECT server FROM " + "location_data WHERE name='" + provider.plotSQL().getString("SELECT location FROM plot_data WHERE id=" + plot + ";") + "';"),
+            provider.eventAPI().createEvent(p.getUniqueId().toString(), provider.plotSQL()
+                            .getString("SELECT server FROM " + "location_data WHERE name='" + provider.plotSQL().getString("SELECT location FROM plot_data WHERE id=" + plot + ";"
+                            ) + "';"),
                     "join plot " + plot);
 
             // Remove invite.
@@ -139,7 +140,8 @@ public class Plot extends AbstractCommand {
 
         // Find the latest attempt.
         String uuid = provider.plotSQL().getString("SELECT uuid FROM plot_members WHERE id=" + plot + " AND is_owner=1;");
-        int latestAttempt = provider.plotSQL().getInt("SELECT MAX(attempt) FROM plot_review WHERE plot_id=" + plot + " AND " + "uuid='" + uuid + "' AND accepted=0 AND completed=1;");
+        int latestAttempt = provider.plotSQL()
+                .getInt("SELECT MAX(attempt) FROM plot_review WHERE plot_id=" + plot + " AND " + "uuid='" + uuid + "' AND accepted=0 AND completed=1;");
 
         if (latestAttempt == 0) {
             player.sendMessage(Utils.error("There is no feedback available for this plot."));

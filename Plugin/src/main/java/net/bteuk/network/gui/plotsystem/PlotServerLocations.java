@@ -228,12 +228,12 @@ public class PlotServerLocations extends NetworkRefreshableGui {
 
                         u.player.closeInventory();
 
-                        provider.eventAPI().createTeleportEvent(false, u.player.getUniqueId().toString(), "plotsystem", "teleport plot " + id, LocationAdapter.adapt(u.player.getLocation()));
+                        provider.eventAPI().createTeleportEvent(false, u.player.getUniqueId().toString(), "plotsystemteleport plot " + id, LocationAdapter.adapt(u.player.getLocation()));
                     } else {
                         u.player.closeInventory();
 
                         // Set the server join event.
-                        provider.eventAPI().createTeleportEvent(true, u.player.getUniqueId().toString(), "plotsystem", "teleport plot " + id, LocationAdapter.adapt(u.player.getLocation()));
+                        provider.eventAPI().createTeleportEvent(true, u.player.getUniqueId().toString(), "plotsystemteleport plot " + id, LocationAdapter.adapt(u.player.getLocation()));
 
                         // Teleport them to another server.
                         provider.serverAPI().switchServer(PlayerAdapter.adapt(u.player), server);

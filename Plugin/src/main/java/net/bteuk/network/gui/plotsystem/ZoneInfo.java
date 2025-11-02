@@ -68,12 +68,12 @@ public class ZoneInfo extends NetworkRefreshableGui {
                     NetworkLocation location = LocationAdapter.adapt(u.player.getLocation());
                     if (server.equals(provider.constants().serverName())) {
 
-                        provider.eventAPI().createTeleportEvent(false, u.player.getUniqueId().toString(), "plotsystem", "teleport zone " + zoneID, location);
+                        provider.eventAPI().createTeleportEvent(false, u.player.getUniqueId().toString(), "plotsystemteleport zone " + zoneID, location);
                     } else {
                         u.player.closeInventory();
 
                         // Set the server join event.
-                        provider.eventAPI().createTeleportEvent(true, u.player.getUniqueId().toString(), "plotsystem", "teleport zone " + zoneID, location);
+                        provider.eventAPI().createTeleportEvent(true, u.player.getUniqueId().toString(), "plotsystemteleport zone " + zoneID, location);
 
                         // Teleport them to another server.
                         provider.serverAPI().switchServer(PlayerAdapter.adapt(u.player), server);

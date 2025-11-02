@@ -126,12 +126,12 @@ public class PlotInfo extends NetworkRefreshableGui {
             // Else teleport them to the correct server and then teleport them to the plot.
             NetworkLocation location = LocationAdapter.adapt(u.player.getLocation());
             if (server.equals(constants.serverName())) {
-                eventAPI.createTeleportEvent(false, u.player.getUniqueId().toString(), "plotsystem", "teleport plot " + plotID, location);
+                eventAPI.createTeleportEvent(false, u.player.getUniqueId().toString(), "plotsystemteleport plot " + plotID, location);
             } else {
                 u.player.closeInventory();
 
                 // Set the server join event.
-                eventAPI.createTeleportEvent(true, u.player.getUniqueId().toString(), "plotsystem", "teleport plot " + plotID, location);
+                eventAPI.createTeleportEvent(true, u.player.getUniqueId().toString(), "plotsystemteleport plot " + plotID, location);
 
                 // Teleport them to another server.
                 serverAPI.switchServer(PlayerAdapter.adapt(u.player), server);
@@ -180,7 +180,7 @@ public class PlotInfo extends NetworkRefreshableGui {
         if (plotInfoType == PLOT_INFO_TYPE.CLAIMED_OWNER || plotInfoType == PLOT_INFO_TYPE.CLAIMED_MEMBER) {
             setItem(18, Utils.createItem(Material.ORANGE_STAINED_GLASS, 1, Utils.title("Toggle Outlines"), Utils.line("Enable/disable the outlines"), Utils.line("for this plot."),
                     Utils.line("Rejoining the server"), Utils.line("will reset this to enabled.")), (NetworkUser u) -> {
-                eventAPI.createEvent(u.player.getUniqueId().toString(), "plotsystem", constants.serverName(), "outlines toggle " + plotID);
+                eventAPI.createEvent(u.player.getUniqueId().toString(), constants.serverName(), "outlines toggle " + plotID);
                 u.player.closeInventory();
             });
         }
@@ -346,13 +346,13 @@ public class PlotInfo extends NetworkRefreshableGui {
                     // the reviewing process.
                     if (server.equals(constants.serverName())) {
                         u.player.closeInventory();
-                        eventAPI.createEvent(u.getUuid(), "plotsystem", constants.serverName(), "review plot " + plotID);
+                        eventAPI.createEvent(u.getUuid(), constants.serverName(), "review plot " + plotID);
                     } else {
                         u.player.closeInventory();
 
                         // Player is not on the current server.
                         // Set the server join event.
-                        eventAPI.createJoinEvent(u.getUuid(), "plotsystem", "review plot " + plotID);
+                        eventAPI.createJoinEvent(u.getUuid(), "review plot " + plotID);
 
                         // Teleport them to the server.
                         serverAPI.switchServer(PlayerAdapter.adapt(u.player), server);
@@ -374,13 +374,13 @@ public class PlotInfo extends NetworkRefreshableGui {
                     // the reviewing process.
                     if (server.equals(constants.serverName())) {
                         u.player.closeInventory();
-                        eventAPI.createEvent(u.getUuid(), "plotsystem", constants.serverName(), "verify plot " + plotID);
+                        eventAPI.createEvent(u.getUuid(), constants.serverName(), "verify plot " + plotID);
                     } else {
                         u.player.closeInventory();
 
                         // Player is not on the current server.
                         // Set the server join event.
-                        eventAPI.createJoinEvent(u.getUuid(), "plotsystem", "verify plot " + plotID);
+                        eventAPI.createJoinEvent(u.getUuid(), "verify plot " + plotID);
 
                         // Teleport them to the server.
                         serverAPI.switchServer(PlayerAdapter.adapt(u.player), server);

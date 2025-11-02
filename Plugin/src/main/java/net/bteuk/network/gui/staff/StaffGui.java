@@ -188,7 +188,7 @@ public class StaffGui extends NetworkRefreshableGui {
                             } else {
                                 // Player is not on the current server.
                                 // Set the server join event.
-                                provider.eventAPI().createJoinEvent(u.getUuid(), "plotsystem", "review plot " + plotID);
+                                provider.eventAPI().createJoinEvent(u.getUuid(), "review plot " + plotID);
 
                                 // Teleport them to the server.
                                 u.player.closeInventory();
@@ -230,11 +230,11 @@ public class StaffGui extends NetworkRefreshableGui {
                             // reviewing process.
                             if (server.equals(constants.serverName())) {
                                 u.player.closeInventory();
-                                provider.eventAPI().createEvent(u.getUuid(), "plotsystem", constants.serverName(), "verify plot " + plotID);
+                                provider.eventAPI().createEvent(u.getUuid(), constants.serverName(), "verify plot " + plotID);
                             } else {
                                 // Player is not on the current server.
                                 // Set the server join event.
-                                provider.eventAPI().createJoinEvent(u.getUuid(), "plotsystem", "verify plot " + plotID);
+                                provider.eventAPI().createJoinEvent(u.getUuid(), "verify plot " + plotID);
 
                                 // Teleport them to the server.
                                 u.player.closeInventory();

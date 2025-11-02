@@ -83,8 +83,7 @@ public class ZoneMenu extends NetworkRefreshableGui {
                         (NetworkUser u) -> {
 
                             // Add server event to join zone.
-                            provider.eventAPI().createEvent(u.player.getUniqueId().toString(), "plotsystem",
-                                    plotSQL.getString("SELECT server FROM location_data WHERE name='" +
+                            provider.eventAPI().createEvent(u.player.getUniqueId().toString(), plotSQL.getString("SELECT server FROM location_data WHERE name='" +
                                             plotSQL.getString("SELECT location FROM zones WHERE id=" + zones.get(
                                                     finalI) + ";") + "';"),
                                     "join zone " + zones.get(finalI));

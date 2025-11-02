@@ -36,7 +36,7 @@ public class CloseConfirm extends NetworkRefreshableGui {
             u.player.closeInventory();
 
             // Add server event to delete plot or zone.
-            provider.eventAPI().createEvent(u.player.getUniqueId().toString(), "plotsystem",
+            provider.eventAPI().createEvent(u.player.getUniqueId().toString(),
                     plotSQL.getString("SELECT server FROM location_data WHERE name='" + plotSQL.getString("SELECT location FROM zones WHERE id=" + id + ";") + "';"),
                     "close zone" + " " + id);
         });

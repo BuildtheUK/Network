@@ -114,7 +114,7 @@ public class PlotsystemMembers extends NetworkRefreshableGui {
                                 if (plotSQL.hasRow("SELECT id FROM plot_members WHERE id=" + id + " AND uuid='" + uuid + "';")) {
 
                                     // Kick the member from the plot.
-                                    provider.eventAPI().createEvent(uuid, "plotsystem", plotSQL.getString(
+                                    provider.eventAPI().createEvent(uuid, plotSQL.getString(
                                                     "SELECT server " + "FROM location_data WHERE name='" + plotSQL.getString("SELECT location FROM plot_data WHERE id=" + id + ";"
                                                     ) + "';"),
                                             "kick plot " + id);
@@ -134,7 +134,7 @@ public class PlotsystemMembers extends NetworkRefreshableGui {
                                 if (plotSQL.hasRow("SELECT id FROM zone_members WHERE id=" + id + " AND uuid='" + uuid + "';")) {
 
                                     // Kick the member from the plot.
-                                    provider.eventAPI().createEvent(uuid, "plotsystem", plotSQL.getString(
+                                    provider.eventAPI().createEvent(uuid, plotSQL.getString(
                                                     "SELECT server " + "FROM location_data WHERE name='" + plotSQL.getString("SELECT location FROM zones WHERE id=" + id + ";") + "';"),
                                             "kick zone " + id);
 

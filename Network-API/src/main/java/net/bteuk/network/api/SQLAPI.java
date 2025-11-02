@@ -8,6 +8,8 @@ public interface SQLAPI {
 
     int getInt(String sql);
 
+    long getLong(String sql);
+
     String getString(String sql);
 
     List<String> getStringList(String sql);

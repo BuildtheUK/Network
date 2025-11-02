@@ -25,7 +25,7 @@ public class VerificationInfo extends NetworkRefreshableGui {
     public VerificationInfo(GuiProvider provider, int verificationId) {
 
         // Create the menu.
-        super(provider,27, Component.text("Verification " + verificationId, NamedTextColor.AQUA, TextDecoration.BOLD));
+        super(provider, 27, Component.text("Verification " + verificationId, NamedTextColor.AQUA, TextDecoration.BOLD));
 
         this.verificationId = verificationId;
 
@@ -137,14 +137,12 @@ public class VerificationInfo extends NetworkRefreshableGui {
                     // Else teleport them to the correct server and them teleport them to the plot.
                     NetworkLocation location = LocationAdapter.adapt(u.player.getLocation());
                     if (server.equals(provider.constants().serverName())) {
-                        provider.eventAPI().createTeleportEvent(false, u.player.getUniqueId().toString(), "plotsystem",
-                                "teleport plot " + plotId, location);
+                        provider.eventAPI().createTeleportEvent(false, u.player.getUniqueId().toString(), "plotsystemteleport plot " + plotId, location);
                     } else {
                         u.player.closeInventory();
 
                         // Set the server join event.
-                        provider.eventAPI().createTeleportEvent(true, u.player.getUniqueId().toString(), "plotsystem",
-                                "teleport plot " + plotId, location);
+                        provider.eventAPI().createTeleportEvent(true, u.player.getUniqueId().toString(), "plotsystemteleport plot " + plotId, location);
 
                         // Teleport them to another server.
                         provider.serverAPI().switchServer(PlayerAdapter.adapt(u.player), server);
