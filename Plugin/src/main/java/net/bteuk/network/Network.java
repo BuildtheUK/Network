@@ -321,7 +321,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         }
 
         if (constants.plotSystemEnabled()) {
-            plotAPI = new PlotAPIImpl(plotSQL);
+            plotAPI = new PlotAPIImpl(plotSQL, globalSQL);
         }
 
         // Enable tab.

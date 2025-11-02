@@ -1,6 +1,7 @@
 package net.bteuk.network.api;
 
 import net.bteuk.network.api.plotsystem.PlotStatus;
+import net.bteuk.network.api.plotsystem.SubmittedStatus;
 
 import java.util.List;
 
@@ -44,6 +45,8 @@ public interface PlotAPI {
     boolean clearPlotMembers(int plotId);
 
     boolean setPlotSubmissionStatus(int plotId, String status);
+
+    SubmittedStatus getPlotSubmissionStatus(int plotId);
 
     boolean removePlotSubmission(int plotId);
 
@@ -156,4 +159,6 @@ public interface PlotAPI {
     void deleteLocation(String location);
 
     void deleteRegionsForLocation(String location);
+
+    void updateLastSubmit(String uuid, long time);
 }

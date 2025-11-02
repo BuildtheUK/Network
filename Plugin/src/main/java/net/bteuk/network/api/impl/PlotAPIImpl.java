@@ -2,7 +2,9 @@ package net.bteuk.network.api.impl;
 
 import net.bteuk.network.api.PlotAPI;
 import net.bteuk.network.api.plotsystem.PlotStatus;
+import net.bteuk.network.api.plotsystem.SubmittedStatus;
 import net.bteuk.network.core.Time;
+import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.sql.PlotSQL;
 
 import java.util.List;
@@ -11,8 +13,11 @@ public class PlotAPIImpl implements PlotAPI {
 
     private final PlotSQL plotSQL;
 
-    public PlotAPIImpl(PlotSQL plotSQL) {
+    private final GlobalSQL globalSQL;
+
+    public PlotAPIImpl(PlotSQL plotSQL, GlobalSQL globalSQL) {
         this.plotSQL = plotSQL;
+        this.globalSQL = globalSQL;
     }
 
     @Override
@@ -85,6 +90,11 @@ public class PlotAPIImpl implements PlotAPI {
     @Override
     public boolean setPlotSubmissionStatus(int plotId, String status) {
         return plotSQL.update("UPDATE plot_submission SET status='" + status + "' WHERE plot_id=" + plotId + ";");
+    }
+
+    @Override
+    public SubmittedStatus getPlotSubmissionStatus(int plotId) {
+        return SubmittedStatus.fromDatabaseValue(plotSQL.getString("SELECT status FROM plot_submission WHERE id=" + plotId + ";"));
     }
 
     @Override
@@ -369,4 +379,8 @@ public class PlotAPIImpl implements PlotAPI {
         plotSQL.update("DELETE FROM regions WHERE location='" + location + "';");
     }
 
+    @Override
+    public void updateLastSubmit(String uuid, long time) {
+        globalSQL.update("UPDATE player_data SET last_submit=" + time + " WHERE uuid='" + uuid + "';");
+    }
 }
