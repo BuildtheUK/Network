@@ -100,15 +100,15 @@ public interface PlotAPI {
 
     boolean hasLocation(String location);
 
-    String getPlotOwner(int plotID);
+    String getPlotOwner(int plotId);
 
     String getZoneOwner(int zoneID);
 
-    boolean isPlotOwner(int plotID, String uuid);
+    boolean isPlotOwner(int plotId, String uuid);
 
-    boolean isPlotMember(int plotID, String uuid);
+    boolean isPlotMember(int plotId, String uuid);
 
-    boolean isPlotClaimed(int plotID);
+    boolean isPlotClaimed(int plotId);
 
     int getNumberOfPlots(String uuid);
 
@@ -161,4 +161,8 @@ public interface PlotAPI {
     void deleteRegionsForLocation(String location);
 
     void updateLastSubmit(String uuid, long time);
+
+    long getLastSubmit(String uuid);
+
+    void createPlotSubmission(int plotId);
 }

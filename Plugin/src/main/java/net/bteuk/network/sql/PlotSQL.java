@@ -2,6 +2,8 @@ package net.bteuk.network.sql;
 
 import lombok.extern.java.Log;
 import net.bteuk.network.api.plotsystem.SubmittedPlot;
+import net.bteuk.network.api.plotsystem.SubmittedStatus;
+import net.bteuk.network.core.Time;
 import net.bteuk.network.core.sql.AbstractSQL;
 import net.bteuk.network.lib.enums.PlotDifficulties;
 import net.bteuk.network.lib.utils.Reviewing;
@@ -515,6 +517,25 @@ public class PlotSQL extends AbstractSQL {
 
         } catch (SQLException sql) {
             log.severe("An error occurred while updating a location alias: " + sql);
+            return false;
+        }
+    }
+
+    public boolean createPlotSubmission(int plotId) {
+        try (
+                Connection conn = conn();
+                PreparedStatement statement = conn.prepareStatement("INSERT INTO plot_submission(plot_id,submit_time,status,last_query) VALUES(?, ?, ?, ?);")
+        ) {
+
+            statement.setInt(1, plotId);
+            statement.setLong(2, Time.currentTime());
+            statement.setString(3, SubmittedStatus.SUBMITTED.getDatabaseValue());
+            statement.setLong(4, Time.currentTime());
+            statement.executeUpdate();
+            return true;
+
+        } catch (SQLException sql) {
+            log.severe("An error occurred while creating a location: " + sql);
             return false;
         }
     }

@@ -229,8 +229,8 @@ public class PlotAPIImpl implements PlotAPI {
     }
 
     @Override
-    public String getPlotOwner(int plotID) {
-        return plotSQL.getString("SELECT uuid FROM plot_members WHERE id=" + plotID + " AND is_owner=1;");
+    public String getPlotOwner(int plotId) {
+        return plotSQL.getString("SELECT uuid FROM plot_members WHERE id=" + plotId + " AND is_owner=1;");
     }
 
     @Override
@@ -239,19 +239,19 @@ public class PlotAPIImpl implements PlotAPI {
     }
 
     @Override
-    public boolean isPlotOwner(int plotID, String uuid) {
-        return plotSQL.hasRow("SELECT id FROM plot_members WHERE id=" + plotID + " AND uuid='" + uuid + "' AND is_owner=1;");
+    public boolean isPlotOwner(int plotId, String uuid) {
+        return plotSQL.hasRow("SELECT id FROM plot_members WHERE id=" + plotId + " AND uuid='" + uuid + "' AND is_owner=1;");
     }
 
     @Override
-    public boolean isPlotMember(int plotID, String uuid) {
-        return plotSQL.hasRow("SELECT id FROM plot_members WHERE id=" + plotID + " AND uuid='" + uuid + "' AND is_owner=0;");
+    public boolean isPlotMember(int plotId, String uuid) {
+        return plotSQL.hasRow("SELECT id FROM plot_members WHERE id=" + plotId + " AND uuid='" + uuid + "' AND is_owner=0;");
 
     }
 
     @Override
-    public boolean isPlotClaimed(int plotID) {
-        return plotSQL.hasRow("SELECT id FROM plot_data WHERE id=" + plotID + " AND status='claimed';");
+    public boolean isPlotClaimed(int plotId) {
+        return plotSQL.hasRow("SELECT id FROM plot_data WHERE id=" + plotId + " AND status='claimed';");
     }
 
     @Override
@@ -382,5 +382,15 @@ public class PlotAPIImpl implements PlotAPI {
     @Override
     public void updateLastSubmit(String uuid, long time) {
         globalSQL.update("UPDATE player_data SET last_submit=" + time + " WHERE uuid='" + uuid + "';");
+    }
+
+    @Override
+    public long getLastSubmit(String uuid) {
+        return globalSQL.getLong("SELECT last_submit FROM player_data WHERE uuid='" + uuid + "';");
+    }
+
+    @Override
+    public void createPlotSubmission(int plotId) {
+        plotSQL.createPlotSubmission(plotId);
     }
 }

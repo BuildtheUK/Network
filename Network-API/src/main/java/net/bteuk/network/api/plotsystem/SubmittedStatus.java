@@ -1,20 +1,23 @@
 package net.bteuk.network.api.plotsystem;
 
+import lombok.Getter;
+
 import java.util.Objects;
 
 /**
  * Enum for the status of a submitted plot as defined in the database.
  */
+@Getter
 public enum SubmittedStatus {
     SUBMITTED("submitted"),
     UNDER_REVIEW("under review"),
     AWAITING_VERIFICATION("awaiting verification"),
     UNDER_VERIFICATION("under verification");
 
-    public final String database_value;
+    private final String databaseValue;
 
-    SubmittedStatus(String database_value) {
-        this.database_value = database_value;
+    SubmittedStatus(String databaseValue) {
+        this.databaseValue = databaseValue;
     }
 
     /**
@@ -25,7 +28,7 @@ public enum SubmittedStatus {
      */
     public static SubmittedStatus fromDatabaseValue(String value) {
         for (SubmittedStatus status : SubmittedStatus.values()) {
-            if (Objects.equals(status.database_value, value)) {
+            if (Objects.equals(status.databaseValue, value)) {
                 return status;
             }
         }
