@@ -157,7 +157,7 @@ public class Plot extends AbstractCommand {
         int reviewId = provider.plotSQL().getInt("SELECT id FROM plot_review WHERE plot_id=" + plot + " AND uuid='" + uuid + "' " + "AND attempt=" + latestAttempt + ";");
 
         // Open the book.
-        player.openBook(ReviewFeedback.createFeedbackBook(provider.globalSQL(), provider.plotSQL(), reviewId));
+        player.openBook(ReviewFeedback.createFeedbackBook(provider.globalSQL(), provider.plotAPI(), reviewId));
     }
 
     private void error(Player p) {

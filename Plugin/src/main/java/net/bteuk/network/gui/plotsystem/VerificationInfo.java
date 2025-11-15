@@ -1,5 +1,6 @@
 package net.bteuk.network.gui.plotsystem;
 
+import net.bteuk.network.api.PlotAPI;
 import net.bteuk.network.api.entity.NetworkLocation;
 import net.bteuk.network.api.plotsystem.ReviewFeedback;
 import net.bteuk.network.gui.GuiProvider;
@@ -19,6 +20,7 @@ public class VerificationInfo extends NetworkRefreshableGui {
 
     private final int verificationId;
 
+    private final PlotAPI plotAPI;
     private final PlotSQL plotSQL;
     private final GlobalSQL globalSQL;
 
@@ -29,6 +31,7 @@ public class VerificationInfo extends NetworkRefreshableGui {
 
         this.verificationId = verificationId;
 
+        this.plotAPI = provider.plotAPI();
         this.plotSQL = provider.plotSQL();
         this.globalSQL = provider.globalSQL();
     }
@@ -107,7 +110,7 @@ public class VerificationInfo extends NetworkRefreshableGui {
                         Utils.line("altered by the verifier.")),
                 (NetworkUser u) -> {
                     // Open the feedback book.
-                    u.player.openBook(ReviewFeedback.createVerificationFeedbackBook(plotSQL, verificationId, true));
+                    u.player.openBook(ReviewFeedback.createVerificationFeedbackBook(plotAPI, verificationId, true));
                 });
 
         // If the selection or feedback was changed show the before and after books.
@@ -118,7 +121,7 @@ public class VerificationInfo extends NetworkRefreshableGui {
                         Utils.line("altered by the verifier.")),
                 (NetworkUser u) -> {
                     // Open the feedback book.
-                    u.player.openBook(ReviewFeedback.createVerificationFeedbackBook(plotSQL, verificationId, false));
+                    u.player.openBook(ReviewFeedback.createVerificationFeedbackBook(plotAPI, verificationId, false));
                 });
 
         // Teleport to the plot.

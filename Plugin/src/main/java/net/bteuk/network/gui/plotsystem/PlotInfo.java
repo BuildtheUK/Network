@@ -2,6 +2,7 @@ package net.bteuk.network.gui.plotsystem;
 
 import lombok.Setter;
 import net.bteuk.network.api.EventAPI;
+import net.bteuk.network.api.PlotAPI;
 import net.bteuk.network.api.ServerAPI;
 import net.bteuk.network.api.entity.NetworkLocation;
 import net.bteuk.network.api.plotsystem.PlotStatus;
@@ -40,6 +41,7 @@ public class PlotInfo extends NetworkRefreshableGui {
 
     private final int plotID;
     private final NetworkUser user;
+    private final PlotAPI plotAPI;
     private final PlotSQL plotSQL;
     private final GlobalSQL globalSQL;
     private final Constants constants;
@@ -58,6 +60,7 @@ public class PlotInfo extends NetworkRefreshableGui {
 
         this.user = user;
         this.plotID = plotID;
+        this.plotAPI = provider.plotAPI();
         this.plotSQL = provider.plotSQL();
         this.globalSQL = provider.globalSQL();
         this.constants = provider.constants();
@@ -297,7 +300,7 @@ public class PlotInfo extends NetworkRefreshableGui {
                                 "SELECT id FROM plot_review WHERE uuid='" + u.getUuid() + "' " + "AND plot_id=" + plotID + " AND accepted=1 AND completed=1;");
 
                         // Open the feedback book.
-                        u.player.openBook(ReviewFeedback.createFeedbackBook(globalSQL, plotSQL, reviewId));
+                        u.player.openBook(ReviewFeedback.createFeedbackBook(globalSQL, plotAPI, reviewId));
                     });
         }
 

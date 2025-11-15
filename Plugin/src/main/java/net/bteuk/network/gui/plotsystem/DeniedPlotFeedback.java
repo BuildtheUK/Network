@@ -1,5 +1,6 @@
 package net.bteuk.network.gui.plotsystem;
 
+import net.bteuk.network.api.PlotAPI;
 import net.bteuk.network.api.plotsystem.ReviewFeedback;
 import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.NetworkRefreshableGui;
@@ -14,6 +15,7 @@ import org.bukkit.Material;
 
 public class DeniedPlotFeedback extends NetworkRefreshableGui {
 
+    private final PlotAPI plotAPI;
     private final PlotSQL plotSQL;
     private final GlobalSQL globalSQL;
 
@@ -24,6 +26,7 @@ public class DeniedPlotFeedback extends NetworkRefreshableGui {
         super(provider, 45, Component.text("Plot " + plotID + " feedback", NamedTextColor.AQUA, TextDecoration.BOLD));
 
         this.plotID = plotID;
+        this.plotAPI = provider.plotAPI();
         this.plotSQL = provider.plotSQL();
         this.globalSQL = provider.globalSQL();
     }
@@ -66,7 +69,7 @@ public class DeniedPlotFeedback extends NetworkRefreshableGui {
                         int reviewId = plotSQL.getInt("SELECT id FROM plot_review WHERE plot_id=" + plotID + " AND " + "uuid='" + uuid + "' AND attempt=" + finalI + ";");
 
                         // Open the book.
-                        u.player.openBook(ReviewFeedback.createFeedbackBook(globalSQL, plotSQL, reviewId));
+                        u.player.openBook(ReviewFeedback.createFeedbackBook(globalSQL, plotAPI, reviewId));
                     });
 
             // Increase the slot accordingly.
