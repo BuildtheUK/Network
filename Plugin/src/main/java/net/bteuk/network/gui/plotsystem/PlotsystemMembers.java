@@ -117,7 +117,7 @@ public class PlotsystemMembers extends NetworkRefreshableGui {
                                     provider.eventAPI().createEvent(uuid, plotSQL.getString(
                                                     "SELECT server " + "FROM location_data WHERE name='" + plotSQL.getString("SELECT location FROM plot_data WHERE id=" + id + ";"
                                                     ) + "';"),
-                                            "kick plot " + id);
+                                            "plotsystemkick plot " + id);
 
                                     // Return to the previous menu, since otherwise the gui won't have updated.
                                     this.delete();
@@ -136,7 +136,7 @@ public class PlotsystemMembers extends NetworkRefreshableGui {
                                     // Kick the member from the plot.
                                     provider.eventAPI().createEvent(uuid, plotSQL.getString(
                                                     "SELECT server " + "FROM location_data WHERE name='" + plotSQL.getString("SELECT location FROM zones WHERE id=" + id + ";") + "';"),
-                                            "kick zone " + id);
+                                            "plotsystemkick zone " + id);
 
                                     // Return to the previous menu, since otherwise the gui won't have updated.
                                     this.delete();

@@ -1,6 +1,8 @@
 package net.bteuk.network.api;
 
 import net.bteuk.network.api.plotsystem.PlotStatus;
+import net.bteuk.network.api.plotsystem.ReviewCategory;
+import net.bteuk.network.api.plotsystem.ReviewSelection;
 import net.bteuk.network.api.plotsystem.SubmittedStatus;
 
 import java.util.List;
@@ -165,4 +167,28 @@ public interface PlotAPI {
     long getLastSubmit(String uuid);
 
     void createPlotSubmission(int plotId);
+
+    int getDeniedPlotCount(int plotId, String uuid);
+
+    String getPlotReviewer(int plotId, String uuid, int attempt);
+
+    String getPlotReviewer(int reviewId);
+
+    int getReviewId(int plotId, String uuid, int attempt);
+
+    List<ReviewCategory> getReviewCategories(int reviewId);
+
+    ReviewSelection getReviewSelection(int reviewId, ReviewCategory category);
+
+    int getReviewBookId(int reviewId, ReviewCategory category);
+
+    List<ReviewCategory> getVerificationCategories(int verificationId);
+
+    ReviewSelection getVerificationSelectionOld(int verificationId, ReviewCategory category);
+
+    int getVerificationBookIdOld(int verificationId, ReviewCategory category);
+
+    ReviewSelection getVerificationSelectionNew(int verificationId, ReviewCategory category);
+
+    int getVerificationBookIdNew(int verificationId, ReviewCategory category);
 }

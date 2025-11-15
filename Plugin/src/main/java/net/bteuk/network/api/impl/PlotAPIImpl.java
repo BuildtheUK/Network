@@ -2,11 +2,14 @@ package net.bteuk.network.api.impl;
 
 import net.bteuk.network.api.PlotAPI;
 import net.bteuk.network.api.plotsystem.PlotStatus;
+import net.bteuk.network.api.plotsystem.ReviewCategory;
+import net.bteuk.network.api.plotsystem.ReviewSelection;
 import net.bteuk.network.api.plotsystem.SubmittedStatus;
 import net.bteuk.network.core.Time;
 import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.sql.PlotSQL;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PlotAPIImpl implements PlotAPI {
@@ -392,5 +395,116 @@ public class PlotAPIImpl implements PlotAPI {
     @Override
     public void createPlotSubmission(int plotId) {
         plotSQL.createPlotSubmission(plotId);
+    }
+
+    @Override
+    public int getDeniedPlotCount(int plotId, String uuid) {
+        return plotSQL.getInt("SELECT COUNT(attempt) FROM plot_review WHERE plot_id=" + plotId + " AND uuid='" + uuid + "' AND completed=1 AND accepted=0;");
+    }
+
+    @Override
+    public String getPlotReviewer(int plotId, String uuid, int attempt) {
+        return plotSQL.getString("SELECT reviewer FROM plot_review WHERE plot_id=" + plotId + " AND uuid='" + uuid + "' AND attempt=" + attempt + ";");
+    }
+
+    @Override
+    public String getPlotReviewer(int reviewId) {
+        return plotSQL.getString("SELECT reviewer FROM plot_review WHERE review_id=" + reviewId + ";");
+    }
+
+    @Override
+    public int getReviewId(int plotId, String uuid, int attempt) {
+        return plotSQL.getInt("SELECT id FROM plot_review WHERE plot_id=" + plotId + " AND uuid='" + uuid + "' AND attempt=" + attempt + ";");
+    }
+
+    @Override
+    public List<ReviewCategory> getReviewCategories(int reviewId) {
+        List<ReviewCategory> reviewCategories = new ArrayList<>();
+
+        List<String> categories = plotSQL.getStringList("SELECT category FROM plot_category_feedback WHERE review_id=" + reviewId + ";");
+
+        for (String category : categories) {
+            try {
+                reviewCategories.add(ReviewCategory.valueOf(category));
+            } catch (IllegalArgumentException e) {
+                // Ignore, don't add the category to the list since it is no longer a valid category.
+            }
+        }
+
+        return reviewCategories;
+    }
+
+    @Override
+    public ReviewSelection getReviewSelection(int reviewId, ReviewCategory category) {
+        String selection = plotSQL.getString("SELECT selection FROM plot_category_feedback WHERE review_id=" + reviewId + " AND category='" + category + "';");
+        ReviewSelection reviewSelection;
+
+        try {
+            reviewSelection = ReviewSelection.valueOf(selection);
+        } catch (IllegalArgumentException e) {
+            reviewSelection = ReviewSelection.NONE;
+        }
+
+        return reviewSelection;
+    }
+
+    @Override
+    public int getReviewBookId(int reviewId, ReviewCategory category) {
+        return plotSQL.getInt("SELECT book_id FROM plot_category_feedback WHERE review_id=" + reviewId + " AND category='" + category + "';");
+    }
+
+    @Override
+    public List<ReviewCategory> getVerificationCategories(int verificationId) {
+        List<ReviewCategory> verificationCategories = new ArrayList<>();
+
+        List<String> categories = plotSQL.getStringList("SELECT category FROM plot_verification_category WHERE verification_id=" + verificationId + ";");
+
+        for (String category : categories) {
+            try {
+                verificationCategories.add(ReviewCategory.valueOf(category));
+            } catch (IllegalArgumentException e) {
+                // Ignore, don't add the category to the list since it is no longer a valid category.
+            }
+        }
+
+        return verificationCategories;
+    }
+
+    @Override
+    public ReviewSelection getVerificationSelectionOld(int verificationId, ReviewCategory category) {
+        String selection = plotSQL.getString("SELECT selection_old FROM plot_verification_category WHERE verification_id=" + verificationId + " AND category='" + category + "';");
+        ReviewSelection reviewSelection;
+
+        try {
+            reviewSelection = ReviewSelection.valueOf(selection);
+        } catch (IllegalArgumentException e) {
+            reviewSelection = ReviewSelection.NONE;
+        }
+
+        return reviewSelection;
+    }
+
+    @Override
+    public int getVerificationBookIdOld(int verificationId, ReviewCategory category) {
+        return plotSQL.getInt("SELECT book_id_old FROM plot_category_feedback WHERE verification_id=" + verificationId + " AND category='" + category + "';");
+    }
+
+    @Override
+    public ReviewSelection getVerificationSelectionNew(int verificationId, ReviewCategory category) {
+        String selection = plotSQL.getString("SELECT selection_new FROM plot_verification_category WHERE verification_id=" + verificationId + " AND category='" + category + "';");
+        ReviewSelection reviewSelection;
+
+        try {
+            reviewSelection = ReviewSelection.valueOf(selection);
+        } catch (IllegalArgumentException e) {
+            reviewSelection = ReviewSelection.NONE;
+        }
+
+        return reviewSelection;
+    }
+
+    @Override
+    public int getVerificationBookIdNew(int verificationId, ReviewCategory category) {
+        return plotSQL.getInt("SELECT book_id_new FROM plot_category_feedback WHERE verification_id=" + verificationId + " AND category='" + category + "';");
     }
 }

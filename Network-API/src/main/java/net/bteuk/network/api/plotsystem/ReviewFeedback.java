@@ -1,5 +1,6 @@
 package net.bteuk.network.api.plotsystem;
 
+import net.bteuk.network.api.PlotAPI;
 import net.bteuk.network.api.SQLAPI;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.kyori.adventure.inventory.Book;
@@ -31,11 +32,11 @@ public final class ReviewFeedback {
      * Create the feedback book for a plot review.
      *
      * @param globalSQL access to the global database
-     * @param plotSQL access to the plot database
-     * @param reviewId the id of the plot review
+     * @param plotAPI   plot API
+     * @param reviewId  the id of the plot review
      * @return the feedback book for the plot review
      */
-    public static Book createFeedbackBook(SQLAPI globalSQL, SQLAPI plotSQL, int reviewId) {
+    public static Book createFeedbackBook(SQLAPI globalSQL, PlotAPI plotAPI, int reviewId) {
 
         Component firstPage = Component.empty();
 
@@ -46,17 +47,14 @@ public final class ReviewFeedback {
                                 .appendNewline().appendNewline());
 
         // Reviewer
-        String reviewer = globalSQL.getString("SELECT name FROM player_data WHERE uuid='" +
-                plotSQL
-                        .getString("SELECT reviewer FROM plot_review WHERE id=" + reviewId + ";")
-                + "';");
+        String reviewer = globalSQL.getString("SELECT name FROM player_data WHERE uuid='" + plotAPI.getPlotReviewer(reviewId));
         firstPage = firstPage.append(Component.text(String.format("Reviewer: %s", reviewer),
                 NamedTextColor.DARK_GRAY)).appendNewline();
 
         List<Component> pages = new ArrayList<>();
 
         // Add each category that has a selection.
-        Map<ReviewCategory, ReviewCategoryFeedback> reviewCategoryFeedback = getReviewCategoryFeedback(globalSQL, plotSQL, reviewId);
+        Map<ReviewCategory, ReviewCategoryFeedback> reviewCategoryFeedback = getReviewCategoryFeedback(plotAPI, reviewId);
         for (ReviewCategory category : ReviewCategory.values()) {
             ReviewCategoryFeedback categoryFeedback = reviewCategoryFeedback.get(category);
             if (categoryFeedback == null) {
@@ -64,7 +62,7 @@ public final class ReviewFeedback {
             }
             firstPage = firstPage.appendNewline();
             // Add the category to the book.
-            firstPage = firstPage.append(addCategoryToFeedbackBook(plotSQL, categoryFeedback, pages));
+            firstPage = firstPage.append(addCategoryToFeedbackBook(plotAPI, categoryFeedback, pages));
         }
 
         // Insert the first page of the book at the start.
@@ -80,7 +78,7 @@ public final class ReviewFeedback {
      * @param old            true if the before view should be created
      * @return the feedback book for the plot verification
      */
-    public static Book createVerificationFeedbackBook(SQLAPI plotSQL, int verificationId, boolean old) {
+    public static Book createVerificationFeedbackBook(PlotAPI plotAPI, int verificationId, boolean old) {
 
         Component firstPage = Component.empty();
 
@@ -94,7 +92,7 @@ public final class ReviewFeedback {
 
         // Add each category that has a selection.
         Map<ReviewCategory, ReviewCategoryFeedback> verificationCategoryFeedback =
-                getVerificationCategoryFeedback(plotSQL, verificationId, old);
+                getVerificationCategoryFeedback(plotAPI, verificationId, old);
         for (ReviewCategory category : ReviewCategory.values()) {
             ReviewCategoryFeedback categoryFeedback = verificationCategoryFeedback.get(category);
             if (categoryFeedback == null) {
@@ -102,7 +100,7 @@ public final class ReviewFeedback {
             }
             firstPage = firstPage.appendNewline();
             // Add the category to the book.
-            firstPage = firstPage.append(addCategoryToFeedbackBook(plotSQL, categoryFeedback, pages));
+            firstPage = firstPage.append(addCategoryToFeedbackBook(plotAPI, categoryFeedback, pages));
         }
 
         // Insert the first page of the book at the start.
@@ -111,54 +109,35 @@ public final class ReviewFeedback {
         return Book.book(REVIEW_BOOK_TITLE, Component.empty(), pages);
     }
 
-    private static Map<ReviewCategory, ReviewCategoryFeedback> getReviewCategoryFeedback(SQLAPI globalSQL, SQLAPI plotSQL, int reviewId) {
+    private static Map<ReviewCategory, ReviewCategoryFeedback> getReviewCategoryFeedback(PlotAPI plotAPI, int reviewId) {
 
         Map<ReviewCategory, ReviewCategoryFeedback> reviewCategoryFeedbackMap = new HashMap<>();
 
         // Get the feedback for the review.
-        List<String> reviewCategories = plotSQL.getStringList("SELECT category FROM " +
-                "plot_category_feedback WHERE review_id=" + reviewId + ";");
-        for (String category : reviewCategories) {
-            reviewCategoryFeedbackMap.put(ReviewCategory.valueOf(category), new ReviewCategoryFeedback(
-                    ReviewCategory.valueOf(category),
-                    ReviewSelection.valueOf(plotSQL.getString("SELECT selection FROM " +
-                            "plot_category_feedback WHERE review_id=" + reviewId + " AND category='" + category + "';"
-                    )),
-                    plotSQL.getInt("SELECT book_id FROM plot_category_feedback WHERE " +
-                            "review_id=" + reviewId + " AND category='" + category + "';")
-            ));
+        List<ReviewCategory> reviewCategories = plotAPI.getReviewCategories(reviewId);
+        for (ReviewCategory category : reviewCategories) {
+            reviewCategoryFeedbackMap.put(category,
+                    new ReviewCategoryFeedback(category, plotAPI.getReviewSelection(reviewId, category), plotAPI.getReviewBookId(reviewId, category)));
         }
 
         return reviewCategoryFeedbackMap;
     }
 
-    private static Map<ReviewCategory, ReviewCategoryFeedback> getVerificationCategoryFeedback(SQLAPI plotSQL, int verificationId,
+    private static Map<ReviewCategory, ReviewCategoryFeedback> getVerificationCategoryFeedback(PlotAPI plotAPI, int verificationId,
                                                                                                boolean old) {
 
         Map<ReviewCategory, ReviewCategoryFeedback> reviewCategoryFeedbackMap = new HashMap<>();
 
         // Get the feedback for the review.
-        List<String> verificationCategories = plotSQL.getStringList("SELECT category FROM " +
-                "plot_verification_category WHERE verification_id=" + verificationId + ";");
-        for (String category : verificationCategories) {
+        List<ReviewCategory> verificationCategories = plotAPI.getVerificationCategories(verificationId);
+        for (ReviewCategory category : verificationCategories) {
             if (old) {
-                reviewCategoryFeedbackMap.put(ReviewCategory.valueOf(category), new ReviewCategoryFeedback(
-                        ReviewCategory.valueOf(category),
-                        ReviewSelection.valueOf(plotSQL.getString("SELECT selection_old " +
-                                "FROM plot_verification_category WHERE verification_id=" + verificationId + " AND " +
-                                "category='" + category + "';")),
-                        plotSQL.getInt("SELECT book_id_old FROM plot_verification_category" +
-                                " WHERE verification_id=" + verificationId + " AND category='" + category + "';")
-                ));
+                reviewCategoryFeedbackMap.put(category,
+                        new ReviewCategoryFeedback(category, plotAPI.getVerificationSelectionOld(verificationId, category),
+                                plotAPI.getVerificationBookIdOld(verificationId, category)));
             } else {
-                reviewCategoryFeedbackMap.put(ReviewCategory.valueOf(category), new ReviewCategoryFeedback(
-                        ReviewCategory.valueOf(category),
-                        ReviewSelection.valueOf(plotSQL.getString("SELECT selection_new " +
-                                "FROM plot_verification_category WHERE verification_id=" + verificationId + " AND " +
-                                "category='" + category + "';")),
-                        plotSQL.getInt("SELECT book_id_new FROM plot_verification_category" +
-                                " WHERE verification_id=" + verificationId + " AND category='" + category + "';")
-                ));
+                reviewCategoryFeedbackMap.put(category, new ReviewCategoryFeedback(category, plotAPI.getVerificationSelectionNew(verificationId, category),
+                        plotAPI.getVerificationBookIdNew(verificationId, category)));
             }
         }
 
@@ -166,7 +145,7 @@ public final class ReviewFeedback {
     }
 
     @NotNull
-    private static Component addCategoryToFeedbackBook(SQLAPI plotSQL, ReviewCategoryFeedback categoryFeedback, List<Component> pages) {
+    private static Component addCategoryToFeedbackBook(PlotAPI plotAPI, ReviewCategoryFeedback categoryFeedback, List<Component> pages) {
 
         Component line = Component.empty();
         Component category = Component.text(categoryFeedback.category().getDisplayName(),
@@ -174,8 +153,7 @@ public final class ReviewFeedback {
 
         // Add the feedback to the book if it exists.
         if (categoryFeedback.bookId() != 0) {
-            List<String> sPages = plotSQL.getStringList("SELECT contents FROM " +
-                    "book_data WHERE id=" + categoryFeedback.bookId() + " ORDER BY page ASC;");
+            List<String> sPages = plotAPI.getBookPages(categoryFeedback.bookId());
 
             category = category.clickEvent(getGotoFeedbackClickEvent(pages.size() + 2))
                     .hoverEvent(HoverEvent.showText(Component.text(String.format("Click to go view %s feedback.",
