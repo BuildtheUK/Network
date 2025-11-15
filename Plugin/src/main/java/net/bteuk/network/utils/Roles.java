@@ -3,7 +3,7 @@ package net.bteuk.network.utils;
 import lombok.extern.java.Log;
 import net.bteuk.network.CustomChat;
 import net.bteuk.network.Network;
-import net.bteuk.network.api.RoleApi;
+import net.bteuk.network.api.RoleAPI;
 import net.bteuk.network.api.entity.Role;
 import net.bteuk.network.lib.dto.ChatMessage;
 import net.bteuk.network.lib.dto.DirectMessage;
@@ -33,7 +33,7 @@ import java.util.stream.Stream;
 import static net.bteuk.network.lib.enums.ChatChannels.GLOBAL;
 
 @Log
-public final class Roles implements RoleApi {
+public final class Roles implements RoleAPI {
 
     private static final Component PROMOTION_TEMPLATE = Component.text(" has been promoted to ");
     private static final Component PROMOTION_SELF = Component.text("You have been promoted to ");

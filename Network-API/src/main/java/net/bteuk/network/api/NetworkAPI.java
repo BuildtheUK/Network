@@ -18,7 +18,7 @@ public interface NetworkAPI {
 
     ServerAPI getServerAPI();
 
-    RoleApi getRoleAPI();
+    RoleAPI getRoleAPI();
 
     boolean isTutorialsEnabled();
 

@@ -6,7 +6,7 @@ import net.kyori.adventure.text.Component;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-public interface RoleApi {
+public interface RoleAPI {
 
     Set<Role> getRoles();
 
