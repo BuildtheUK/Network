@@ -527,4 +527,25 @@ public class PlotAPIImpl implements PlotAPI {
     public boolean getReviewOutcome(int reviewId) {
         return plotSQL.getBoolean("SELECT accepted FROM plot_review WHERE id=" + reviewId + ";");
     }
+
+    @Override
+    public List<Integer> getClaimedPlotsLastEnteredBetweenWithoutInactivityNoticeForServer(long timeMin, long timeMax, String server) {
+        return plotSQL.getIntList("SELECT pm.id FROM plot_members AS pm INNER JOIN plot_data AS pd ON pd.id=pm.id " +
+                "WHERE pm.is_owner=1 AND pm.last_enter>=" + timeMin + " AND pm.last_enter<" + timeMax + " AND pd.status='claimed' AND pm.inactivity_notice=0 AND pd" +
+                ".location IN (" +
+                "SELECT ld.name FROM location_data AS ld WHERE ld.server='" + server + "');");
+    }
+
+    @Override
+    public List<Integer> getInactivePlotsForServer(long inactivityTime, String server) {
+        return plotSQL.getIntList("SELECT pm.id FROM plot_members AS pm INNER JOIN plot_data AS pd ON pd.id=pm.id " +
+                "WHERE pm.is_owner=1 AND pm.last_enter<" + inactivityTime + " AND pd.status='claimed' AND pd.location IN (" +
+                "SELECT ld.name FROM location_data AS ld WHERE ld.server='" + server + "');");
+    }
+
+    @Override
+    public List<Integer> getExpiredZonesForServer(long expiryTime, String server) {
+        return plotSQL.getIntList("SELECT z.id FROM zones AS z WHERE z.status='open' AND z.expiration<" + expiryTime + " AND z.location IN (" +
+                "SELECT ld.name FROM location_data AS ld WHERE ld.server='" + server + "');");
+    }
 }

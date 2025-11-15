@@ -199,4 +199,10 @@ public interface PlotAPI {
     void updateReviewerReputation(String uuid, double reputation);
 
     boolean getReviewOutcome(int reviewId);
+
+    List<Integer> getClaimedPlotsLastEnteredBetweenWithoutInactivityNoticeForServer(long timeMin, long timeMax, String server);
+
+    List<Integer> getInactivePlotsForServer(long inactivityTime, String server);
+
+    List<Integer> getExpiredZonesForServer(long expiryTime, String server);
 }
