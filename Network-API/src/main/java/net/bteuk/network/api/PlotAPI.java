@@ -176,6 +176,8 @@ public interface PlotAPI {
 
     int getReviewId(int plotId, String uuid, int attempt);
 
+    int getActiveReviewId(int plotId);
+
     List<ReviewCategory> getReviewCategories(int reviewId);
 
     ReviewSelection getReviewSelection(int reviewId, ReviewCategory category);
@@ -191,4 +193,10 @@ public interface PlotAPI {
     ReviewSelection getVerificationSelectionNew(int verificationId, ReviewCategory category);
 
     int getVerificationBookIdNew(int verificationId, ReviewCategory category);
+
+    void completeReview(int reviewId, boolean accepted);
+
+    void updateReviewerReputation(String uuid, double reputation);
+
+    boolean getReviewOutcome(int reviewId);
 }

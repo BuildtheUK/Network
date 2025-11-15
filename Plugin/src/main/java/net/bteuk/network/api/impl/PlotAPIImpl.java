@@ -418,6 +418,11 @@ public class PlotAPIImpl implements PlotAPI {
     }
 
     @Override
+    public int getActiveReviewId(int plotId) {
+        return plotSQL.getInt("SELECT id FROM plot_review WHERE plot_id=" + plotId + " AND completed=0;");
+    }
+
+    @Override
     public List<ReviewCategory> getReviewCategories(int reviewId) {
         List<ReviewCategory> reviewCategories = new ArrayList<>();
 
@@ -506,5 +511,20 @@ public class PlotAPIImpl implements PlotAPI {
     @Override
     public int getVerificationBookIdNew(int verificationId, ReviewCategory category) {
         return plotSQL.getInt("SELECT book_id_new FROM plot_category_feedback WHERE verification_id=" + verificationId + " AND category='" + category + "';");
+    }
+
+    @Override
+    public void completeReview(int reviewId, boolean accepted) {
+        plotSQL.update("UPDATE plot_review SET accepted=" + accepted + ", completed=1 WHERE id=" + reviewId + ";");
+    }
+
+    @Override
+    public void updateReviewerReputation(String uuid, double reputation) {
+        plotSQL.update("UPDATE reviewers SET reputation=" + reputation + " WHERE uuid='" + uuid + "';");
+    }
+
+    @Override
+    public boolean getReviewOutcome(int reviewId) {
+        return plotSQL.getBoolean("SELECT accepted FROM plot_review WHERE id=" + reviewId + ";");
     }
 }
