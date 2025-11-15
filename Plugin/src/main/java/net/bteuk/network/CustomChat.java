@@ -11,6 +11,7 @@ import net.bteuk.network.exceptions.NotMutedException;
 import net.bteuk.network.lib.dto.AbstractTransferObject;
 import net.bteuk.network.lib.dto.ChatMessage;
 import net.bteuk.network.lib.dto.DirectMessage;
+import net.bteuk.network.lib.dto.DiscordDirectMessage;
 import net.bteuk.network.lib.dto.DiscordLinking;
 import net.bteuk.network.lib.dto.DiscordRole;
 import net.bteuk.network.lib.dto.PlotMessage;
@@ -310,6 +311,12 @@ public class CustomChat implements Listener, ChatAPI {
             instance.getServer().getOnlinePlayers().stream().filter(player -> player.getUniqueId().toString().equals(message.getRecipient())).findFirst()
                     .ifPresentOrElse(player -> player.sendMessage(message.getComponent()), () -> globalSQL.insertMessage(message));
         } else {
+            sendSocketMessage(message);
+        }
+    }
+
+    public void sendDiscordDirectMessage(DiscordDirectMessage message) {
+        if (!constants.standalone()) {
             sendSocketMessage(message);
         }
     }
