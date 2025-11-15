@@ -18,6 +18,8 @@ public interface NetworkAPI {
 
     ServerAPI getServerAPI();
 
+    RoleApi getRoleAPI();
+
     boolean isTutorialsEnabled();
 
     int getMinY();

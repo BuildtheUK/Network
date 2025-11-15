@@ -2,9 +2,9 @@ package net.bteuk.network.gui.tutorials;
 
 import lombok.extern.java.Log;
 import net.bteuk.network.Network;
+import net.bteuk.network.api.entity.Role;
 import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.utils.NetworkUser;
-import net.bteuk.network.utils.Role;
 import net.bteuk.network.utils.Utils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;

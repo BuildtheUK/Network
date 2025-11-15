@@ -2,10 +2,10 @@ package net.bteuk.network.commands;
 
 import net.bteuk.network.CustomChat;
 import net.bteuk.network.Network;
+import net.bteuk.network.api.entity.Role;
 import net.bteuk.network.commands.tabcompleters.FixedArgSelector;
 import net.bteuk.network.commands.tabcompleters.MultiArgSelector;
 import net.bteuk.network.commands.tabcompleters.PlayerSelector;
-import net.bteuk.network.utils.Role;
 import net.bteuk.network.utils.Roles;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
@@ -51,7 +51,7 @@ public abstract class PromotionAction extends AbstractCommand {
             return;
         }
 
-        CompletableFuture<Component> resultFuture = roles.alterRole(uuid, name, args[1], demote, false, chat);
+        CompletableFuture<Component> resultFuture = roles.alterRole(uuid, name, args[1], demote, false);
         Executors.newSingleThreadExecutor().submit(() -> resultFuture.thenAcceptAsync(sender::sendMessage).join());
     }
 }

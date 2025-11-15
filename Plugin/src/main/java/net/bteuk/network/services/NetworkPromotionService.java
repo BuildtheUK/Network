@@ -1,7 +1,7 @@
 package net.bteuk.network.services;
 
 import net.bteuk.network.CustomChat;
-import net.bteuk.network.utils.Role;
+import net.bteuk.network.api.entity.Role;
 import net.bteuk.network.utils.Roles;
 import net.bteuk.teachingtutorials.services.PromotionService;
 import org.bukkit.entity.Player;
@@ -22,8 +22,8 @@ public class NetworkPromotionService implements PromotionService {
         Role currentRole = roles.builderRole(player);
 
         if (currentRole != null && currentRole.getId().equals("default")) {
-            roles.alterRole(player.getUniqueId().toString(), player.getName(), "applicant", false, true, chat).join();
-            roles.alterRole(player.getUniqueId().toString(), player.getName(), "default", false, true, chat).join();
+            roles.alterRole(player.getUniqueId().toString(), player.getName(), "applicant", false, true).join();
+            roles.alterRole(player.getUniqueId().toString(), player.getName(), "default", false, true).join();
         }
     }
 

@@ -3,6 +3,8 @@ package net.bteuk.network.utils;
 import lombok.extern.java.Log;
 import net.bteuk.network.CustomChat;
 import net.bteuk.network.Network;
+import net.bteuk.network.api.RoleApi;
+import net.bteuk.network.api.entity.Role;
 import net.bteuk.network.lib.dto.ChatMessage;
 import net.bteuk.network.lib.dto.DirectMessage;
 import net.bteuk.network.lib.dto.DiscordRole;
@@ -31,7 +33,7 @@ import java.util.stream.Stream;
 import static net.bteuk.network.lib.enums.ChatChannels.GLOBAL;
 
 @Log
-public final class Roles {
+public final class Roles implements RoleApi {
 
     private static final Component PROMOTION_TEMPLATE = Component.text(" has been promoted to ");
     private static final Component PROMOTION_SELF = Component.text("You have been promoted to ");
@@ -42,12 +44,20 @@ public final class Roles {
 
     private final Network instance;
     private final PlotSQL plotSQL;
+    private CustomChat customChat;
 
     public Roles(Network instance, PlotSQL plotSQL) {
         this.instance = instance;
         this.plotSQL = plotSQL;
     }
 
+    public void registerChat(CustomChat customChat) {
+        if (this.customChat == null) {
+            this.customChat = customChat;
+        }
+    }
+
+    @Override
     public Set<Role> getRoles() {
         if (ROLES == null) {
             loadRoles();
@@ -93,7 +103,8 @@ public final class Roles {
      * @param uuid the uuid of the player
      * @return a {@link CompletableFuture} with a String
      */
-    public static CompletableFuture<String> builderRole(String uuid) {
+    @Override
+    public CompletableFuture<String> getBuilderRole(String uuid) {
         return CompletableFuture.supplyAsync(() -> {
             CompletableFuture<Boolean> isReviewer = Permissions.hasGroup(uuid, "reviewer");
             CompletableFuture<Boolean> isArchitect = Permissions.hasGroup(uuid, "architect");
@@ -172,7 +183,11 @@ public final class Roles {
      * @return {@link CompletableFuture} completableFuture with {@link Component} message.
      */
     public CompletableFuture<Component> alterRole(String uuid, String name, String roleId, boolean remove,
-                                                         boolean announce, CustomChat customChat) {
+                                                         boolean announce) {
+
+        if (customChat == null) {
+            throw new IllegalStateException("CustomChat is not initialized.");
+        }
 
         // Get the configured group.
         Role role = getRoleById(roleId);
@@ -223,11 +238,11 @@ public final class Roles {
             customChat.sendSocketMessage(discordRole);
 
             if (announce && !remove) {
-                sendPromotionChatMessage(name, role, customChat);
+                sendPromotionChatMessage(name, role);
             }
 
             if (!remove) {
-                sendPromotionDirectMessage(uuid, role, customChat);
+                sendPromotionDirectMessage(uuid, role);
             }
 
             if (remove) {
@@ -238,7 +253,7 @@ public final class Roles {
         });
     }
 
-    private void sendPromotionChatMessage(String name, Role role, CustomChat customChat) {
+    private void sendPromotionChatMessage(String name, Role role) {
         Component message = Component.text(name)
                 .append(PROMOTION_TEMPLATE)
                 .append(role.getColouredRoleName())
@@ -246,7 +261,7 @@ public final class Roles {
         customChat.sendChatMessage(new ChatMessage(GLOBAL.getChannelName(), "server", message));
     }
 
-    private void sendPromotionDirectMessage(String uuid, Role role, CustomChat customChat) {
+    private void sendPromotionDirectMessage(String uuid, Role role) {
         Component message = PROMOTION_SELF
                 .append(role.getColouredRoleName())
                 .decorate(TextDecoration.BOLD);

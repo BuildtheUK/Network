@@ -1,4 +1,4 @@
-package net.bteuk.network.utils;
+package net.bteuk.network.api.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

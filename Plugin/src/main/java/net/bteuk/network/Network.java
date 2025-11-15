@@ -177,6 +177,9 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
     @Getter
     private CoordinateAPI coordinateAPI;
+    
+    @Getter
+    private Roles roleAPI;
 
     @Override
     public void onEnable() {
@@ -315,7 +318,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         this.eventAPI = new EventManager(globalSQL, constants);
         WorldGuardAPI worldGuardAPI = new WorldGuard();
 
-        Roles roles = new Roles(this, plotSQL);
+        roleAPI = new Roles(this, plotSQL);
 
         if (!constants.standalone()) {
             serverAPI = new SwitchServer(this, constants);
@@ -327,7 +330,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
         // Enable tab.
         if (!constants.standalone()) {
-            tab = new TabManager(this, constants, roles);
+            tab = new TabManager(this, constants, roleAPI);
         }
 
         Afk afk = new Afk(this);
@@ -338,8 +341,9 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         Moderation moderation = new Moderation(this, eventAPI);
 
         // Enables chat, both global chat and normal chat are handled through it.
-        chat = new CustomChat(this, constants, afk, globalSQL, moderation, roles);
+        chat = new CustomChat(this, constants, afk, globalSQL, moderation, roleAPI);
         afk.registerChat(chat);
+        roleAPI.registerChat(chat);
 
         // Create the region manager if enabled.
         if (constants.regionsEnabled()) {
@@ -349,7 +353,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
         // Setup connect, this handles all connections to the server.
         // Listener and manager of server connections.
-        Connect connect = new Connect(this, constants, tab, roles, globalSQL, networkGuiManager, nightvision, eventAPI, regionManager);
+        Connect connect = new Connect(this, constants, tab, roleAPI, globalSQL, networkGuiManager, nightvision, eventAPI, regionManager);
         new SocketHandlerImpl(this, chat, tab, connect);
 
         // Create the navigator.
@@ -409,13 +413,13 @@ public final class Network extends JavaPlugin implements NetworkAPI {
          */
         commandManager.registerCommand(new Buildings(this, constants));
         if (!constants.standalone()) {
-            commandManager.registerCommand(new Discord(this, chat, roles, constants));
+            commandManager.registerCommand(new Discord(this, chat, roleAPI, constants));
             commandManager.registerCommand(new Focus(this, constants));
         }
 
         commandManager.registerCommand(nightvision);
         commandManager.registerCommand(new Speed());
-        commandManager.registerCommand(new Help(constants, roles));
+        commandManager.registerCommand(new Help(constants, roleAPI));
         commandManager.registerCommand(new Rules(lobby));
         commandManager.registerCommand(new Clear());
         commandManager.registerCommand(new GiveDebugStick(this));
@@ -449,13 +453,13 @@ public final class Network extends JavaPlugin implements NetworkAPI {
             commandManager.registerCommand(new Reply(chat));
         }
 
-        commandManager.registerCommand(new Promote(this, roles, chat));
-        commandManager.registerCommand(new Demote(this, roles, chat));
+        commandManager.registerCommand(new Promote(this, roleAPI, chat));
+        commandManager.registerCommand(new Demote(this, roleAPI, chat));
 
         commandManager.registerCommand(new Me());
 
         Navigator navigator = new Navigator(this, networkGuiManager, constants, globalSQL, regionSQL, regionManager, plotSQL, plotAPI, lobby, back, eventAPI, serverAPI,
-                nightvision, roles, tutorialsDBConnection, chat, moderation);
+                nightvision, roleAPI, tutorialsDBConnection, chat, moderation);
         commandManager.registerCommand(navigator);
         new PlayerInteract(this, navigator);
 
@@ -512,7 +516,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         if (constants.tutorials()) {
             try {
                 Class.forName("net.bteuk.teachingtutorials.services.PromotionService");
-                PromotionService promotionService = new NetworkPromotionService(roles, chat);
+                PromotionService promotionService = new NetworkPromotionService(roleAPI, chat);
                 this.getServer().getServicesManager().register(PromotionService.class, promotionService, this, ServicePriority.High);
                 log.info("Registered Network Promotion Service");
             } catch (ClassNotFoundException e) {
