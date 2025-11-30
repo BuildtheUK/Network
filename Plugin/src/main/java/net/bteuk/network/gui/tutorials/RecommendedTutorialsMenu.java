@@ -61,9 +61,9 @@ public class RecommendedTutorialsMenu extends AbstractTutorialsGui {
 
         // Back button
         setItem(53, Utils.createItem(Material.SPRUCE_DOOR, 1, Utils.title("Back to Main Menu")), (NetworkUser u) -> {
+            this.delete();
             user.mainGui = parentGui;
             user.mainGui.open(user.player);
-            delete();
         });
 
         // Indicates that there are no tutorial recommendations

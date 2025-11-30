@@ -39,16 +39,28 @@ public class CoordinateAPIImpl implements CoordinateAPI {
 
     @Override
     public double getX(int coordinateID) {
+        Coordinate coordinate = globalSQL.getCoordinate(coordinateID);
+        if (coordinate != null) {
+            return coordinate.getX();
+        }
         return 0;
     }
 
     @Override
     public double getZ(int coordinateID) {
+        Coordinate coordinate = globalSQL.getCoordinate(coordinateID);
+        if (coordinate != null) {
+            return coordinate.getZ();
+        }
         return 0;
     }
 
     @Override
     public NetworkLocation getLocation(int coordinateID) {
+        Coordinate coordinate = globalSQL.getCoordinate(coordinateID);
+        if (coordinate != null) {
+            return new NetworkLocation(coordinate.getWorld(), coordinate.getX(), coordinate.getY(), coordinate.getZ(), coordinate.getYaw(), coordinate.getPitch());
+        }
         return null;
     }
 }

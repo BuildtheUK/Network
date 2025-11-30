@@ -102,9 +102,8 @@ public class RecommendationAddGui extends NetworkRefreshableGui {
 
                 (NetworkUser u) -> {
                     // Go back to the review gui.
-                    u.player.closeInventory();
+                    this.delete();
                     parentGui.open(u.player);
-                    delete();
                 }
         );
 

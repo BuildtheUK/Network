@@ -63,7 +63,6 @@ public class RecommendedTutorialsGui extends AbstractTutorialsGui {
 
                 (NetworkUser u) -> {
                     // Go back to the review gui.
-                    u.player.closeInventory();
                     parentGui.open(u.player);
                 });
 

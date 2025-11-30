@@ -204,7 +204,7 @@ public class NetworkUser {
         // Check if the player has any join events, if try run them.
         // Delay by 1 second for all plugins to run their join events.
         Bukkit.getScheduler().scheduleSyncDelayedTask(instance, () -> {
-            if (instance.getGlobalSQL().hasRow("SELECT uuid FROM join_events WHERE uuid='" + player.getUniqueId() + ";")) {
+            if (instance.getGlobalSQL().hasRow("SELECT uuid FROM join_events WHERE uuid='" + player.getUniqueId() + "';")) {
 
                 // Get the event from the database.
                 String event = instance.getGlobalSQL().getString("SELECT event FROM join_events WHERE uuid='" + player.getUniqueId() + "';");

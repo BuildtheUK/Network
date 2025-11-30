@@ -89,7 +89,6 @@ public class ZoneInfo extends NetworkRefreshableGui {
 
                 // Delete this gui.
                 this.delete();
-                u.mainGui = null;
 
                 // Switch back to plot menu.
                 u.mainGui = new DeleteConfirm(provider, zoneID, RegionType.ZONE);
@@ -102,7 +101,6 @@ public class ZoneInfo extends NetworkRefreshableGui {
 
                 // Delete this gui.
                 this.delete();
-                u.mainGui = null;
 
                 // Open close confirm menu.
                 u.mainGui = new CloseConfirm(provider, zoneID);
