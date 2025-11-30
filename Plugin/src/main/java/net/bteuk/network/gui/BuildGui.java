@@ -366,7 +366,9 @@ public class BuildGui extends NetworkRefreshableGui {
                 setItem(4, Utils.createItem(Material.STRUCTURE_VOID, 1, Utils.title("No Region"), Utils.line("You are currently not standing in a valid region."),
                         Utils.line("This is likely due to being in a lobby.")));
             }
+        }
 
+        if (constants.regionsEnabled()) {
             // Region menu.
             setItem(24, Utils.createItem(Material.ORANGE_SHULKER_BOX, 1, Utils.title("Region Menu"), Utils.line("View all regions you can build in.")), (NetworkUser u) -> {
                 this.delete();
