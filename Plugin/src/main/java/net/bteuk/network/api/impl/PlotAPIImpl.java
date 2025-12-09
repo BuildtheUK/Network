@@ -97,7 +97,7 @@ public class PlotAPIImpl implements PlotAPI {
 
     @Override
     public SubmittedStatus getPlotSubmissionStatus(int plotId) {
-        return SubmittedStatus.fromDatabaseValue(plotSQL.getString("SELECT status FROM plot_submission WHERE id=" + plotId + ";"));
+        return SubmittedStatus.fromDatabaseValue(plotSQL.getString("SELECT status FROM plot_submission WHERE plot_id=" + plotId + ";"));
     }
 
     @Override
