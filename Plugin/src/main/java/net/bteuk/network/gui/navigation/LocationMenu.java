@@ -159,7 +159,7 @@ public class LocationMenu extends NetworkRefreshableGui {
                                 u.player.closeInventory();
 
                                 // Create teleport event.
-                                provider.eventAPI().createTeleportEvent(true, u.player.getUniqueId().toString(), "network", "teleport location " + location.getKey(),
+                                provider.eventAPI().createTeleportEvent(true, u.player.getUniqueId().toString(), "teleport location " + location.getKey(),
                                         LocationAdapter.adapt(u.player.getLocation()));
 
                                 // Switch server.

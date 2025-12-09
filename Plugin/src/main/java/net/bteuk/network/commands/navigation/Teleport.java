@@ -78,7 +78,7 @@ public class Teleport extends AbstractCommand {
                     player.sendMessage(ChatUtils.success("Teleported to %s", onlineUser.getName()));
                 }, () -> {
                     if (!constants.standalone()) {
-                        eventAPI.createTeleportEvent(true, player.getUniqueId().toString(), "network", "teleport " + "player " + onlineUser.getUuid(), currentLocation);
+                        eventAPI.createTeleportEvent(true, player.getUniqueId().toString(), "teleport " + "player " + onlineUser.getUuid(), currentLocation);
                         serverAPI.switchServer(PlayerAdapter.adapt(player), onlineUser.getServer());
                     }
                 });

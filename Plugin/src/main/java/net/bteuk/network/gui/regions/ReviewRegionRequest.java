@@ -40,8 +40,7 @@ public class ReviewRegionRequest extends NetworkRefreshableGui {
         setItem(11, Utils.createItem(Material.LIME_CONCRETE, 1, Utils.title("Accept Request"), Utils.line("The user will be able to build in this region.")), (NetworkUser u) -> {
 
             // Create event to accept request.
-            provider.eventAPI().createEvent(u.player.getUniqueId().toString(), "network",
-                    provider.globalSQL().getString("SELECT name FROM server_data WHERE " + "type='EARTH';"),
+            provider.eventAPI().createEvent(u.player.getUniqueId().toString(), provider.globalSQL().getString("SELECT name FROM server_data WHERE " + "type='EARTH';"),
                     "region request accept " + request.region + " " + request.uuid);
 
             // Return to the request menu.
@@ -73,8 +72,7 @@ public class ReviewRegionRequest extends NetworkRefreshableGui {
         {
 
             // Create event to deny request.
-            provider.eventAPI().createEvent(u.player.getUniqueId().toString(), "network",
-                    provider.globalSQL().getString("SELECT name FROM server_data WHERE " + "type='EARTH';"),
+            provider.eventAPI().createEvent(u.player.getUniqueId().toString(), provider.globalSQL().getString("SELECT name FROM server_data WHERE " + "type='EARTH';"),
                     "region request deny " + request.region + " " + request.uuid);
 
             // Return to the request menu.
@@ -128,8 +126,7 @@ public class ReviewRegionRequest extends NetworkRefreshableGui {
                         u.player.closeInventory();
 
                         // Create teleport event.
-                        provider.eventAPI().createTeleportEvent(true, u.player.getUniqueId().toString(), "network",
-                                "teleport " + provider.constants().earthWorld() + " " + l.getX() + " " + l.getZ() + " " + l.getYaw() + " " + l.getPitch(),
+                        provider.eventAPI().createTeleportEvent(true, u.player.getUniqueId().toString(), "teleport " + provider.constants().earthWorld() + " " + l.getX() + " " + l.getZ() + " " + l.getYaw() + " " + l.getPitch(),
                                 LocationAdapter.adapt(u.player.getLocation()));
 
                         // Switch server.

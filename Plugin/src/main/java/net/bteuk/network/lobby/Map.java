@@ -334,7 +334,7 @@ public class Map extends AbstractReloadableComponent {
         }
 
         // Create teleport event.
-        eventAPI.createTeleportEvent(true, u.player.getUniqueId().toString(), "network", "teleport location " + location, LocationAdapter.adapt(u.player.getLocation()));
+        eventAPI.createTeleportEvent(true, u.player.getUniqueId().toString(), "teleport location " + location, LocationAdapter.adapt(u.player.getLocation()));
 
         serverAPI.switchServer(PlayerAdapter.adapt(u.player), server);
     }

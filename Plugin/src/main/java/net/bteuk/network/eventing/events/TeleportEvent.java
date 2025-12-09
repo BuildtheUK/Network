@@ -150,7 +150,7 @@ public class TeleportEvent implements Event {
                 } else {
 
                     // Set teleport event to go to spawn.
-                    eventAPI.createTeleportEvent(true, p.getUniqueId().toString(), "network", "teleport spawn", LocationAdapter.adapt(p.getLocation()));
+                    eventAPI.createTeleportEvent(true, p.getUniqueId().toString(), "teleport spawn", LocationAdapter.adapt(p.getLocation()));
                     serverAPI.switchServer(PlayerAdapter.adapt(p), globalSQL.getString("SELECT name FROM " + "server_data WHERE type='LOBBY';"));
                 }
             }

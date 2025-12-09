@@ -250,7 +250,7 @@ public class InviteMembers extends NetworkRefreshableGui {
 
             String name = globalSQL.getString("SELECT name FROM player_data WHERE uuid='" + uuid + "'");
             provider.instance().getOnlineUserByUuid(uuid).ifPresentOrElse(onlineUser -> {
-                provider.eventAPI().createEvent(uuid, "network", onlineUser.getServer(), "invite region " + region.regionName());
+                provider.eventAPI().createEvent(uuid, onlineUser.getServer(), "invite region " + region.regionName());
                 u.player.sendMessage(ChatUtils.success("Invited %s to region %s", name, provider.regionManager().getTag(region, u.player.getUniqueId().toString())));
             }, () -> u.player.sendMessage(ChatUtils.error("%s is no longer online.", name)));
         } else if (regionType == RegionType.PLOT) {
@@ -264,7 +264,7 @@ public class InviteMembers extends NetworkRefreshableGui {
 
             String name = globalSQL.getString("SELECT name FROM player_data WHERE uuid='" + uuid + "'");
             provider.instance().getOnlineUserByUuid(uuid).ifPresentOrElse(onlineUser -> {
-                provider.eventAPI().createEvent(uuid, "network", onlineUser.getServer(), "invite plot " + plotID);
+                provider.eventAPI().createEvent(uuid, onlineUser.getServer(), "invite plot " + plotID);
                 u.player.sendMessage(ChatUtils.success("Invited %s to your Plot.", name));
             }, () -> u.player.sendMessage(ChatUtils.error("%s is no longer online.", name)));
         } else if (regionType == RegionType.ZONE) {
@@ -278,7 +278,7 @@ public class InviteMembers extends NetworkRefreshableGui {
 
             String name = globalSQL.getString("SELECT name FROM player_data WHERE uuid='" + uuid + "'");
             provider.instance().getOnlineUserByUuid(uuid).ifPresentOrElse(onlineUser -> {
-                provider.eventAPI().createEvent(uuid, "network", onlineUser.getServer(), "invite zone " + zoneID);
+                provider.eventAPI().createEvent(uuid, onlineUser.getServer(), "invite zone " + zoneID);
                 u.player.sendMessage(ChatUtils.success("Invited %s to zone your Zone.", name));
             }, () -> u.player.sendMessage(ChatUtils.error("%s is no longer online.", name)));
         }

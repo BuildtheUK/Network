@@ -290,7 +290,7 @@ public class Tpll extends AbstractCommand {
         if (!server.equals(constants.serverName())) {
 
             // Create teleport event.
-            eventAPI.createTeleportEvent(true, p.getUniqueId().toString(), "network", "teleport tpll " + String.join(" ", args), LocationAdapter.adapt(p.getLocation()));
+            eventAPI.createTeleportEvent(true, p.getUniqueId().toString(), "teleport tpll " + String.join(" ", args), LocationAdapter.adapt(p.getLocation()));
 
             // Switch server.
             serverAPI.switchServer(PlayerAdapter.adapt(p), server);

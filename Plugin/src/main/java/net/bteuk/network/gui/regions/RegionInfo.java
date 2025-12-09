@@ -127,7 +127,7 @@ public class RegionInfo extends NetworkRefreshableGui {
                         u.player.closeInventory();
 
                         // Create teleport region event.
-                        provider.eventAPI().createTeleportEvent(true, u.player.getUniqueId().toString(), "network", "teleport region " + region.regionName(),
+                        provider.eventAPI().createTeleportEvent(true, u.player.getUniqueId().toString(), "teleport region " + region.regionName(),
                                 LocationAdapter.adapt(u.player.getLocation()));
 
                         // Switch server.

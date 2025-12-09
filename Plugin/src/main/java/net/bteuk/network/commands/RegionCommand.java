@@ -52,7 +52,7 @@ public class RegionCommand extends AbstractCommand {
                 // Check if the player has permission, else notify the player accordingly.
                 if (player.hasPermission("uknet.regions.join")) {
                     // Add server event to join the region.
-                    eventAPI.createEvent(player.getUniqueId().toString(), "network", regionManager.getServer(region), "region join " + region.regionName());
+                    eventAPI.createEvent(player.getUniqueId().toString(), regionManager.getServer(region), "region join " + region.regionName());
                 } else {
                     // Send error.
                     player.sendMessage(ChatUtils.error("You do not have permission to join regions."));

@@ -57,7 +57,7 @@ public class Spawn extends AbstractCommand {
         } else {
 
             // Set teleport event to go to spawn.
-            eventAPI.createTeleportEvent(true, player.getUniqueId().toString(), "network", "teleport spawn", location);
+            eventAPI.createTeleportEvent(true, player.getUniqueId().toString(), "teleport spawn", location);
             serverAPI.switchServer(PlayerAdapter.adapt(player), globalSQL.getString("SELECT name FROM " +
                     "server_data WHERE type='LOBBY';"));
         }

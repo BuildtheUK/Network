@@ -97,8 +97,7 @@ public class Warp extends AbstractCommand {
                 player.sendMessage(ChatUtils.success("Teleported to ")
                         .append(Component.text(location, NamedTextColor.DARK_AQUA)));
             } else {
-                eventAPI.createTeleportEvent(true, player.getUniqueId().toString(), "network",
-                        "teleport location " + location, currentLocation);
+                eventAPI.createTeleportEvent(true, player.getUniqueId().toString(), "teleport location " + location, currentLocation);
                 serverAPI.switchServer(PlayerAdapter.adapt(player), server);
             }
         } else {

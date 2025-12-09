@@ -184,7 +184,7 @@ public class AddLocation extends NetworkRefreshableGui {
                 } else {
                     // Create teleport event and switch server.
                     u.player.closeInventory();
-                    eventAPI.createTeleportEvent(true, u.player.getUniqueId().toString(), "network", "teleport " + "location_request " + name,
+                    eventAPI.createTeleportEvent(true, u.player.getUniqueId().toString(), "teleport " + "location_request " + name,
                             LocationAdapter.adapt(u.player.getLocation()));
                     serverAPI.switchServer(PlayerAdapter.adapt(u.player), server);
                 }

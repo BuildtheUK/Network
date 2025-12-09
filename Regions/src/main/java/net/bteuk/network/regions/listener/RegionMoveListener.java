@@ -114,7 +114,7 @@ public class RegionMoveListener extends AbstractMoveListener implements Listener
                     }
 
                     // Set join event to teleport there.
-                    eventAPI.createJoinEvent(regionUser.getPlayer().getUniqueId().toString(), "network",
+                    eventAPI.createJoinEvent(regionUser.getPlayer().getUniqueId().toString(),
                             "teleport " + world + " " + " " + (newLocation.getX() + xTransform) + " " + (newLocation.getZ() + zTransform) + " " + newLocation.getYaw() + " " + newLocation.getPitch());
 
                     // Switch server.
