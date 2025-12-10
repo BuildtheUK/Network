@@ -154,7 +154,7 @@ public class Lobby {
                     user.wasInPortal = false;
                 }
             }
-        }, 1L);
+        }, 50L);
     }
 
     // Load the rules.

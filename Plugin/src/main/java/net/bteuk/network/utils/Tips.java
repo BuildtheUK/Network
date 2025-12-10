@@ -79,7 +79,7 @@ public class Tips {
                 if (!tipsMap.isEmpty()) {
 
                     // Get interval.
-                    long frequency = constants.tipsFrequency() * 60L * 20L;
+                    long frequency = constants.tipsFrequency() * 60L * 1000L;
 
                     instance.getTimerAPI().registerTimer(() -> {
 
