@@ -72,6 +72,12 @@ public class TeleportEvent implements Event {
                 Player player = Bukkit.getPlayer(UUID.fromString(event[2]));
                 if (player != null) {
 
+                    // Check that the player is still online, when switching server, the player could temporarily not be available.
+                    if (!player.isConnected()) {
+                        player.sendMessage(ChatUtils.error("%s is currently not available, they may have disconnected.", player.getName()));
+                        return;
+                    }
+
                     p.teleport(player.getLocation());
                     p.sendMessage(ChatUtils.success("Teleported to ")
                             .append(Component.text(globalSQL.getString("SELECT name FROM " + "player_data WHERE uuid='" + event[2] + "';"), NamedTextColor.DARK_AQUA)));

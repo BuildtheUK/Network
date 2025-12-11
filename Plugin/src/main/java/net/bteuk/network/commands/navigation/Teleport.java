@@ -71,6 +71,13 @@ public class Teleport extends AbstractCommand {
 
                 NetworkLocation currentLocation = LocationAdapter.adapt(player.getLocation());
                 optionalNetworkUser.ifPresentOrElse((NetworkUser user) -> {
+
+                    // Check that the player is still online, when switching server, the player could temporarily not be available.
+                    if (!user.player.isConnected()) {
+                        player.sendMessage(ChatUtils.error("%s is currently not available, they may have disconnected.", onlineUser.getName()));
+                        return;
+                    }
+
                     // Set the current location for /back
                     back.setPreviousCoordinate(player.getUniqueId().toString(), currentLocation);
 
