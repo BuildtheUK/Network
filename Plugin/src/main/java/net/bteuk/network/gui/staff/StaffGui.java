@@ -184,7 +184,7 @@ public class StaffGui extends NetworkRefreshableGui {
                             // reviewing process.
                             if (server.equals(constants.serverName())) {
                                 u.player.closeInventory();
-                                provider.eventAPI().createEvent(u.getUuid(), "plotsystem", constants.serverName(), "review plot " + plotID);
+                                provider.eventAPI().createEvent(u.getUuid(), constants.serverName(), "review plot " + plotID);
                             } else {
                                 // Player is not on the current server.
                                 // Set the server join event.

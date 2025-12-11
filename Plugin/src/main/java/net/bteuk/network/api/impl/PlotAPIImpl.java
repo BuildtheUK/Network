@@ -329,7 +329,7 @@ public class PlotAPIImpl implements PlotAPI {
 
     @Override
     public int getNumberOfZones() {
-        return plotSQL.getInt("SELECT count(id) FROM zones;");
+        return plotSQL.getInt("SELECT count(id) FROM zones WHERE status='open';");
     }
 
     @Override
