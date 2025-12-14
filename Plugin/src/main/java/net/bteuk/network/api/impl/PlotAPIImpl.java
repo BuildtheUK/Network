@@ -409,7 +409,7 @@ public class PlotAPIImpl implements PlotAPI {
 
     @Override
     public String getPlotReviewer(int reviewId) {
-        return plotSQL.getString("SELECT reviewer FROM plot_review WHERE review_id=" + reviewId + ";");
+        return plotSQL.getString("SELECT reviewer FROM plot_review WHERE id=" + reviewId + ";");
     }
 
     @Override

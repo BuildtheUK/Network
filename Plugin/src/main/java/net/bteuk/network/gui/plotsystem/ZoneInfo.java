@@ -44,7 +44,7 @@ public class ZoneInfo extends NetworkRefreshableGui {
     public void createGui() {
 
         setItem(4, Utils.createItem(Material.BOOK, 1, Utils.title("Zone " + zoneID), Utils.line("Zone Owner: ").append(Component.text(globalSQL.getString(
-                                "SELECT name FROM player_data WHERE uuid='" + plotSQL.getString("SELECT uuid FROM zone_members WHERE id=" + zoneID + " AND " + "is_owner=1;") +
+                                "SELECT name FROM player_data WHERE uuid='" + plotSQL.getString("SELECT uuid FROM zone_members WHERE id=" + zoneID + " AND is_owner=1;") +
                                         "';"),
                         NamedTextColor.GRAY)), Utils.line("Zone Members: ")
                         .append(Component.text(plotSQL.getInt("SELECT COUNT(uuid) FROM zone_members WHERE id=" + zoneID + " AND is_owner=0;"), NamedTextColor.GRAY)),
