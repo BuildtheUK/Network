@@ -47,7 +47,7 @@ public final class ReviewFeedback {
                                 .appendNewline().appendNewline());
 
         // Reviewer
-        String reviewer = globalSQL.getString("SELECT name FROM player_data WHERE uuid='" + plotAPI.getPlotReviewer(reviewId));
+        String reviewer = globalSQL.getString("SELECT name FROM player_data WHERE uuid='" + plotAPI.getPlotReviewer(reviewId) + "';");
         firstPage = firstPage.append(Component.text(String.format("Reviewer: %s", reviewer),
                 NamedTextColor.DARK_GRAY)).appendNewline();
 
