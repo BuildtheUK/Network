@@ -101,7 +101,7 @@ public class Tips {
 
                         // Increment the counter on all TipsLists
                         tipsMap.values().forEach(TipsList::increment);
-                    }, frequency, 2400L);
+                    }, frequency, 60000L);
 
                     log.info("Enabled tips timer!");
                 }

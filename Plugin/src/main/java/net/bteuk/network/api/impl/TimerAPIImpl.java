@@ -20,7 +20,8 @@ public class TimerAPIImpl implements TimerAPI, ShutdownHook {
     @Override
     public int registerTimer(Runnable runnable, long intervalMillis, long delay) {
         long serverTickInterval = Math.round(intervalMillis / 50.0);
-        int id = instance.getServer().getScheduler().scheduleSyncRepeatingTask(instance, runnable, delay, serverTickInterval);
+        long serverTickDelay = Math.round(delay / 50.0);
+        int id = instance.getServer().getScheduler().scheduleSyncRepeatingTask(instance, runnable, serverTickDelay, serverTickInterval);
         timers.put(id, runnable);
         return id;
     }
