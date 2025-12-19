@@ -4,7 +4,10 @@ import io.papermc.paper.command.brigadier.CommandSourceStack;
 import lombok.extern.java.Log;
 import net.bteuk.network.CustomChat;
 import net.bteuk.network.Network;
+import net.bteuk.network.commands.tabcompleters.ConditionalPlayerSelector;
 import net.bteuk.network.commands.tabcompleters.FixedArgSelector;
+import net.bteuk.network.commands.tabcompleters.MultiArgSelector;
+import net.bteuk.network.lib.dto.OnlineUser;
 import net.bteuk.network.lib.dto.UserUpdate;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.NetworkUser;
@@ -16,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Log
 public class Nick extends AbstractCommand {
@@ -30,7 +34,8 @@ public class Nick extends AbstractCommand {
     public Nick(Network instance, CustomChat chat) {
         this.instance = instance;
         this.chat = chat;
-        setTabCompleter(new FixedArgSelector(Collections.singletonList("reset"), 0));
+        setTabCompleter(new MultiArgSelector(List.of(new FixedArgSelector(Collections.singletonList("reset"), 0),
+                new ConditionalPlayerSelector(instance, 1, args -> args != null && args.length > 0 && "reset".equalsIgnoreCase(args[0])))));
     }
 
     @Override
@@ -58,11 +63,20 @@ public class Nick extends AbstractCommand {
             player.sendMessage(ChatUtils.error("Usage: %s (Supports &colours or &#RRGGBB)", "/nick <name>"));
             player.sendMessage(ChatUtils.error("Example: %s", "/nick &6My &#FF00FFName"));
             return;
-        } else if ("reset".equalsIgnoreCase(args[0])) {
+        } else if ("reset".equalsIgnoreCase(args[0]) && args.length == 1) {
             Component defaultName = ChatUtils.line(player.getName());
-            updateDisplayName(player, defaultName);
+            updateDisplayName(player.getUniqueId().toString(), defaultName);
             return;
-
+        } else if ("reset".equalsIgnoreCase(args[0]) && args.length > 1 && player.hasPermission("uknet.nick.reset.others")) {
+            // Get the player.
+            Optional<OnlineUser> onlineUser = instance.getOnlineUserByNameIgnoreCase(args[1]);
+            if (onlineUser.isPresent()) {
+                updateDisplayName(onlineUser.get().getUuid(), ChatUtils.line(onlineUser.get().getName()));
+                player.sendMessage(ChatUtils.success("Reset " + args[1] + "'s nickname."));
+            } else {
+                player.sendMessage(ChatUtils.error("Player " + args[1] + " is not online!"));
+                return;
+            }
         }
 
         String rawName = String.join(" ", args);
@@ -75,12 +89,12 @@ public class Nick extends AbstractCommand {
             return;
         }
 
-        updateDisplayName(player, displayName);
+        updateDisplayName(player.getUniqueId().toString(), displayName);
     }
 
-    private void updateDisplayName(Player player, Component displayName) {
+    private void updateDisplayName(String uuid, Component displayName) {
         UserUpdate userUpdateEvent = new UserUpdate();
-        userUpdateEvent.setUuid(player.getUniqueId().toString());
+        userUpdateEvent.setUuid(uuid);
         userUpdateEvent.setDisplayName(displayName);
         chat.sendSocketMessage(userUpdateEvent);
     }
