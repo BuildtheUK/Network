@@ -66,7 +66,7 @@ public abstract class AbstractCommand implements BasicCommand {
     /**
      * Checks whether the sender has permission, if the sender is not a {@link Player} then this will always return
      * true.
-     * If the player doesn't have the permission send a no permission message.
+     * If the player doesn't have the permission, send a no permission message.
      *
      * @param sender     the command sender
      * @param permission the permission to check

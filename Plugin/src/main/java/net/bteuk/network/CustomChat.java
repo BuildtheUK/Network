@@ -114,7 +114,7 @@ public class CustomChat implements Listener, ChatAPI {
         Role userRole = user.getPrimaryRole();
         return userRole.getColouredPrefix() // The prefix based on the role.
                 .append(Component.space())
-                .append(ChatUtils.line(user.player.getName())) // Player name in white without formatting.
+                .append(user.player.displayName()) // Player name in white without formatting.
                 .append(Component.space())
                 .append(Component.text(">", NamedTextColor.GRAY).decorate(TextDecoration.BOLD)) // Arrow between the
                 // player and message in bold.
@@ -261,7 +261,7 @@ public class CustomChat implements Listener, ChatAPI {
     }
 
     public void handleUserUpdate(UserUpdate userUpdate) {
-        // If the user is online check if anything needs updating.
+        // If the user is online, check if anything needs updating.
         instance.getUsers().stream().filter((NetworkUser user) -> user.player.getUniqueId().toString().equals(userUpdate.getUuid()))
                 .findFirst().ifPresent((NetworkUser user) -> {
                     if (userUpdate.getTabPlayer() != null && !userUpdate.getTabPlayer().getPrimaryGroup()
@@ -274,7 +274,9 @@ public class CustomChat implements Listener, ChatAPI {
                             user.setPrimaryRole(primaryRole);
                         }
                     }
-                    user.updateDisplayName(userUpdate.getDisplayName());
+                    if (userUpdate.getDisplayName() != null) {
+                        user.updateDisplayName(userUpdate.getDisplayName());
+                    }
                 });
     }
 

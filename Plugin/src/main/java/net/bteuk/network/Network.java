@@ -26,6 +26,7 @@ import net.bteuk.network.commands.Help;
 import net.bteuk.network.commands.Me;
 import net.bteuk.network.commands.Msg;
 import net.bteuk.network.commands.Navigator;
+import net.bteuk.network.commands.Nick;
 import net.bteuk.network.commands.Nightvision;
 import net.bteuk.network.commands.Phead;
 import net.bteuk.network.commands.Plot;
@@ -451,6 +452,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
             commandManager.registerCommand(Msg.of(this, "tell"));
 
             commandManager.registerCommand(new Reply(chat));
+            commandManager.registerCommand(new Nick(this, chat));
         }
 
         commandManager.registerCommand(new Promote(this, roleAPI, chat));
