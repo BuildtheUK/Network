@@ -147,12 +147,20 @@ public class Connect implements Listener {
             boolean nightVisionEnabled = globalSQL.getBoolean("SELECT nightvision_enabled FROM player_data WHERE uuid='" + player.getUniqueId() + "'");
             String chatChannel = globalSQL.getString("SELECT chat_channel FROM player_data WHERE uuid='" + player.getUniqueId() + "'");
             boolean tipsEnabled = globalSQL.getBoolean("SELECT tips_enabled FROM player_data WHERE uuid='" + player.getUniqueId() + "'");
+            String displayName = globalSQL.getString("SELECT display_name FROM player_data WHERE uuid='" + player.getUniqueId() + "'");
+            Component displayNameComponent;
+            if (displayName != null) {
+                displayNameComponent = GsonComponentSerializer.gson().deserialize(displayName);
+            } else {
+                displayNameComponent = Component.text(player.getName());
+            }
+
             List<String> messages = globalSQL.getOfflineMessages(player.getUniqueId().toString());
             List<Component> components = new ArrayList<>();
             messages.forEach(message -> components.add(GsonComponentSerializer.gson().deserialize(message)));
 
             UserConnectReply reply = new UserConnectReply(player.getUniqueId().toString(), navigatorEnabled, teleportEnabled, nightVisionEnabled, chatChannel, tipsEnabled,
-                    components, false);
+                    components, false, displayNameComponent);
             RegionUser regionUser = null;
             if (constants.regionsEnabled()) {
                 regionUser = regionManager.getUserByPlayer(player).orElse(null);

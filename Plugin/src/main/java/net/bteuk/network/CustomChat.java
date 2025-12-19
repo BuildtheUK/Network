@@ -274,6 +274,7 @@ public class CustomChat implements Listener, ChatAPI {
                             user.setPrimaryRole(primaryRole);
                         }
                     }
+                    user.updateDisplayName(userUpdate.getDisplayName());
                 });
     }
 

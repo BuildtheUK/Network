@@ -163,6 +163,9 @@ public class NetworkUser {
         if (focusEnabled) {
             hidePlayers();
         }
+
+        // Set the display name.
+        player.displayName(reply.getDisplayName());
     }
 
     /**
@@ -282,6 +285,10 @@ public class NetworkUser {
         } else {
             player.sendMessage(ChatUtils.success("Disabled focus mode"));
         }
+    }
+
+    public void updateDisplayName(Component displayName) {
+        player.displayName(displayName);
     }
 
     private void setFocusEnabled(boolean enabled) {
