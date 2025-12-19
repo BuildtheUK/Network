@@ -18,6 +18,7 @@ import net.bteuk.network.lib.dto.UserConnectReply;
 import net.bteuk.network.lib.dto.UserConnectRequest;
 import net.bteuk.network.lib.dto.UserDisconnect;
 import net.bteuk.network.lib.dto.UserRemove;
+import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.regions.RegionManager;
 import net.bteuk.network.regions.RegionUser;
 import net.bteuk.network.sql.GlobalSQL;
@@ -152,7 +153,7 @@ public class Connect implements Listener {
             if (displayName != null) {
                 displayNameComponent = GsonComponentSerializer.gson().deserialize(displayName);
             } else {
-                displayNameComponent = Component.text(player.getName());
+                displayNameComponent = ChatUtils.line(player.getName());
             }
 
             List<String> messages = globalSQL.getOfflineMessages(player.getUniqueId().toString());

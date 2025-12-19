@@ -4,6 +4,7 @@ import io.papermc.paper.command.brigadier.CommandSourceStack;
 import lombok.extern.java.Log;
 import net.bteuk.network.CustomChat;
 import net.bteuk.network.Network;
+import net.bteuk.network.commands.tabcompleters.FixedArgSelector;
 import net.bteuk.network.lib.dto.UserUpdate;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.NetworkUser;
@@ -13,6 +14,7 @@ import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
 import java.util.List;
 
 @Log
@@ -28,6 +30,7 @@ public class Nick extends AbstractCommand {
     public Nick(Network instance, CustomChat chat) {
         this.instance = instance;
         this.chat = chat;
+        setTabCompleter(new FixedArgSelector(Collections.singletonList("reset"), 0));
     }
 
     @Override
@@ -38,7 +41,7 @@ public class Nick extends AbstractCommand {
             return;
         }
 
-        if (!hasPermission(player, "network.nick")) {
+        if (!hasPermission(player, "uknet.nick")) {
             return;
         }
 
@@ -56,9 +59,8 @@ public class Nick extends AbstractCommand {
             player.sendMessage(ChatUtils.error("Example: %s", "/nick &6My &#FF00FFName"));
             return;
         } else if ("reset".equalsIgnoreCase(args[0])) {
-            Component defaultName = Component.text(player.getName());
+            Component defaultName = ChatUtils.line(player.getName());
             updateDisplayName(player, defaultName);
-            player.sendMessage(ChatUtils.success("Reset display name."));
             return;
 
         }
