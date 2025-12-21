@@ -19,7 +19,7 @@ public class ConditionalPlayerSelector extends PlayerSelector {
 
     @Override
     public @NotNull Collection<String> onTabComplete(@NotNull CommandSender sender, @NotNull String[] args) {
-        if (condition.test(args)) {
+        if (condition.test(args) && sender.hasPermission("uknet.nick.reset.others")) {
             return super.onTabComplete(sender, args);
         } else {
             return Collections.emptyList();

@@ -80,9 +80,9 @@ public class TeleportEvent implements Event {
 
                     p.teleport(player.getLocation());
                     p.sendMessage(ChatUtils.success("Teleported to ")
-                            .append(Component.text(globalSQL.getString("SELECT name FROM " + "player_data WHERE uuid='" + event[2] + "';"), NamedTextColor.DARK_AQUA)));
+                            .append(Component.text(globalSQL.getString("SELECT name FROM player_data WHERE uuid='" + event[2] + "';"), NamedTextColor.DARK_AQUA)));
                 } else {
-                    p.sendMessage(Component.text(globalSQL.getString("SELECT name FROM " + "player_data WHERE uuid='" + event[2] + "';"), NamedTextColor.DARK_RED)
+                    p.sendMessage(Component.text(globalSQL.getString("SELECT name FROM player_data WHERE uuid='" + event[2] + "';"), NamedTextColor.DARK_RED)
                             .append(ChatUtils.error(" is not online.")));
                 }
             }

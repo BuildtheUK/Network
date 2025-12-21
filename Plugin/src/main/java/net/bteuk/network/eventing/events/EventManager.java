@@ -151,6 +151,7 @@ public class EventManager implements EventAPI, Event {
      */
     @Override
     public void event(String uuid, String[] event, String message) {
+        log.info("Event " + event[0] + " triggered by " + uuid + " with arguments " + String.join(", ", event));
         Event eventType = events.get(event[0]);
         if (eventType == null) {
             log.warning("Event " + event[0] + " is not registered.");

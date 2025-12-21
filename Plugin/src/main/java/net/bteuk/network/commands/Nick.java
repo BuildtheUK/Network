@@ -72,11 +72,11 @@ public class Nick extends AbstractCommand {
             Optional<OnlineUser> onlineUser = instance.getOnlineUserByNameIgnoreCase(args[1]);
             if (onlineUser.isPresent()) {
                 updateDisplayName(onlineUser.get().getUuid(), ChatUtils.line(onlineUser.get().getName()));
-                player.sendMessage(ChatUtils.success("Reset " + args[1] + "'s nickname."));
+                player.sendMessage(ChatUtils.success("Reset %s nickname.", args[1] + "'s"));
             } else {
-                player.sendMessage(ChatUtils.error("Player " + args[1] + " is not online!"));
-                return;
+                player.sendMessage(ChatUtils.error("Player %s is not online!", args[1]));
             }
+            return;
         }
 
         String rawName = String.join(" ", args);
