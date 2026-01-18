@@ -121,14 +121,14 @@ public class StaffGui extends NetworkRefreshableGui {
             int rRequestCount = provider.regionSQL().getInt("SELECT COUNT(region) FROM region_requests WHERE " + "staff_accept=0");
             Component rRequestString;
             if (rRequestCount == 1) {
-                rRequestString = Utils.line("There is currently ").append(Component.text(1, NamedTextColor.GRAY)).append(Utils.line(" region join request by Jr.Builders."));
+                rRequestString = Utils.line("There is currently ").append(Component.text(1, NamedTextColor.GRAY)).append(Utils.line(" region join request."));
             } else {
                 rRequestString = Utils.line("There are currently ").append(Component.text(rRequestCount, NamedTextColor.GRAY))
-                        .append(Utils.line(" region join requests by Jr.Builders."));
+                        .append(Utils.line(" region join requests."));
             }
 
             setItem(19, Utils.createItem(Material.CHEST_MINECART, 1, Utils.title("Review Region Requests"),
-                    Utils.line("Opens a menu to review active region join requests by Jr.Builders."), rRequestString), (NetworkUser u) -> {
+                    Utils.line("Opens a menu to review active region join requests."), rRequestString), (NetworkUser u) -> {
 
                 if (provider.regionSQL().hasRow("SELECT region FROM region_requests WHERE " + "staff_accept=0;")) {
                     if (u.player.hasPermission("uknet.regions.request")) {

@@ -58,17 +58,33 @@ public class RegionEvent implements Event {
             case "request" -> {
                 if (event[2].equals("accept")) {
 
+                    // 'region', request, accept/deny, region, uuid, owner/staff
+
+                    region = regionManager.getRegion(event[3]);
+
                     // If length is 4, then no user is specified; this implies that it should accept all requests for
                     // the region, rather than a specific request.
-                    region = regionManager.getRegion(event[3]);
                     if (event.length == 4) {
 
                         regionManager.acceptRequests(region);
                     } else {
+                        RegionManager.RequestType requestType;
+
+                        // The 6th argument specifies whether this is staff or owner approval
+                        if (event[5].equals("owner"))
+                            requestType = RegionManager.RequestType.OWNER;
+                        else if (event[5].equals("staff"))
+                            requestType = RegionManager.RequestType.STAFF;
+                        else
+                        {
+                            DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), uuid, "server",
+                                    ChatUtils.error("An error occurred - the request type was malformatted: "+event[5]), true);
+                            chatAPI.sendDirectMessage(directMessage);
+                            return;
+                        }
 
                         // The 5th argument specifies the uuid of the player who created the request.
-
-                        regionManager.acceptRequest(region, event[4]);
+                        regionManager.acceptRequest(region, event[4], requestType);
 
                         // Send feedback to the user who accepted the request.
                         DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), uuid, "server",

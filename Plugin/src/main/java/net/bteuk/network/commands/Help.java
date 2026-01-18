@@ -169,7 +169,7 @@ public class Help extends AbstractCommand {
                     yield null;
                 }
                 yield builderRole.getColouredRoleName()
-                        .append(ChatUtils.line(" is the first role that has the ability to claim regions freely, " +
+                        .append(ChatUtils.line(" does not require approval for all claims, " +
                                 "however in busy areas reviewers will need to review the request. " +
                                 "Complete 1 hard plot to be promoted to "))
                         .append(builder.getColouredRoleName());
@@ -181,9 +181,9 @@ public class Help extends AbstractCommand {
                     yield null;
                 }
                 yield builderRole.getColouredRoleName()
-                        .append(ChatUtils.line(" is the first role achieved by building, however you must rank up " +
-                                "once more to have access to region claiming. " +
-                                "Complete 1 normal plot to be promoted to "))
+                        .append(ChatUtils.line(" is the first role which allows you to claim regions across the country, " +
+                                "however, all region requests must be approved by staff."))
+                        .append(ChatUtils.line("Complete 1 normal plot to be promoted to "))
                         .append(jrbuilder.getColouredRoleName());
             }
 
@@ -261,12 +261,19 @@ public class Help extends AbstractCommand {
 
         switch (builderRole.getId()) {
 
-            case "apprentice", "applicant", "default" -> {
+            case "applicant", "default" -> {
                 if (constants.tpllEnabled()) {
                     p.sendMessage(Utils.line("\nTo access other areas you can try using ")
                             .append(Component.text("/tpll <lat> <lon>", NamedTextColor.GRAY))
                             .append(Utils.line(", however you will only be able to teleport to locations that have " +
                                     "already been generated on the server.")));
+                }
+            }
+
+            case "apprentice" -> {
+                if (constants.tpllEnabled()) {
+                    p.sendMessage(Utils.line("\nTo access other areas you can try using ")
+                            .append(Component.text("/tpll <lat> <lon>", NamedTextColor.GRAY)));
                 }
             }
 
@@ -362,9 +369,9 @@ public class Help extends AbstractCommand {
                 "We keep track of every player who joins a region, this allows us to trace back any wrongdoers with " +
                 "relative ease."));
 
-        Role jrbuilder = roles.getRoleById("jrbuilder");
+        Role apprentice = roles.getRoleById("apprentice");
         p.sendMessage(Utils.line("\nTo join a region you must be a ")
-                .append(jrbuilder.getColouredRoleName())
+                .append(apprentice.getColouredRoleName())
                 .append(Utils.line(" or above, this is both to prevent griefers and to ensure building standards.")));
 
         p.sendMessage(Utils.line("\nYou can join a region by clicking on the dark oak door in the build menu. " +

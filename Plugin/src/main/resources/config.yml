@@ -1,5 +1,5 @@
 # Config version; do not update this manually as it could break the config.
-version: 1.8.0
+version: 1.8.1
 
 # MySQL is mandatory for this plugin.
 # Login information
@@ -172,3 +172,8 @@ motd:
 
 # Whether the skulls plugin is used as the head database.
 skulls_plugin_enabled: true
+
+minrank_generation: Jr.Builder
+minrank_regionclaim: Jr.Builder
+minrank_zonejoin: Jr.Builder
+minrank_publicjoin: Jr.Builder

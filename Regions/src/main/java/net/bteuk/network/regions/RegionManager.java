@@ -420,8 +420,32 @@ public class RegionManager {
     }
 
     // Accept a request for a specific user.
-    public void acceptRequest(Region region, String uuid) {
+    public void acceptRequest(Region region, String uuid, RequestType type) {
+        switch (type) {
+            case BOTH ->
+            { confirmRequest(region, uuid); }
+            case STAFF -> {
+                // Updates the DB with staff accept set to 1
+                regionSQL.update("UPDATE region_requests SET staff_accept = 1 WHERE region='" + region.regionName() + "' AND " + "uuid='" + uuid + "'; ");
+                // Checks whether both approvals are now complete and if so, adds the players
+                checkRequestAndMigrate(region, uuid);
+            }
+            case OWNER -> {
+                // Updates the DB with owner accept set to 1
+                regionSQL.update("UPDATE region_requests SET owner_accept = 1 WHERE region='" + region.regionName() + "' AND " + "uuid='" + uuid + "'; ");
+                // Checks whether both approvals are now complete and if so, adds the players
+                checkRequestAndMigrate(region, uuid);
+            }
+        }
+    }
 
+    private void checkRequestAndMigrate(Region region, String uuid) {
+        if (regionSQL.getBoolean("Select staff_accept & owner_accept from region_requests where region = '" + region.regionName() + "' AND " + "uuid='" + uuid + "'; "))
+            confirmRequest(region, uuid);
+    }
+
+    private void confirmRequest(Region region, String uuid)
+    {
         // Get the coordinate id for the request.
         int coordinate_id = regionSQL.getInt("SELECT coordinate_id FROM region_requests WHERE " + "region='" + region.regionName() + "' AND uuid='" + uuid + "';");
 
@@ -431,6 +455,7 @@ public class RegionManager {
         // Delete request.
         regionSQL.update("DELETE FROM region_requests WHERE region='" + region.regionName() + "' AND " + "uuid='" + uuid + "'; ");
     }
+
 
     // Deny a request for a specific user.
     public void denyRequest(Region region, String uuid) {
@@ -456,7 +481,7 @@ public class RegionManager {
 
     // Join region with owner or staff request.
     // If staff request is true then it requires a staff request else it's an owner request.
-    public void requestRegion(Region region, Player player, boolean staffRequest) {
+    public void requestRegion(Region region, Player player, RequestType requestType) {
 
         // Check if you don't already have a request for this region.
         if (hasRequest(region, player.getUniqueId().toString())) {
@@ -468,37 +493,57 @@ public class RegionManager {
 
         // Get coordinate of player.
         int coordinate = coordinateAPI.addCoordinate(LocationAdapter.adapt(player.getLocation()));
-        if (staffRequest) {
-            // Staff request
 
-            // Create request.
-            regionSQL.update(
-                    "INSERT INTO region_requests(region,uuid,owner,staff_accept," + "coordinate_id) VALUES ('" + region.regionName() + "','" + player.getUniqueId() + "','" + getOwner(
-                            region) + "',0," + coordinate + ");");
+        switch (requestType)
+        {
+            case BOTH -> {
+                // Owner request
 
-            // Send message to player.
-            player.sendMessage(ChatUtils.success("Requested to join region ").append(Component.text(region.regionName(), NamedTextColor.DARK_AQUA))
-                    .append(ChatUtils.success(", awaiting staff review.")));
+                // Create request.
+                regionSQL.update(
+                        "INSERT INTO region_requests(region,uuid,owner,owner_accept,staff_accept," + "coordinate_id) VALUES ('" + region.regionName() + "','" + player.getUniqueId() + "','" + getOwner(
+                                region) + "',0,0," + coordinate + ");");
 
-            ChatMessage chatMessage = new ChatMessage(ChatChannels.REVIEWER.getChannelName(), "server",
-                    ChatUtils.success("A region join request has been submitted by %s for region %s", player.getName(), region.regionName()));
-            chat.sendChatMessage(chatMessage);
-        } else {
-            // Owner request
+                // Send message to player.
+                player.sendMessage(ChatUtils.success("Requested to join region ").append(Component.text(region.regionName(), NamedTextColor.DARK_AQUA))
+                        .append(ChatUtils.success(", awaiting owner and staff review.")));
 
-            // Create request.
-            regionSQL.update(
-                    "INSERT INTO region_requests(region,uuid,owner,owner_accept," + "coordinate_id) VALUES ('" + region.regionName() + "','" + player.getUniqueId() + "','" + getOwner(
-                            region) + "',0," + coordinate + ");");
+                // Send the owner a message.
+                DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), getOwner(region), "server",
+                        ChatUtils.success("%s has requested to join region %s.", player.getName(), getTag(region, getOwner(region))), false);
+                chat.sendDirectMessage(directMessage);
+            }
+            case OWNER -> {
+                // Owner request
 
-            // Send message to player.
-            player.sendMessage(ChatUtils.success("Requested to join region ").append(Component.text(region.regionName(), NamedTextColor.DARK_AQUA))
-                    .append(ChatUtils.success(", awaiting owner review.")));
+                // Create request.
+                regionSQL.update(
+                        "INSERT INTO region_requests(region,uuid,owner,owner_accept," + "coordinate_id) VALUES ('" + region.regionName() + "','" + player.getUniqueId() + "','" + getOwner(
+                                region) + "',0," + coordinate + ");");
 
-            // Send the owner a message.
-            DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), getOwner(region), "server",
-                    ChatUtils.success("%s has requested to join region %s.", player.getName(), getTag(region, getOwner(region))), false);
-            chat.sendDirectMessage(directMessage);
+                // Send message to player.
+                player.sendMessage(ChatUtils.success("Requested to join region ").append(Component.text(region.regionName(), NamedTextColor.DARK_AQUA))
+                        .append(ChatUtils.success(", awaiting owner review.")));
+
+                // Send the owner a message.
+                DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), getOwner(region), "server",
+                        ChatUtils.success("%s has requested to join region %s.", player.getName(), getTag(region, getOwner(region))), false);
+                chat.sendDirectMessage(directMessage);
+            }
+            case STAFF -> {
+                // Create request.
+                regionSQL.update(
+                        "INSERT INTO region_requests(region,uuid,owner,staff_accept," + "coordinate_id) VALUES ('" + region.regionName() + "','" + player.getUniqueId() + "','" + getOwner(
+                                region) + "',0," + coordinate + ");");
+
+                // Send message to player.
+                player.sendMessage(ChatUtils.success("Requested to join region ").append(Component.text(region.regionName(), NamedTextColor.DARK_AQUA))
+                        .append(ChatUtils.success(", awaiting staff review.")));
+
+                ChatMessage chatMessage = new ChatMessage(ChatChannels.REVIEWER.getChannelName(), "server",
+                        ChatUtils.success("A region join request has been submitted by %s for region %s", player.getName(), region.regionName()));
+                chat.sendChatMessage(chatMessage);
+            }
         }
     }
 
@@ -760,5 +805,10 @@ public class RegionManager {
                 }
             }
         }, 60_000L);
+    }
+
+    public enum RequestType
+    {
+        STAFF, OWNER, BOTH
     }
 }

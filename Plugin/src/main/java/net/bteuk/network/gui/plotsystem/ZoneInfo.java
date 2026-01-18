@@ -147,7 +147,7 @@ public class ZoneInfo extends NetworkRefreshableGui {
                 });
             } else {
 
-                setItem(18, Utils.createItem(Material.IRON_DOOR, 1, Utils.title("Set Public"), Utils.line("Public zones allow Jr.Builder+"),
+                setItem(18, Utils.createItem(Material.IRON_DOOR, 1, Utils.title("Set Public"), Utils.line("Public zones allow "+ provider.constants().minrankZoneJoin()+"+"),
                         Utils.line("to join the zone without invitation.")), (NetworkUser u) -> {
 
                     // Set zone to private and refresh this gui.

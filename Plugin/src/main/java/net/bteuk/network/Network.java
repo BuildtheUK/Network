@@ -349,7 +349,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         // Create the region manager if enabled.
         if (constants.regionsEnabled()) {
             regionManager = new RegionManager(regionSQL, this, coordinateAPI, eventAPI, worldGuardAPI, constants, this, serverAPI);
-            commandManager.registerCommand(new RegionCommand(regionManager, eventAPI));
+            commandManager.registerCommand(new RegionCommand(regionManager, eventAPI, constants));
         }
 
         // Setup connect, this handles all connections to the server.

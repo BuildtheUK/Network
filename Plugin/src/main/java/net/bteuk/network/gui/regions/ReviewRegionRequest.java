@@ -5,6 +5,7 @@ import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.papercore.LocationAdapter;
 import net.bteuk.network.papercore.PlayerAdapter;
+import net.bteuk.network.regions.RegionManager;
 import net.bteuk.network.regions.Request;
 import net.bteuk.network.regions.sql.RegionSQL;
 import net.bteuk.network.sql.GlobalSQL;
@@ -22,6 +23,7 @@ public class ReviewRegionRequest extends NetworkRefreshableGui {
     private final RegionSQL regionSQL;
     private final Request request;
     private final boolean staff;
+    private final RegionManager.RequestType requestType;
 
     public ReviewRegionRequest(GuiProvider provider, Request request, boolean staff) {
 
@@ -30,6 +32,10 @@ public class ReviewRegionRequest extends NetworkRefreshableGui {
         this.regionSQL = provider.regionSQL();
         this.request = request;
         this.staff = staff;
+        if (staff)
+            requestType = RegionManager.RequestType.STAFF;
+        else
+            requestType = RegionManager.RequestType.OWNER;
     }
 
     protected void createGui() {
@@ -41,7 +47,7 @@ public class ReviewRegionRequest extends NetworkRefreshableGui {
 
             // Create event to accept request.
             provider.eventAPI().createEvent(u.player.getUniqueId().toString(), provider.globalSQL().getString("SELECT name FROM server_data WHERE " + "type='EARTH';"),
-                    "region request accept " + request.region + " " + request.uuid);
+                    "region request accept " + request.region + " " + request.uuid +" " + requestType.name().toLowerCase());
 
             // Return to the request menu.
             this.delete();

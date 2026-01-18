@@ -187,7 +187,7 @@ public class RegionInfo extends NetworkRefreshableGui {
 
                             // Approve any active region requests for this region.
                             // Make sure this is done on the correct server.
-                            // Create teleport region event.
+                            // Create accept region event.
                             if (regionManager.hasRequests(region)) {
                                 globalSQL.update("INSERT INTO server_events(uuid,server,event) VALUES('" + u.player.getUniqueId() + "','" + globalSQL.getString(
                                         "SELECT name FROM server_data WHERE type='EARTH';") + "','region request accept " + region.regionName() + "');");

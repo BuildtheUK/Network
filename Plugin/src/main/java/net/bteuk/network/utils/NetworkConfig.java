@@ -157,6 +157,10 @@ public class NetworkConfig {
 
         String earthWorld = config.getString("regions.earth_world", "earth");
 
+        String minrankGeneration = config.getString("minrank_generation", "Jr.Builder");
+        String minrankRegionClaim = config.getString("minrank_regionclaim", "Jr.Builder");
+        String minrankZoneJoin = config.getString("minrank_zonejoin", "Jr.Builder");
+
         boolean plotSystemEnabled = config.getBoolean("plot_system_enabled");
 
         boolean moderationEnabled = config.getBoolean("staff.moderation.enabled");
@@ -201,7 +205,7 @@ public class NetworkConfig {
         log.info("Loaded constants from config.");
         return new Constants(serverName, serverType, standalone, regionsEnabled, regionInactivity, tpllEnabled, tpllRequiredPermission, maxY, minY, earthWorld, staffChat, tips,
                 tutorials, llEnabled, progressMap, progression, announceOverallLevelUps, announceSeasonalLevelUps, sidebarEnabled, sidebarTitle, sidebarTextList, motdEnabled,
-                motdText, plotSystemEnabled, moderationEnabled, warpsEnabled, homesEnabled, announcePromotions, discordLink, skullsEnabled, progressMapLink, chatSocketOutputIP,
+                motdText, minrankGeneration, minrankRegionClaim, minrankZoneJoin, plotSystemEnabled, moderationEnabled, warpsEnabled, homesEnabled, announcePromotions, discordLink, skullsEnabled, progressMapLink, chatSocketOutputIP,
                 chatSocketOutputPort, chatSocketInputPort, tipsFrequency, regionStaffRequestAlways, regionStaffRequestRadius, progressMapID, mapHubAPIKey, navigationRadius,
                 compulsoryTutorial, afkTime, mapEnabled, mapServer, mapLocation, spawnLocation);
     }

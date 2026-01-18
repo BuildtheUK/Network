@@ -150,7 +150,7 @@ public class BuildGui extends NetworkRefreshableGui {
 
             // Zone menu.
             setItem(17, Utils.createItem(Material.BARREL, 1, Utils.title("Zone Menu"), Utils.line("View all zones you can build in.")), (NetworkUser u) -> {
-                // Must be a jr.builder to open this menu.
+                // Must have zone joining perms to open this menu.
                 if (u.player.hasPermission("uknet.zones.join")) {
 
                     // Delete this gui.
@@ -161,7 +161,7 @@ public class BuildGui extends NetworkRefreshableGui {
                     u.mainGui.open(u.player);
                 } else {
 
-                    u.player.sendMessage(ChatUtils.error("You must be at least a Jr.Builder to join zones."));
+                    u.player.sendMessage(ChatUtils.error("You must be at least " + constants.minrankZoneJoin() + " to join zones."));
                 }
             });
 
@@ -192,8 +192,8 @@ public class BuildGui extends NetworkRefreshableGui {
 
             Claimable:
             -   No active owner
+                - uknet.regions.staff_request.always: Always requires request
                 - uknet.regions.staff_request.bypass: Join region without request.
-                - staff_request.always: Staff request
                 - Check radius if any nearby region is claimed.
             -   Has active owner
                 - Default (Owner request)
@@ -201,7 +201,7 @@ public class BuildGui extends NetworkRefreshableGui {
 
             */
 
-            // Join region (Jr.Builder+ only)
+            // Join region (Users with uknet.regions.join only)
             // If region is claimable.
             // Check if the player is in a region.
             Optional<RegionUser> optionalRegionUser = regionManager.getUserByPlayer(user.player);
@@ -252,101 +252,115 @@ public class BuildGui extends NetworkRefreshableGui {
                     // Check if the region is claimable.
                     if (regionManager.isClaimable(region)) {
 
+                        boolean hasOwner = regionManager.hasActiveOwner(region);
+                        String owner = (hasOwner) ? regionManager.ownerName(region) : "noone";
+                        boolean alwaysStaffApproval = user.player.hasPermission("uknet.regions.staff_request.always");
+
                         // If the region has an owner.
-                        if (regionManager.hasActiveOwner(region)) {
+                        if (hasOwner) {
 
-                            // Check if the region is public.
-                            if (regionManager.status(region) == RegionStatus.PUBLIC) {
-
+                            if (alwaysStaffApproval)
                                 setItem(4, Utils.createItem(Material.DARK_OAK_DOOR, 1, Utils.title("Join Region"), Utils.line("Click to join the region you are standing in."),
-                                        Utils.line("The region is owned by ").append(Component.text(regionManager.ownerName(region), NamedTextColor.GRAY)),
-                                        Utils.line("The region is public, so they don't need to accept your " + "request.")), (NetworkUser u) -> {
+                                        Utils.line("The region is owned by ").append(Component.text(owner, NamedTextColor.GRAY)),
+                                        Utils.line("They must accept the request for you to join."),
+                                        Utils.line("You must also receive staff approval to join this region.")), (NetworkUser u) -> {
+                                    regionManager.requestRegion(region, u.player, RegionManager.RequestType.BOTH);
+                                    u.player.closeInventory();
+                                });
 
+                                // Check if the region is public.
+                            else if (regionManager.status(region) == RegionStatus.PUBLIC)
+                                setItem(4, Utils.createItem(Material.DARK_OAK_DOOR, 1, Utils.title("Join Region"), Utils.line("Click to join the region you are standing in."),
+                                        Utils.line("The region is owned by ").append(Component.text(owner, NamedTextColor.GRAY)),
+                                        Utils.line("The region is public, so they don't need to accept your request.")), (NetworkUser u) -> {
                                     regionManager.joinRegion(region, u.player);
                                     u.player.closeInventory();
                                 });
-                            } else {
 
+                            else
                                 // Join requires owner to approve request.
                                 setItem(4, Utils.createItem(Material.DARK_OAK_DOOR, 1, Utils.title("Join Region"),
                                         Utils.line("Click to request to join the region you are standing in."),
-                                        Utils.line("The region is owned by ").append(Component.text(regionManager.ownerName(region), NamedTextColor.GRAY)),
+                                        Utils.line("The region is owned by ").append(Component.text(owner, NamedTextColor.GRAY)),
                                         Utils.line("They must accept the request for you to join.")), (NetworkUser u) -> {
 
-                                    regionManager.requestRegion(region, u.player, false);
+                                    regionManager.requestRegion(region, u.player, RegionManager.RequestType.OWNER);
                                     u.player.closeInventory();
                                 });
-                            }
-                        } else
+                        } else { // No Owner
 
-                            // Join region.
-                            setItem(4, Utils.createItem(Material.DARK_OAK_DOOR, 1, Utils.title("Join Region"), Utils.line("Click to join the region you are standing in."),
-                                    Utils.line("The region currently has no active owner."), Utils.line("Joining the region will make you the region owner.")), (NetworkUser u) -> {
+                            boolean staffApproval = alwaysStaffApproval;
+                            // If not automatic staff approval, and the player does not have the bypass permission
+                            // Check if the region was previously claimed or staff request is always required
+                            // Check if any nearby regions are claimed by someone else.
+                            // If true then the region needs to be checked by a staff member.
+                            if (!staffApproval && !user.player.hasPermission("uknet.regions.staff_request.bypass")) {
 
-                                // If the player does not have the bypass permission.
-                                // Check if any nearby regions are claimed by someone else.
-                                // If true then the region needs to be checked by a staff member.
-                                if (!u.player.hasPermission("uknet.regions.staff_request.bypass")) {
+                                staffApproval = constants.regionStaffRequestAlways() || regionManager.wasClaimed(region);
 
-                                    // If staff approval is always required do that or if the region was
-                                    // previously claimed.
-                                    if (constants.regionStaffRequestAlways() || regionManager.wasClaimed(region)) {
-                                        regionManager.requestRegion(region, u.player, true);
-                                        u.player.closeInventory();
-                                    } else {
+                                //If still not requiring staff approval, check the neighbour regions
+                                if (!staffApproval) {
 
-                                        // Get region coords.
-                                        int x = Integer.parseInt(region.regionName().split(",")[0]);
-                                        int z = Integer.parseInt(region.regionName().split(",")[1]);
+                                    // Get region coords.
+                                    int x = Integer.parseInt(region.regionName().split(",")[0]);
+                                    int z = Integer.parseInt(region.regionName().split(",")[1]);
 
-                                        // Get the radius.
-                                        int radius = constants.regionStaffRequestRadius();
+                                    // Get the radius.
+                                    int radius = constants.regionStaffRequestRadius();
 
-                                        // For zero radius, skip.
-                                        if (radius != 0) {
+                                    // For zero radius, skip.
+                                    if (radius != 0) {
 
-                                            // Subtract the config radius value.
-                                            x -= radius;
-                                            z -= radius;
+                                        // Subtract the config radius value.
+                                        x -= radius;
+                                        z -= radius;
 
-                                            // Iterate through all regions in the radius.
-                                            for (int i = x; i <= x + radius * 2; i++) {
-                                                for (int j = z; j <= z + radius * 2; j++) {
+                                        // Iterate through all regions in the radius.
+                                        for (int i = x; (i <= x + radius * 2) && !staffApproval; i++) {
+                                            for (int j = z; (j <= z + radius * 2) && !staffApproval ; j++) {
 
-                                                    String regionName = i + "," + j;
+                                                String regionName = i + "," + j;
 
-                                                    // If the region exists, check if it has an owner that is
-                                                    // not the player.
-                                                    if (regionManager.exists(regionName)) {
-                                                        Region regionInRadius = regionManager.getRegion(regionName);
-                                                        if (regionManager.hasOwner(regionInRadius)) {
-                                                            if (!regionManager.getOwner(regionInRadius).equals(u.player.getUniqueId().toString())) {
-                                                                // Staff approval is required.
-                                                                regionManager.requestRegion(region, u.player, true);
-                                                                u.player.closeInventory();
-                                                                return;
-                                                            }
+                                                // If the region exists, check if it has an owner that is
+                                                // not the player.
+                                                if (regionManager.exists(regionName)) {
+                                                    Region regionInRadius = regionManager.getRegion(regionName);
+                                                    if (regionManager.hasOwner(regionInRadius)) {
+                                                        if (!regionManager.getOwner(regionInRadius).equals(user.player.getUniqueId().toString())) {
+                                                            // Staff approval is required.
+                                                            staffApproval = true;
                                                         }
                                                     }
                                                 }
                                             }
                                         }
-
-                                        regionManager.joinRegion(region, u.player);
-                                        u.player.closeInventory();
                                     }
-                                } else {
+                                }
+                            }
 
+                            if (staffApproval)
+
+                                // Join region.
+                                setItem(4, Utils.createItem(Material.DARK_OAK_DOOR, 1, Utils.title("Join Region"), Utils.line("Click to join the region you are standing in."),
+                                        Utils.line("The region currently has no active owner."), Utils.line("Joining the region will make you the region owner."),
+                                        Utils.line("You will require staff approval to join this region.")), (NetworkUser u) -> {
+                                    regionManager.requestRegion(region, u.player, RegionManager.RequestType.STAFF);
+                                    u.player.closeInventory();
+                                });
+                            else
+
+                                setItem(4, Utils.createItem(Material.DARK_OAK_DOOR, 1, Utils.title("Join Region"), Utils.line("Click to join the region you are standing in."),
+                                        Utils.line("The region currently has no active owner."), Utils.line("Joining the region will make you the region owner.")), (NetworkUser u) -> {
                                     regionManager.joinRegion(region, u.player);
                                     u.player.closeInventory();
-                                }
-                            });
+                                });
+                        }
                     } else {
 
                         // If the region is open.
                         if (regionManager.status(region) == RegionStatus.OPEN) {
                             setItem(4, Utils.createItem(Material.SPYGLASS, 1, Utils.title("Open Region"), Utils.line("This region is open to all Jr.Builder+."),
-                                    Utils.line("You can build here without claiming.")));
+                                    Utils.line("They can build here without claiming.")));
                         } else {
 
                             // This region is not claimable.
@@ -356,9 +370,9 @@ public class BuildGui extends NetworkRefreshableGui {
                     }
                 } else {
 
-                    // Can't claim since you don't have jr.builder.
+                    // Can't claim since you don't have regions.join.
                     setItem(4, Utils.createItem(Material.STRUCTURE_VOID, 1, Utils.title("Unable to Join Region"), Utils.line("To be able to join a region you"),
-                            Utils.line("must gain at least Jr.Builder or above."),
+                            Utils.line("must gain at least " + constants.minrankRegionClaim() + " or above."),
                             Utils.line("For more information type ").append(Component.text("/help building", NamedTextColor.GRAY))));
                 }
             } else {

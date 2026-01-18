@@ -1,7 +1,9 @@
 package net.bteuk.network.commands;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
+import net.bteuk.network.Network;
 import net.bteuk.network.api.EventAPI;
+import net.bteuk.network.core.Constants;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.regions.Region;
 import net.bteuk.network.regions.RegionManager;
@@ -14,10 +16,12 @@ public class RegionCommand extends AbstractCommand {
 
     private final RegionManager regionManager;
     private final EventAPI eventAPI;
+    private final Constants constants;
 
-    public RegionCommand(RegionManager regionManager, EventAPI eventAPI) {
+    public RegionCommand(RegionManager regionManager, EventAPI eventAPI, Constants constants) {
         this.regionManager = regionManager;
         this.eventAPI = eventAPI;
+        this.constants = constants;
     }
 
     @Override
@@ -56,7 +60,7 @@ public class RegionCommand extends AbstractCommand {
                 } else {
                     // Send error.
                     player.sendMessage(ChatUtils.error("You do not have permission to join regions."));
-                    player.sendMessage(ChatUtils.error("To join regions you need at least Jr.Builder."));
+                    player.sendMessage(ChatUtils.error("To join regions you need at least "+constants.minrankRegionClaim()  +"."));
                     player.sendMessage(ChatUtils.error("For more information type ").append(Component.text("/help building", NamedTextColor.DARK_RED)));
                 }
 
