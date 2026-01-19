@@ -4,6 +4,7 @@ import lombok.extern.java.Log;
 import net.bteuk.network.api.entity.NetworkLocation;
 import net.bteuk.network.building_counter.Building;
 import net.bteuk.network.core.Constants;
+import net.bteuk.network.core.Time;
 import net.bteuk.network.core.sql.AbstractSQL;
 import net.bteuk.network.lib.dto.DirectMessage;
 import net.bteuk.network.utils.Coordinate;
@@ -287,5 +288,35 @@ public class GlobalSQL extends AbstractSQL {
             e.printStackTrace();
         }
         return messages;
+    }
+
+    public boolean createUser(String uuid, String name, String playerSkin) {
+
+        int iPlayerThere = getInt("SELECT count(1) FROM player_data WHERE uuid='" + uuid + "'");
+
+        if (iPlayerThere == 0)
+        {
+            try (
+                    Connection conn = conn();
+                    PreparedStatement statement = conn.prepareStatement(
+                            "INSERT INTO player_data(uuid,name,last_online,last_submit,player_skin) VALUES('" +
+                                    uuid + "','" +
+                                    name + "'," +
+                                    Time.currentTime() + "," +
+                                    0 + ",'" +
+                                    playerSkin + "');"
+                    )
+            ) {
+
+                statement.executeUpdate();
+                return true;
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+        else
+            return true;
     }
 }

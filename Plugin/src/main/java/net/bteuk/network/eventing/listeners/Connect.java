@@ -144,6 +144,9 @@ public class Connect implements Listener {
         if (constants.standalone()) {
             Player player = joinEvent.getPlayer();
 
+            globalSQL.createUser(player.getUniqueId().toString(), player.getName(),
+                    TextureUtils.getTexture(player.getPlayerProfile()));
+
             boolean navigatorEnabled = globalSQL.getBoolean("SELECT navigator FROM player_data WHERE uuid='" + player.getUniqueId() + "'");
             boolean teleportEnabled = globalSQL.getBoolean("SELECT teleport_enabled FROM player_data WHERE uuid='" + player.getUniqueId() + "'");
             boolean nightVisionEnabled = globalSQL.getBoolean("SELECT nightvision_enabled FROM player_data WHERE uuid='" + player.getUniqueId() + "'");
