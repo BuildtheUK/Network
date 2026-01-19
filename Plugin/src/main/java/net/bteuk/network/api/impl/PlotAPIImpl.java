@@ -344,7 +344,7 @@ public class PlotAPIImpl implements PlotAPI {
 
     @Override
     public void updatePlotCategoryFeedback(int reviewId, String category, String selection, int bookId) {
-        plotSQL.update("UPDATE plot_category_feedback SET category='" + category + "', selection='" + selection + "', book_id=" + bookId + " WHERE review_id=" + reviewId + ";");
+        plotSQL.update("UPDATE plot_category_feedback SET selection='" + selection + "', book_id=" + bookId + " WHERE review_id=" + reviewId + " AND category='" + category + "';");
     }
 
     @Override
