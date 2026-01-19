@@ -3,6 +3,7 @@ package net.bteuk.network.utils;
 import lombok.extern.java.Log;
 import net.bteuk.network.CustomChat;
 import net.bteuk.network.Network;
+import net.bteuk.network.SocketHandlerImpl;
 import net.bteuk.network.api.RoleAPI;
 import net.bteuk.network.api.entity.Role;
 import net.bteuk.network.lib.dto.ChatMessage;
@@ -225,7 +226,7 @@ public final class Roles implements RoleAPI {
                 UserUpdate userUpdate = new UserUpdate();
                 userUpdate.setUuid(uuid);
                 userUpdate.setTabPlayer(tabPlayer);
-                customChat.sendSocketMessage(userUpdate);
+                SocketHandlerImpl.sendSocketMessageIfOnline(userUpdate);
 
                 // If the new primary role is architect or reviewer, and they were promoted add them to the reviewers
                 // database table.
@@ -235,7 +236,7 @@ public final class Roles implements RoleAPI {
             }
 
             DiscordRole discordRole = new DiscordRole(uuid, roleId, !remove);
-            customChat.sendSocketMessage(discordRole);
+            SocketHandlerImpl.sendSocketMessageIfOnline(discordRole);
 
             if (announce && !remove) {
                 sendPromotionChatMessage(name, role);

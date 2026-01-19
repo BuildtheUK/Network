@@ -4,6 +4,7 @@ import io.papermc.paper.command.brigadier.CommandSourceStack;
 import lombok.extern.java.Log;
 import net.bteuk.network.CustomChat;
 import net.bteuk.network.Network;
+import net.bteuk.network.SocketHandlerImpl;
 import net.bteuk.network.api.entity.Role;
 import net.bteuk.network.commands.tabcompleters.FixedArgSelector;
 import net.bteuk.network.core.Constants;
@@ -25,13 +26,11 @@ import java.util.Objects;
 public class Discord extends AbstractCommand {
 
     private final Network instance;
-    private final CustomChat chat;
     private final Roles roles;
     private final Constants constants;
 
-    public Discord(Network instance, CustomChat chat, Roles roles, Constants constants) {
+    public Discord(Network instance, Roles roles, Constants constants) {
         this.instance = instance;
-        this.chat = chat;
         this.roles = roles;
         this.constants = constants;
         setTabCompleter(new FixedArgSelector(Arrays.asList("link", "unlink"), 0));
@@ -75,7 +74,7 @@ public class Discord extends AbstractCommand {
                 discordLinking.setUuid(player.getUniqueId().toString());
                 discordLinking.setToken(token);
 
-                chat.sendSocketMessage(discordLinking);
+                SocketHandlerImpl.sendSocketMessageIfOnline(discordLinking);
 
                 player.sendMessage(ChatUtils.success("To link your Discord please DM the code %s to the UK Bot within" + " the next 5 minutes.", token));
                 return;
@@ -97,13 +96,13 @@ public class Discord extends AbstractCommand {
                 }
 
                 DiscordRole discordRole = new DiscordRole(user.player.getUniqueId().toString(), role.getId(), false);
-                chat.sendSocketMessage(discordRole);
+                SocketHandlerImpl.sendSocketMessageIfOnline(discordRole);
 
                 DiscordLinking discordLinking = new DiscordLinking();
                 discordLinking.setUuid(player.getUniqueId().toString());
                 discordLinking.setDiscordId(user.getDiscordId());
                 discordLinking.setUnlink(true);
-                chat.sendSocketMessage(discordLinking);
+                SocketHandlerImpl.sendSocketMessageIfOnline(discordLinking);
 
                 user.isLinked = false;
                 player.sendMessage(ChatUtils.success("Unlinked your Discord."));

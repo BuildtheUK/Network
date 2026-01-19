@@ -2,6 +2,7 @@ package net.bteuk.network.eventing.listeners;
 
 import lombok.extern.java.Log;
 import net.bteuk.network.Network;
+import net.bteuk.network.SocketHandlerImpl;
 import net.bteuk.network.api.ServerAPI;
 import net.bteuk.network.commands.Afk;
 import net.bteuk.network.core.Constants;
@@ -168,6 +169,6 @@ public class CommandPreProcess implements Listener {
         users.clear();
 
         // Let the Proxy know the server is closing.
-        instance.getChat().sendSocketMessage(new ServerShutdown(constants.serverName()));
+        SocketHandlerImpl.sendSocketMessageIfOnline(new ServerShutdown(constants.serverName()));
     }
 }

@@ -4,6 +4,7 @@ import lombok.Setter;
 import lombok.extern.java.Log;
 import net.bteuk.minecraft.gui.GuiManager;
 import net.bteuk.network.Network;
+import net.bteuk.network.SocketHandlerImpl;
 import net.bteuk.network.TabManager;
 import net.bteuk.network.building_companion.BuildingCompanion;
 import net.bteuk.network.commands.Nightvision;
@@ -197,7 +198,7 @@ public class Connect implements Listener {
             UserDisconnect disconnectEvent = new UserDisconnect();
             disconnectEvent.setUuid(e.getPlayer().getUniqueId().toString());
             disconnectEvent.setServer(constants.serverName());
-            Bukkit.getScheduler().runTaskAsynchronously(instance, () -> instance.getChat().sendSocketMessage(disconnectEvent));
+            Bukkit.getScheduler().runTaskAsynchronously(instance, () -> SocketHandlerImpl.sendSocketMessageIfOnline(disconnectEvent));
             return;
         }
 
@@ -239,7 +240,7 @@ public class Connect implements Listener {
         } else {
             // Send a disconnect event to the proxy to handle potential messages.
             UserDisconnect userDisconnect = user.createDisconnectEvent();
-            Bukkit.getScheduler().runTaskAsynchronously(instance, () -> instance.getChat().sendSocketMessage(userDisconnect));
+            Bukkit.getScheduler().runTaskAsynchronously(instance, () -> SocketHandlerImpl.sendSocketMessageIfOnline(userDisconnect));
         }
     }
 
@@ -259,7 +260,7 @@ public class Connect implements Listener {
         UserConnectRequest userConnectRequest = new UserConnectRequest(constants.serverName(), e.getPlayer().getUniqueId().toString(), e.getPlayer().getName(),
                 TextureUtils.getTexture(e.getPlayer().getPlayerProfile()), channels, tabPlayer, e.getPlayer().hasPermission("group.architect"),
                 e.getPlayer().hasPermission("group.reviewer"));
-        Bukkit.getScheduler().runTaskAsynchronously(instance, () -> instance.getChat().sendSocketMessage(userConnectRequest));
+        Bukkit.getScheduler().runTaskAsynchronously(instance, () -> SocketHandlerImpl.sendSocketMessageIfOnline(userConnectRequest));
         log.info(String.format("%s connected to the server, sent request to proxy to add player as NetworkUser", e.getPlayer().getName()));
     }
 }

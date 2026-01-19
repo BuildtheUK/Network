@@ -341,21 +341,30 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
         Moderation moderation = new Moderation(this, eventAPI);
 
-        // Enables chat, both global chat and normal chat are handled through it.
-        chat = new CustomChat(this, constants, afk, globalSQL, moderation, roleAPI);
-        afk.registerChat(chat);
-        roleAPI.registerChat(chat);
-
         // Create the region manager if enabled.
         if (constants.regionsEnabled()) {
             regionManager = new RegionManager(regionSQL, this, coordinateAPI, eventAPI, worldGuardAPI, constants, this, serverAPI);
             commandManager.registerCommand(new RegionCommand(regionManager, eventAPI, constants));
         }
 
+        // Set up socket listening - used for sending messages cross-server on multi-server setups
+        SocketHandlerImpl socketHandler = null;
+        if (!constants.standalone()) {
+            socketHandler = new SocketHandlerImpl(this, constants);
+        }
+
         // Setup connect, this handles all connections to the server.
         // Listener and manager of server connections.
         Connect connect = new Connect(this, constants, tab, roleAPI, globalSQL, networkGuiManager, nightvision, eventAPI, regionManager);
-        new SocketHandlerImpl(this, chat, tab, connect);
+
+        // Enables chat, both global chat and normal chat are handled through it.
+        chat = new CustomChat(this, constants, afk, globalSQL, moderation, roleAPI);
+        afk.registerChat(chat);
+        roleAPI.registerChat(chat);
+
+        if (!constants.standalone()) {
+            socketHandler.addComponents(chat, tab, connect);
+        }
 
         // Create the navigator.
         navigatorItem = Utils.createItem(Material.NETHER_STAR, 1, Utils.title("Navigator"), Utils.line("Click to open the navigator."));
@@ -414,7 +423,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
          */
         commandManager.registerCommand(new Buildings(this, constants));
         if (!constants.standalone()) {
-            commandManager.registerCommand(new Discord(this, chat, roleAPI, constants));
+            commandManager.registerCommand(new Discord(this, roleAPI, constants));
             commandManager.registerCommand(new Focus(this, constants));
         }
 
@@ -451,8 +460,8 @@ public final class Network extends JavaPlugin implements NetworkAPI {
             commandManager.registerCommand(Msg.of(this, "w"));
             commandManager.registerCommand(Msg.of(this, "tell"));
 
-            commandManager.registerCommand(new Reply(chat));
-            commandManager.registerCommand(new Nick(this, chat));
+            commandManager.registerCommand(new Reply());
+            commandManager.registerCommand(new Nick(this));
         }
 
         commandManager.registerCommand(new Promote(this, roleAPI, chat));
@@ -538,7 +547,8 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         new Timers(this, globalSQL, eventAPI, constants, afk);
 
         // Let the Proxy know that the server is enabled.
-        chat.sendSocketMessage(new ServerStartup(constants.serverName()));
+        if (!constants.standalone())
+            socketHandler.sendSocketMessage(new ServerStartup(constants.serverName()));
 
         // Register the API as a service.
         getServer().getServicesManager().register(NetworkAPI.class, this, this, ServicePriority.Normal);

@@ -4,6 +4,7 @@ import io.papermc.paper.command.brigadier.CommandSourceStack;
 import lombok.extern.java.Log;
 import net.bteuk.network.CustomChat;
 import net.bteuk.network.Network;
+import net.bteuk.network.SocketHandlerImpl;
 import net.bteuk.network.commands.tabcompleters.ConditionalPlayerSelector;
 import net.bteuk.network.commands.tabcompleters.FixedArgSelector;
 import net.bteuk.network.commands.tabcompleters.MultiArgSelector;
@@ -29,11 +30,8 @@ public class Nick extends AbstractCommand {
 
     private final Network instance;
 
-    private final CustomChat chat;
-
-    public Nick(Network instance, CustomChat chat) {
+    public Nick(Network instance) {
         this.instance = instance;
-        this.chat = chat;
         setTabCompleter(new MultiArgSelector(List.of(new FixedArgSelector(Collections.singletonList("reset"), 0),
                 new ConditionalPlayerSelector(instance, 1, args -> args != null && args.length > 0 && "reset".equalsIgnoreCase(args[0])))));
     }
@@ -96,7 +94,7 @@ public class Nick extends AbstractCommand {
         UserUpdate userUpdateEvent = new UserUpdate();
         userUpdateEvent.setUuid(uuid);
         userUpdateEvent.setDisplayName(displayName);
-        chat.sendSocketMessage(userUpdateEvent);
+        SocketHandlerImpl.sendSocketMessageIfOnline(userUpdateEvent);
     }
 
     @Override
