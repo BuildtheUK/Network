@@ -61,7 +61,7 @@ public class NavigatorGui extends NetworkGui {
                 u.player.closeInventory();
                 u.player.sendMessage(ChatUtils.error("You are already in the tutorials server, please use the" + " menu in slot 8."));
             } else if (constants.tutorials()) {
-                if (globalSQL.hasRow("SELECT name FROM server_data WHERE " + "type='TUTORIAL' AND online=1;")) {
+                if (constants.standalone() || globalSQL.hasRow("SELECT name FROM server_data WHERE " + "type='TUTORIAL' AND online=1;")) {
 
                     u.mainGui = new TutorialsGui(provider, u);
                     u.mainGui.open(u.player);
