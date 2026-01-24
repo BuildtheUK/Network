@@ -2,6 +2,7 @@ package net.bteuk.network.commands;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.bteuk.network.Network;
+import net.bteuk.network.SocketHandlerImpl;
 import net.bteuk.network.commands.tabcompleters.PlayerSelector;
 import net.bteuk.network.lib.dto.MuteEvent;
 import net.kyori.adventure.text.Component;
@@ -46,6 +47,6 @@ public abstract class PmuteAction extends AbstractCommand {
 
         MuteEvent muteEvent = new MuteEvent(player.getUniqueId().toString(), uuid, mute);
         // Feedback will be sent through a direct message to the player by the proxy.
-        instance.getChat().sendSocketMessage(muteEvent);
+        SocketHandlerImpl.sendSocketMessageIfOnline(muteEvent);
     }
 }

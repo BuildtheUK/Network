@@ -4,6 +4,7 @@ import io.papermc.paper.command.brigadier.CommandSourceStack;
 import lombok.extern.java.Log;
 import net.bteuk.network.CustomChat;
 import net.bteuk.network.Network;
+import net.bteuk.network.SocketHandlerImpl;
 import net.bteuk.network.core.Time;
 import net.bteuk.network.lib.dto.UserUpdate;
 import net.bteuk.network.lib.utils.ChatUtils;
@@ -36,7 +37,7 @@ public class Afk extends AbstractCommand {
         UserUpdate userUpdateEvent = new UserUpdate();
         userUpdateEvent.setUuid(user.player.getUniqueId().toString());
         userUpdateEvent.setAfk(afk);
-        chat.sendSocketMessage(userUpdateEvent);
+        SocketHandlerImpl.sendSocketMessageIfOnline(userUpdateEvent);
     }
 
     @Override

@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import net.bteuk.minecraft.gui.Gui;
 import net.bteuk.network.Network;
+import net.bteuk.network.SocketHandlerImpl;
 import net.bteuk.network.api.entity.Role;
 import net.bteuk.network.building_companion.BuildingCompanion;
 import net.bteuk.network.commands.Nightvision;
@@ -299,7 +300,7 @@ public class NetworkUser {
             showPlayers();
         }
         FocusEvent focusEvent = new FocusEvent(player.getUniqueId().toString(), focusEnabled);
-        instance.getChat().sendSocketMessage(focusEvent);
+        SocketHandlerImpl.sendSocketMessageIfOnline(focusEvent);
     }
 
     public void hidePlayer(Player playerToHide) {

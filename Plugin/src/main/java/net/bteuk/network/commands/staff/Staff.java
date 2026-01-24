@@ -51,15 +51,6 @@ public class Staff extends AbstractCommand {
 
         NetworkUser u = guiProvider.instance().getUser(p);
 
-        // Check if user is member of staff.
-        // Architects can open the menu but not use the staff chat.
-        if (!(hasPermission(p, "uknet.staff"))) {
-            if (hasPermission(p, "uknet.staff.menu")) {
-                openStaffMenu(u);
-            }
-            return;
-        }
-
         // If u is null, cancel.
         if (u == null) {
             log.severe("User " + p.getName() + " can not be found!");
@@ -67,35 +58,45 @@ public class Staff extends AbstractCommand {
             return;
         }
 
-        // If the first arg is chat, switch the player to and from staff chat if enabled.
-        if (!guiProvider.constants().standalone()) {
-            if (args.length > 0 && guiProvider.constants().staffChat()) {
-                if (args[0].equalsIgnoreCase("chat")) {
-                    String channel = GLOBAL.getChannelName();
-                    if (u.getChatChannel().equals(STAFF.getChannelName())) {
-                        u.player.sendMessage(ChatUtils.success("Disabled staff chat."));
-                    } else {
-                        // Set the chat channel to staff.
-                        channel = STAFF.getChannelName();
-                        u.player.sendMessage(ChatUtils.success("Enabled staff chat."));
-                    }
-                    // Set channel.
-                    u.setChatChannel(channel);
-                    guiProvider.globalSQL().update("UPDATE player_data SET chat_channel='" + channel + "' " + "WHERE uuid='" + p.getUniqueId() + "';");
-                } else {
-                    // Send a message in staff-chat, by temporarily setting the player's channel to staff.
-                    u.setChatChannel(STAFF.getChannelName());
-                    guiProvider.chatAPI().sendChatMessage(CustomChat.getChatMessage(Component.text(String.join(" ", args)), u));
-                    u.setChatChannel(GLOBAL.getChannelName());
-                }
-                return;
+        // Check if user is member of staff.
+        // Architects can open the menu but not use the staff chat.
+        if (!(hasPermission(p, "uknet.staff"))) {
+            // If not staff, but architect, then open menu
+            if (hasPermission(p, "uknet.staff.menu")) {
+                openStaffMenu(u);
             }
-        } else {
-            u.player.sendMessage(ChatUtils.error("Staff chat is currently not available in standalone mode!"));
+            // If not staff and not architect, then return
+            return;
         }
 
-        // If the player has a previous gui, open that.
-        openStaffMenu(u);
+        // If more than one args, staff chat is enabled, and it is not in standalone, then go to staff chat logic
+        if ((args.length > 0 && guiProvider.constants().staffChat()) && !guiProvider.constants().standalone()) {
+            // If the first arg is chat, switch the player to and from staff chat if enabled.
+            if (args[0].equalsIgnoreCase("chat")) {
+                String channel = GLOBAL.getChannelName();
+                if (u.getChatChannel().equals(STAFF.getChannelName())) {
+                    u.player.sendMessage(ChatUtils.success("Disabled staff chat."));
+                } else {
+                    // Set the chat channel to staff.
+                    channel = STAFF.getChannelName();
+                    u.player.sendMessage(ChatUtils.success("Enabled staff chat."));
+                }
+                // Set channel.
+                u.setChatChannel(channel);
+                guiProvider.globalSQL().update("UPDATE player_data SET chat_channel='" + channel + "' " + "WHERE uuid='" + p.getUniqueId() + "';");
+            }
+
+            else {
+                // Send a message in staff-chat, by temporarily setting the player's channel to staff.
+                u.setChatChannel(STAFF.getChannelName());
+                guiProvider.chatAPI().sendChatMessage(CustomChat.getChatMessage(Component.text(String.join(" ", args)), u));
+                u.setChatChannel(GLOBAL.getChannelName());
+            }
+        }
+        // Else, if not staff chat, then open menu
+        else
+            // If the player has a previous gui, open that.
+            openStaffMenu(u);
     }
 
     @Override

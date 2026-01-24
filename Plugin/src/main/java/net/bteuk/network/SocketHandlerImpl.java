@@ -1,6 +1,7 @@
 package net.bteuk.network;
 
 import lombok.extern.java.Log;
+import net.bteuk.network.core.Constants;
 import net.bteuk.network.eventing.listeners.Connect;
 import net.bteuk.network.lib.dto.AbstractTransferObject;
 import net.bteuk.network.lib.dto.AddTeamEvent;
@@ -12,6 +13,8 @@ import net.bteuk.network.lib.dto.OnlineUsersReply;
 import net.bteuk.network.lib.dto.UserConnectReply;
 import net.bteuk.network.lib.dto.UserRemove;
 import net.bteuk.network.lib.dto.UserUpdate;
+import net.bteuk.network.lib.socket.InputSocket;
+import net.bteuk.network.lib.socket.OutputSocket;
 import net.bteuk.network.lib.socket.SocketHandler;
 
 @Log
@@ -19,21 +22,87 @@ public class SocketHandlerImpl implements SocketHandler {
 
     private final Network instance;
 
-    private final CustomChat chat;
+    private CustomChat chat;
 
-    private final TabManager tabManager;
+    private TabManager tabManager;
 
-    private final Connect connect;
+    private Connect connect;
 
-    public SocketHandlerImpl(Network instance, CustomChat chat, TabManager tabManager, Connect connect) {
+    private OutputSocket outputSocket;
+    private InputSocket inputSocket;
+
+    private static SocketHandlerImpl socketHandler;
+
+    /**
+     *
+     * @param message
+     * @return Whether the socket message was sent
+     */
+    public static boolean sendSocketMessageIfOnline(AbstractTransferObject message)
+    {
+        if (socketHandler != null) {
+            socketHandler.sendSocketMessage(message);
+            return true;
+        }
+        else
+            return false;
+    }
+
+    public SocketHandlerImpl(Network instance, CustomChat chat, TabManager tabManager, Connect connect, Constants constants) {
         this.instance = instance;
         this.chat = chat;
         this.tabManager = tabManager;
         this.connect = connect;
 
+        // Set up the output socket.
+        outputSocket = new OutputSocket(constants.chatSocketOutputIP(), constants.chatSocketOutputPort());
+
+        // Register input socket for receiving messages from the proxy.
+        int inputSocketPort = constants.chatSocketInputPort();
+        if (inputSocketPort == 0) {
+            log.severe("Input socket port is not set in config or is set to 0. Please set a valid port!");
+        } else {
+            // Create the input socket.
+            inputSocket = new InputSocket(inputSocketPort);
+        }
+
         // Register the socket handler.
-        chat.registerSocketHandler(this);
+        registerSocketHandler(this);
+
+        socketHandler = this;
     }
+
+    public SocketHandlerImpl(Network instance, Constants constants) {
+        this.instance = instance;
+
+        // Set up the output socket.
+        outputSocket = new OutputSocket(constants.chatSocketOutputIP(), constants.chatSocketOutputPort());
+
+        // Register input socket for receiving messages from the proxy.
+        int inputSocketPort = constants.chatSocketInputPort();
+        if (inputSocketPort == 0) {
+            log.severe("Input socket port is not set in config or is set to 0. Please set a valid port!");
+        } else {
+            // Create the input socket.
+            inputSocket = new InputSocket(inputSocketPort);
+        }
+
+        // Register the socket handler.
+        registerSocketHandler(this);
+
+        socketHandler = this;
+    }
+
+    public void addComponents(CustomChat chat, TabManager tabManager, Connect connect) {
+        this.chat = chat;
+        this.tabManager = tabManager;
+        this.connect = connect;
+    }
+
+    public void sendSocketMessage(AbstractTransferObject message) {
+        outputSocket.sendSocketMessage(message);
+    }
+
 
     @Override
     public AbstractTransferObject handle(AbstractTransferObject abstractTransferObject) {
@@ -51,5 +120,9 @@ public class SocketHandlerImpl implements SocketHandler {
                     abstractTransferObject.getClass().getTypeName()));
         }
         return null;
+    }
+
+    public void registerSocketHandler(SocketHandler socketHandler) {
+        inputSocket.start(socketHandler);
     }
 }

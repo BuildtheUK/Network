@@ -41,14 +41,11 @@ public class CustomChat implements Listener, ChatAPI {
     private static final String AFK = "%s is now afk";
     private static final String NOT_AFK = "%s is no longer afk";
     private final Network instance;
-    private OutputSocket outputSocket;
     private final Constants constants;
     private final Afk afk;
     private final GlobalSQL globalSQL;
     private final Moderation moderation;
     private final Roles roles;
-
-    private InputSocket inputSocket;
 
     public CustomChat(Network instance, Constants constants, Afk afk, GlobalSQL globalSQL, Moderation moderation, Roles roles) {
 
@@ -61,25 +58,7 @@ public class CustomChat implements Listener, ChatAPI {
 
         instance.getServer().getPluginManager().registerEvents(this, instance);
 
-        // Set up the output socket.
-        if (!constants.standalone()) {
-            outputSocket = new OutputSocket(constants.chatSocketOutputIP(), constants.chatSocketOutputPort());
-
-            // Register input socket for receiving messages from the proxy.
-            int inputSocketPort = constants.chatSocketInputPort();
-            if (inputSocketPort == 0) {
-                log.severe("Input socket port is not set in config or is set to 0. Please set a valid port!");
-            } else {
-                // Create the input socket.
-                inputSocket = new InputSocket(inputSocketPort);
-            }
-        }
-
         log.info("Successfully enabled Chat!");
-    }
-
-    public void registerSocketHandler(SocketHandler socketHandler) {
-        inputSocket.start(socketHandler);
     }
 
     public static ChatMessage getChatMessage(Component component, NetworkUser u) {
@@ -179,13 +158,7 @@ public class CustomChat implements Listener, ChatAPI {
                 afk.updateAfkStatus(user, false);
             }
             ChatMessage chatMessage = getChatMessage(e.message(), user);
-            sendSocketMessage(chatMessage);
-        }
-    }
-
-    public void sendSocketMessage(AbstractTransferObject chatMessage) {
-        if (!constants.standalone()) {
-            outputSocket.sendSocketMessage(chatMessage);
+            sendChatMessage(chatMessage);
         }
     }
 
@@ -254,7 +227,7 @@ public class CustomChat implements Listener, ChatAPI {
                     }
 
                     DiscordRole discordRole = new DiscordRole(user.player.getUniqueId().toString(), role.getId(), true);
-                    outputSocket.sendSocketMessage(discordRole);
+                    SocketHandlerImpl.sendSocketMessageIfOnline(discordRole);
 
                     user.sendMessage(ChatUtils.success("Your discord has been linked!"));
                 });
@@ -303,7 +276,7 @@ public class CustomChat implements Listener, ChatAPI {
         if (constants.standalone() && message.getChannel().equals(ChatChannels.GLOBAL.getChannelName())) {
             instance.getServer().broadcast(message.getComponent());
         } else {
-            sendSocketMessage(message);
+            SocketHandlerImpl.sendSocketMessageIfOnline(message);
         }
     }
 
@@ -314,20 +287,20 @@ public class CustomChat implements Listener, ChatAPI {
             instance.getServer().getOnlinePlayers().stream().filter(player -> player.getUniqueId().toString().equals(message.getRecipient())).findFirst()
                     .ifPresentOrElse(player -> player.sendMessage(message.getComponent()), () -> globalSQL.insertMessage(message));
         } else {
-            sendSocketMessage(message);
+            SocketHandlerImpl.sendSocketMessageIfOnline(message);
         }
     }
 
     public void sendDiscordDirectMessage(DiscordDirectMessage message) {
         if (!constants.standalone()) {
-            sendSocketMessage(message);
+            SocketHandlerImpl.sendSocketMessageIfOnline(message);
         }
     }
 
     @Override
     public void sendPlotMessage(PlotMessage message) {
         if (!constants.standalone() && constants.plotSystemEnabled()) {
-            sendSocketMessage(message);
+            SocketHandlerImpl.sendSocketMessageIfOnline(message);
         }
     }
 }

@@ -158,11 +158,14 @@ public class TutorialsGui extends AbstractTutorialsGui {
      * Adds the menu items for if the compulsory tutorial has been completed, and the main tutorials system is unlocked
      */
     private void compulsoryFinished() {
-        // Compulsory tutorial
-        ItemStack compulsory = teachingtutorials.utils.Utils.createItem(Material.JUNGLE_DOOR, 1, Utils.title("Redo the Starter Tutorial"),
-                Utils.line("Refresh your essential knowledge"));
 
-        super.setItem(9, compulsory, (NetworkUser u) -> startTutorial(currentLessons, u, this, compulsoryTutorial, null, log));
+        if (compulsoryTutorial != null)
+        {
+            // Compulsory tutorial
+            ItemStack compulsory = teachingtutorials.utils.Utils.createItem(Material.JUNGLE_DOOR, 1, Utils.title("Redo the Starter Tutorial"),
+                    Utils.line("Refresh your essential knowledge"));
+            super.setItem(9, compulsory, (NetworkUser u) -> startTutorial(currentLessons, u, this, compulsoryTutorial, null, log));
+        }
 
         //---------- Library Option ----------
         ItemStack tutorialLibrary = teachingtutorials.utils.Utils.createItem(Material.BOOKSHELF, 1, Utils.title("Tutorial Library"),
@@ -190,10 +193,9 @@ public class TutorialsGui extends AbstractTutorialsGui {
         });
 
         // Continue learning/next tutorial
-        ItemStack continueLearning = teachingtutorials.utils.Utils.createItem(Material.END_CRYSTAL, 1, Utils.title("Start a new Tutorial:"),
-                Utils.line(nextTutorial.getTutorialName()));
-
         if (nextTutorial != null) {
+            ItemStack continueLearning = teachingtutorials.utils.Utils.createItem(Material.END_CRYSTAL, 1, Utils.title("Start a new Tutorial:"),
+                    Utils.line(nextTutorial.getTutorialName()));
             super.setItem(17, continueLearning, (NetworkUser u) -> startTutorial(this.currentLessons, u, this, nextTutorial, null, log));
         }
     }

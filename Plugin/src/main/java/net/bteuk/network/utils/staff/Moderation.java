@@ -1,6 +1,7 @@
 package net.bteuk.network.utils.staff;
 
 import net.bteuk.network.Network;
+import net.bteuk.network.SocketHandlerImpl;
 import net.bteuk.network.api.EventAPI;
 import net.bteuk.network.core.Time;
 import net.bteuk.network.exceptions.DurationFormatException;
@@ -65,12 +66,12 @@ public class Moderation {
         Component mutedComponent = getMutedComponent(uuid);
         ModerationEvent moderationEvent = new ModerationEvent(ModerationAction.MUTE, null, uuid, end_time,
                 mutedComponent);
-        instance.getChat().sendSocketMessage(moderationEvent);
+        SocketHandlerImpl.sendSocketMessageIfOnline(moderationEvent);
 
         // Notify the user.
         DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), uuid, "server",
                 mutedComponent, true);
-        instance.getChat().sendSocketMessage(directMessage);
+        SocketHandlerImpl.sendSocketMessageIfOnline(directMessage);
     }
 
     // Unban the player.
@@ -90,7 +91,7 @@ public class Moderation {
 
         // Update Tab by sending a moderation event.
         ModerationEvent moderationEvent = new ModerationEvent(ModerationAction.UNMUTE, null, uuid, 0L, null);
-        instance.getChat().sendSocketMessage(moderationEvent);
+        SocketHandlerImpl.sendSocketMessageIfOnline(moderationEvent);
     }
 
     // Kick the player.

@@ -13,7 +13,7 @@
     <artifactId>api</artifactId>
     <name>Network API</name>
     <description>API for the Network plugin</description>
-    <version>1.8.1</version>
+    <version>1.8.2</version>
 
     <repositories>
         <repository>
