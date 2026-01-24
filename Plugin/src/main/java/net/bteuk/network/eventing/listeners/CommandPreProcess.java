@@ -14,6 +14,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.server.ServerCommandEvent;
@@ -39,7 +40,7 @@ public class CommandPreProcess implements Listener {
         Bukkit.getServer().getPluginManager().registerEvents(this, instance);
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOW)
     public void onCommandPreProcess(PlayerCommandPreprocessEvent e) {
 
         // Reset afk status.
