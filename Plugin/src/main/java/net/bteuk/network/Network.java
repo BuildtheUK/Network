@@ -341,26 +341,26 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
         Moderation moderation = new Moderation(this, eventAPI);
 
-        // Create the region manager if enabled.
-        if (constants.regionsEnabled()) {
-            regionManager = new RegionManager(regionSQL, this, coordinateAPI, eventAPI, worldGuardAPI, constants, this, serverAPI);
-            commandManager.registerCommand(new RegionCommand(regionManager, eventAPI, constants));
-        }
-
         // Set up socket listening - used for sending messages cross-server on multi-server setups
         SocketHandlerImpl socketHandler = null;
         if (!constants.standalone()) {
             socketHandler = new SocketHandlerImpl(this, constants);
         }
 
-        // Setup connect, this handles all connections to the server.
-        // Listener and manager of server connections.
-        Connect connect = new Connect(this, constants, tab, roleAPI, globalSQL, networkGuiManager, nightvision, eventAPI, regionManager);
-
         // Enables chat, both global chat and normal chat are handled through it.
         chat = new CustomChat(this, constants, afk, globalSQL, moderation, roleAPI);
         afk.registerChat(chat);
         roleAPI.registerChat(chat);
+
+        // Create the region manager if enabled.
+        if (constants.regionsEnabled()) {
+            regionManager = new RegionManager(regionSQL, this, coordinateAPI, eventAPI, worldGuardAPI, constants, this, serverAPI);
+            commandManager.registerCommand(new RegionCommand(regionManager, eventAPI, constants));
+        }
+
+        // Setup connect, this handles all connections to the server.
+        // Listener and manager of server connections.
+        Connect connect = new Connect(this, constants, tab, roleAPI, globalSQL, networkGuiManager, nightvision, eventAPI, regionManager);
 
         if (!constants.standalone()) {
             socketHandler.addComponents(chat, tab, connect);

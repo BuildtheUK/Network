@@ -77,6 +77,8 @@ public class Timers {
 
                     for (String[] event : events) {
 
+                        // [uuid,event,message]
+
                         // Deal with events here.
                         log.info("Event: " + event[1]);
 
