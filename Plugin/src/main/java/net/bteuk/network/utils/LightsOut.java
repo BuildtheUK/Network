@@ -107,6 +107,7 @@ public class LightsOut extends NetworkRefreshableGui {
 
         // Refresh the gui.
         refresh();
+        updatePlayerInventory(u.player);
     }
 
     public void refresh() {
@@ -116,13 +117,9 @@ public class LightsOut extends NetworkRefreshableGui {
         if (Arrays.deepEquals(game, new boolean[9][6])) {
             endGame();
         } else {
-
             // Change items.
             clear();
             createGui();
-
-            // Set the contents of inventory.
-            updatePlayerInventory(u.player);
         }
     }
 }
