@@ -655,6 +655,10 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         return constants.tutorials();
     }
 
+    public boolean isStandalone() {
+        return constants.standalone();
+    }
+
     public int getMinY() {
         return constants.minY();
     }

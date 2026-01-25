@@ -22,6 +22,8 @@ public interface NetworkAPI {
 
     boolean isTutorialsEnabled();
 
+    boolean isStandalone();
+
     int getMinY();
 
     int getMaxY();
