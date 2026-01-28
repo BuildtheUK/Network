@@ -321,9 +321,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
         roleAPI = new Roles(this, plotSQL);
 
-        if (!constants.standalone()) {
-            serverAPI = new SwitchServer(this, constants);
-        }
+        serverAPI = new SwitchServer(this, constants);
 
         if (constants.plotSystemEnabled()) {
             plotAPI = new PlotAPIImpl(plotSQL, globalSQL);
