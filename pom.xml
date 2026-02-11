@@ -5,120 +5,40 @@
 
     <groupId>net.bteuk</groupId>
     <artifactId>Network</artifactId>
-    <version>1.7.3</version>
-    <packaging>jar</packaging>
+    <version>1.8.2</version>
+    <packaging>pom</packaging>
 
     <name>Network</name>
+    <modules>
+        <module>Network-API</module>
+        <module>Plugin</module>
+        <module>Regions</module>
+        <module>Core</module>
+        <module>PaperCore</module>
+    </modules>
 
     <properties>
-        <java.version>21</java.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <java-version>21</java-version>
+        <maven.compiler.release>${java-version}</maven.compiler.release>
 
-        <junit.version>5.11.2</junit.version>
-        <maven.compiler.version>3.13.0</maven.compiler.version>
-        <maven.shade.version>3.6.0</maven.shade.version>
-        <maven.surefire.version>3.5.1</maven.surefire.version>
+        <paper.api.version>1.21.8-R0.1-SNAPSHOT</paper.api.version>
+
+        <bteuk.proxy.version>e14b531c08</bteuk.proxy.version>
+        <bteuk.lib.version>5958727df9</bteuk.lib.version>
+        <bteuk.networklib.version>24c3fc82f5</bteuk.networklib.version>
+
+        <lombok.version>1.18.34</lombok.version>
     </properties>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>${maven.compiler.version}</version>
-                <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>${maven.shade.version}</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <minimizeJar>true</minimizeJar>
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/**</exclude>
-                                        <exclude>AUTHORS</exclude>
-                                        <exclude>LICENSE</exclude>
-                                        <exclude>README.md</exclude>
-                                        <exclude>Log4j-events.dtd</exclude>
-                                        <exclude>Log4j-events.xsd</exclude>
-                                        <exclude>Log4j-config.xsd</exclude>
-                                        <exclude>Log4j-levels.xsd</exclude>
-                                        <exclude>Log4j-charsets.properties</exclude>
-                                        <exclude>mozilla/public-suffix-list.txt</exclude>
-                                    </excludes>
-                                </filter>
-                                <filter>
-                                    <artifact>com.github.BTEUK:*</artifact>
-                                    <excludes>
-                                        <exclude>net/kyori/**</exclude>
-                                        <exclude>com/google/**</exclude>
-                                        <exclude>net/daporkchop/lib/binary/**</exclude>
-                                        <exclude>org/**</exclude>
-                                        <exclude>com/fasterxml/jackson/**</exclude>
-                                        <exclude>io/netty/**</exclude>
-                                        <exclude>config.yml</exclude>
-                                        <exclude>javax/annotation/**</exclude>
-                                        <exclude>LZMA/**</exclude>
-                                        <exclude>net/buildtheearth/**</exclude>
-                                        <exclude>it/unimi/dsi/fastutil/**</exclude>
-                                        <exclude>net/daporkchop/lib/**</exclude>
-                                        <exclude>SCL.lombok/**</exclude>
-                                        <exclude>plugin.yml</exclude>
-                                        <exclude>lombok/**</exclude>
-                                        <exclude>changelog.txt</exclude>
-                                        <exclude>latestchanges.html</exclude>
-                                        <exclude>release-timestamp.txt</exclude>
-                                        <exclude>net/bteuk/teachingtutorials/services/**</exclude>
-                                    </excludes>
-                                </filter>
-                                <filter>
-                                    <artifact>com.github.BTEUK:ProgressMapper</artifact>
-                                    <excludes>
-                                        <exclude>me/bteuk/progressmapperbackend/**</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${maven.surefire.version}</version>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.junit.jupiter</groupId>
-                        <artifactId>junit-jupiter-engine</artifactId>
-                        <version>${junit.version}</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
-        </plugins>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-            </resource>
-        </resources>
-    </build>
 
     <repositories>
         <repository>
             <id>papermc-repo</id>
             <url>https://repo.papermc.io/repository/maven-public/</url>
+        </repository>
+        <repository>
+            <id>smyler-releases</id>
+            <name>Smyler's maven repository</name>
+            <url>https://maven.smyler.net/releases</url>
         </repository>
         <repository>
             <id>sonatype</id>
@@ -133,133 +53,115 @@
             <url>https://maven.enginehub.org/repo/</url>
         </repository>
         <repository>
-            <id>DaPorkchop_</id>
-            <url>https://maven.daporkchop.net/</url>
-        </repository>
-        <repository>
-            <id>OpenCollab Snapshots</id>
-            <url>https://repo.opencollab.dev/snapshot/</url>
-        </repository>
-        <repository>
-            <id>dmulloy2-repo</id>
-            <url>https://repo.dmulloy2.net/repository/public/</url>
-        </repository>
-        <repository>
             <id>codemc-repo</id>
             <url>https://repo.codemc.io/repository/maven-public/</url>
-            <layout>default</layout>
         </repository>
     </repositories>
 
-    <dependencies>
-        <!-- Server api | scope provided -->
-        <dependency>
-            <groupId>io.papermc.paper</groupId>
-            <artifactId>paper-api</artifactId>
-            <version>1.21.1-R0.1-SNAPSHOT</version>
-            <scope>provided</scope>
-        </dependency>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>net.bteuk.network</groupId>
+                <artifactId>core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.bteuk.network</groupId>
+                <artifactId>api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.bteuk.network</groupId>
+                <artifactId>papercore</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.bteuk.network</groupId>
+                <artifactId>regions</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
-        <!-- Plugin api | scope provided -->
-        <dependency>
-            <groupId>com.sk89q.worldguard</groupId>
-            <artifactId>worldguard-bukkit</artifactId>
-            <version>7.0.12</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.comphenix.protocol</groupId>
-            <artifactId>ProtocolLib</artifactId>
-            <version>5.3.0</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.github.decentsoftware-eu</groupId>
-            <artifactId>decentholograms</artifactId>
-            <version>2.8.11</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>net.luckperms</groupId>
-            <artifactId>api</artifactId>
-            <version>5.4</version>
-            <scope>provided</scope>
-        </dependency>
+            <dependency>
+                <groupId>com.github.BTEUK.BTEUKLib</groupId>
+                <artifactId>Minecraft</artifactId>
+                <version>${bteuk.lib.version}</version>
+            </dependency>
 
-        <!-- Utils -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.18.34</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.papermc</groupId>
-            <artifactId>paperlib</artifactId>
-            <version>1.0.7</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-dbcp2</artifactId>
-            <version>2.12.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.17.0</version>
-        </dependency>
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>2.17.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.BTEUK</groupId>
-            <artifactId>terraminusminus</artifactId>
-            <version>41d3843a79</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-databind</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>33.3.1-jre</version>
-        </dependency>
+            <dependency>
+                <groupId>com.github.BTEUK</groupId>
+                <artifactId>NetworkLib</artifactId>
+                <version>${bteuk.networklib.version}</version>
+            </dependency>
 
-        <!-- Internal libraries -->
-        <dependency>
-            <groupId>com.github.BTEUK</groupId>
-            <artifactId>ProgressMapper</artifactId>
-            <version>231624865f</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.BTEUK</groupId>
-            <artifactId>NetworkLib</artifactId>
-            <version>a781b6371c</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.BTEUK</groupId>
-            <artifactId>TeachingTutorials</artifactId>
-            <version>1.13.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.BTEUK</groupId>
-            <artifactId>TeachingTutorialsAPI</artifactId>
-            <version>970d3dc3f7</version>
-            <scope>provided</scope>
-        </dependency>
+            <dependency>
+                <groupId>com.github.BTEUK.Proxy</groupId>
+                <artifactId>database</artifactId>
+                <version>${bteuk.proxy.version}</version>
+            </dependency>
 
-        <!-- Test dependencies -->
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
+            <dependency>
+                <groupId>io.papermc.paper</groupId>
+                <artifactId>paper-api</artifactId>
+                <version>${paper.api.version}</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+                <scope>provided</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.6.3</version>
+                <configuration>
+                    <failOnError>false</failOnError>
+                    <doclint>none</doclint>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.3.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>
