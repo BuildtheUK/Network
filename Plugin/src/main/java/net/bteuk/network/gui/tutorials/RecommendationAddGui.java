@@ -1,13 +1,13 @@
 package net.bteuk.network.gui.tutorials;
 
 import lombok.extern.java.Log;
+import net.bteuk.minecraft.texteditorbooks.BookCloseAction;
+import net.bteuk.minecraft.texteditorbooks.TextEditorBookListener;
 import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
-import net.bteuk.network.utils.texteditorbooks.BookCloseAction;
-import net.bteuk.network.utils.texteditorbooks.TextEditorBookListener;
 import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -65,7 +65,7 @@ public class RecommendationAddGui extends NetworkRefreshableGui {
         this.iPages = ((allTutorials.length - 1) / 45) + 1;
         this.iPage = 1;
 
-        reasonEditor = new TextEditorBookListener(provider.instance(), user, this, "Reason Editor",
+        reasonEditor = new TextEditorBookListener(provider.instance(), user.player, this, "Reason Editor",
                 new BookCloseAction() {
                     @Override
                     public boolean runBookClose(BookMeta oldBookMeta, BookMeta newBookMeta, TextEditorBookListener textEditorBookListener, String szNewContent) {
@@ -82,6 +82,11 @@ public class RecommendationAddGui extends NetworkRefreshableGui {
                         } else {
                             return true;
                         }
+                    }
+
+                    @Override
+                    public boolean runBookSign(BookMeta bookMeta, BookMeta bookMeta1, TextEditorBookListener textEditorBookListener, String s) {
+                        return runBookClose(bookMeta, bookMeta1, textEditorBookListener, s);
                     }
 
                     @Override

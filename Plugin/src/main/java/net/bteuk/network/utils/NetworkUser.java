@@ -94,6 +94,13 @@ public class NetworkUser {
     @Setter
     private boolean hasMapItem;
 
+    // Alternate command book enabled in hotbar
+    @Getter
+    private boolean commandBookEnabled;
+
+    @Getter
+    private final java.util.List<Component> messageHistory = new java.util.ArrayList<>();
+
     @Getter
     @Setter
     private Role primaryRole;
@@ -258,10 +265,15 @@ public class NetworkUser {
     /**
      * Sends the given message to player.
      *
+     * Note: Do not intercept or record here; global interception handles routing/logging.
      * @param message the message to send
      */
     public void sendMessage(Component message) {
         player.sendMessage(message);
+    }
+
+    public void setCommandBookEnabled(boolean enabled) {
+        this.commandBookEnabled = enabled;
     }
 
     public Location getLocationWithCoordinateTransform() {

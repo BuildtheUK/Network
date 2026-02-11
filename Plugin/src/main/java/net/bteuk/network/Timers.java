@@ -115,6 +115,25 @@ public class Timers {
                     }
                 }
 
+                // If command book is enabled check if they have it.
+                if (user.isCommandBookEnabled()) {
+                    // Check if they have the command book anywhere in their inventory.
+                    if (!user.player.getInventory().contains(instance.getCommandBookItem())) {
+                        // If not, give it to them in slot 8 (index 7) if it's empty, otherwise find the first empty slot.
+                        ItemStack slot8Item = user.player.getInventory().getItem(7);
+                        if (slot8Item == null) {
+                            user.player.getInventory().setItem(7, instance.getCommandBookItem());
+                        } else {
+                            user.player.getInventory().addItem(instance.getCommandBookItem());
+                        }
+                    }
+                } else {
+                    // If command book is disabled, remove it from their inventory if it exists.
+                    if (user.player.getInventory().contains(instance.getCommandBookItem())) {
+                        user.player.getInventory().remove(instance.getCommandBookItem());
+                    }
+                }
+
                 // Check if the player is afk.
                 if (user.last_movement < (time - afkTime) && !user.isAfk()) {
 

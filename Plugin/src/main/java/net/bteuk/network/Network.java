@@ -130,6 +130,8 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
     @Getter
     private ItemStack navigatorItem;
+    @Getter
+    private ItemStack commandBookItem;
     public RegionSQL regionSQL;
     // Movement listeners.
     public NetworkMoveListener moveListener;
@@ -368,9 +370,14 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
         // Create the navigator.
         navigatorItem = Utils.createItem(Material.NETHER_STAR, 1, Utils.title("Navigator"), Utils.line("Click to open the navigator."));
+        // Create the command book item.
+        commandBookItem = Utils.createItem(Material.WRITABLE_BOOK, 1, Utils.title("Command Book"), Utils.line("Open, type a command, then sign/close to run."));
 
         // Register events.
         new PreJoinServer(this, constants, moderation);
+
+        // Register chat bypass interceptor to route all outgoing chat to actionbar for restricted users
+        new net.bteuk.network.chat.bypass.ChatBypassInterceptor(this);
 
         new GuiListener(networkGuiManager).register(this);
 
@@ -489,6 +496,8 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
         // Register the command pre-process to make sure network versions of commands run and not that of another plugin.
         new CommandPreProcess(this, constants, afk, connect, serverAPI);
+
+        // Register the chat interceptor for the command book.
 
         // Create the rules-book.
         lobby.setGuiProvider(navigator.getProvider());
