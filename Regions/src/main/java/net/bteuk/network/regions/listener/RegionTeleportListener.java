@@ -10,6 +10,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -36,7 +37,44 @@ public class RegionTeleportListener extends AbstractMoveListener implements List
     }
 
     @EventHandler
+    public void onPlayerWorldChange(PlayerChangedWorldEvent e) {
+
+        log.info("Player World Change Detected");
+
+        Optional<RegionUser> optionalRegionUser = regionManager.getUserByPlayer(e.getPlayer());
+        if (optionalRegionUser.isEmpty()) {
+            log.severe("Region user is null for player " + e.getPlayer().getName());
+            return;
+        }
+
+        log.info("Previous player world: " + e.getFrom().getName());
+        RegionUser regionUser = optionalRegionUser.get();
+        log.info("Previous player deltas: ("+regionUser.getDeltaX()+"," +regionUser.getDeltaZ()+")");
+
+        // Update player delta if standalone
+        if (constants.standalone()) {
+
+            log.info("Updating player deltas because in standalone");
+            String szWorldName = e.getPlayer().getWorld().getName();
+            log.info("New world: " +szWorldName);
+            if (!szWorldName.equals(constants.earthWorld())) {
+                int deltaX = -plotAPI.getXTransform(szWorldName);
+                int deltaZ = -plotAPI.getZTransform(szWorldName);
+
+                regionUser.setDeltaX(deltaX);
+                regionUser.setDeltaZ(deltaZ);
+            } else {
+                regionUser.setDeltaX(0);
+                regionUser.setDeltaZ(0);
+            }
+            log.info("New player deltas: ("+regionUser.getDeltaX()+"," +regionUser.getDeltaZ()+")");
+        }
+    }
+
+    @EventHandler
     public void onPlayerTeleport(PlayerTeleportEvent e) {
+
+        log.fine("Player Teleport Event detected via " +e.getCause().name()+". Attempting region switch");
 
         Optional<RegionUser> optionalRegionUser = regionManager.getUserByPlayer(e.getPlayer());
         if (optionalRegionUser.isEmpty()) {
@@ -45,35 +83,34 @@ public class RegionTeleportListener extends AbstractMoveListener implements List
         }
         RegionUser regionUser = optionalRegionUser.get();
 
-        Region newRegion = getRegion(regionUser, e.getTo());
-
-        if (!Objects.equals(newRegion, regionUser.getTrackedRegion())) {
-            e.setCancelled(switchRegion(regionUser, newRegion));
+        // If plot world, get transformation
+        String szNewWorld = e.getTo().getWorld().getName();
+        int addX = 0;
+        int addZ = 0;
+        if (plotAPI.hasLocation(szNewWorld)) {
+            addX = -plotAPI.getXTransform(szNewWorld);
+            addZ = -plotAPI.getZTransform(szNewWorld);
         }
-    }
 
-    private Region getRegion(RegionUser regionUser, Location location) {
-        Region region = null;
-        if (constants.serverType() == EARTH) {
-            if (location.getWorld().getName().equals(constants.earthWorld())) {
-                // Get region.
-                region = regionManager.getRegion(location.getX(), location.getZ());
-            }
-        } else if (constants.plotSystemEnabled() && constants.serverType() == PLOT) {
-            // Check if the player is teleporting to a buildable world in the plot system.
-            if (plotAPI.hasLocation(location.getWorld().getName())) {
+        // Get x and z of the region as int rounded down.
+        int terraX = ((e.getTo().getX() >= 0 ? (int) e.getTo().getX() : ((int) e.getTo().getX()) - 1) +addX) >> 9;
+        int terraZ = ((e.getTo().getZ() >= 0 ? (int) e.getTo().getZ() : ((int) e.getTo().getZ()) - 1) +addZ)>> 9;
 
-                // Get negative coordinate transform of new location.
-                int deltaX = -plotAPI.getXTransform(location.getWorld().getName());
-                int deltaZ = -plotAPI.getZTransform(location.getWorld().getName());
-
-                regionUser.setDeltaX(deltaX);
-                regionUser.setDeltaZ(deltaZ);
-
-                // Get the region with coordinate transformation.
-                region = regionManager.getRegion(location.getX() + deltaX, location.getZ() + deltaZ);
-            }
+        if (!regionUser.hasTrackedRegion()) {
+            log.fine(e.getPlayer().getName() + " does not have a current tracked region, attempting a fix");
         }
-        return region;
+        else if (!regionUser.getTrackedRegion().equals(terraX, terraZ)) {
+            log.fine(e.getPlayer().getName() + " is teleporting across a region border");
+        }
+
+        // Get the new region.
+        Region newRegion = regionManager.getRegion(terraX, terraZ);
+
+        if (newRegion == null)
+            log.info("New region of " +regionUser.getPlayer().getName() +" is null");
+        else
+            log.info("New region is of " +regionUser.getPlayer().getName() +" is " +newRegion.regionName());
+
+        e.setCancelled(switchRegion(regionUser, newRegion));
     }
 }

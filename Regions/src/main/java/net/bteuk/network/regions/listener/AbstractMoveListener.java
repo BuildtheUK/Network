@@ -1,5 +1,6 @@
 package net.bteuk.network.regions.listener;
 
+import lombok.extern.java.Log;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.regions.Region;
 import net.bteuk.network.regions.RegionManager;
@@ -7,7 +8,7 @@ import net.bteuk.network.regions.RegionStatus;
 import net.bteuk.network.regions.RegionUser;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-
+@Log
 public abstract class AbstractMoveListener {
 
     protected final RegionManager regionManager;
@@ -27,6 +28,7 @@ public abstract class AbstractMoveListener {
 
         // Implies that the user has left their current region.
         if (newRegion == null) {
+            log.info("New region of " +regionUser.getPlayer().getName() +" is null");
             // Send default leave message.
             regionUser.getPlayer().sendActionBar(
                     ChatUtils.success("You have left ")
