@@ -1,14 +1,14 @@
 package net.bteuk.network.gui.tutorials;
 
 import lombok.extern.java.Log;
-import net.bteuk.minecraft.texteditorbooks.BookCloseAction;
-import net.bteuk.minecraft.texteditorbooks.TextEditorBookListener;
 import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
 import net.kyori.adventure.text.TextComponent;
+import org.btuk.minecraft.texteditorbooks.BookCloseAction;
+import org.btuk.minecraft.texteditorbooks.TextEditorBookListener;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;

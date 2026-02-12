@@ -2,11 +2,11 @@ package net.bteuk.network.utils;
 
 import lombok.Getter;
 import lombok.Setter;
-import net.bteuk.minecraft.gui.Gui;
 import net.bteuk.network.Network;
 import net.bteuk.network.SocketHandlerImpl;
 import net.bteuk.network.api.entity.Role;
 import net.bteuk.network.building_companion.BuildingCompanion;
+import net.bteuk.network.chat.bypass.CommandBook;
 import net.bteuk.network.commands.Nightvision;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.Time;
@@ -17,6 +17,7 @@ import net.bteuk.network.lib.dto.UserDisconnect;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.regions.RegionUser;
 import net.kyori.adventure.text.Component;
+import org.btuk.minecraft.gui.Gui;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -95,8 +96,13 @@ public class NetworkUser {
     private boolean hasMapItem;
 
     // Alternate command book enabled in hotbar
+    @Setter
     @Getter
-    private boolean commandBookEnabled;
+    private boolean commandBookEnabled = true;
+
+    @Getter
+    @Setter
+    private ItemStack commandBookItem = null;
 
     @Getter
     private final java.util.List<Component> messageHistory = new java.util.ArrayList<>();
@@ -174,6 +180,10 @@ public class NetworkUser {
 
         // Set the display name.
         player.displayName(reply.getDisplayName());
+
+        if (commandBookEnabled) {
+            CommandBook.ensureUserHasSingleCommandBook(instance, this);
+        }
     }
 
     /**
@@ -270,10 +280,6 @@ public class NetworkUser {
      */
     public void sendMessage(Component message) {
         player.sendMessage(message);
-    }
-
-    public void setCommandBookEnabled(boolean enabled) {
-        this.commandBookEnabled = enabled;
     }
 
     public Location getLocationWithCoordinateTransform() {

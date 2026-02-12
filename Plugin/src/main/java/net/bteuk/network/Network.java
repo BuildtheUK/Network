@@ -2,8 +2,6 @@ package net.bteuk.network;
 
 import lombok.Getter;
 import lombok.extern.java.Log;
-import net.bteuk.minecraft.gui.GuiListener;
-import net.bteuk.minecraft.gui.GuiManager;
 import net.bteuk.network.api.CoordinateAPI;
 import net.bteuk.network.api.NetworkAPI;
 import net.bteuk.network.api.PlotAPI;
@@ -13,6 +11,8 @@ import net.bteuk.network.api.entity.ShutdownHook;
 import net.bteuk.network.api.impl.CoordinateAPIImpl;
 import net.bteuk.network.api.impl.PlotAPIImpl;
 import net.bteuk.network.api.impl.TimerAPIImpl;
+import net.bteuk.network.chat.bypass.ChatBypassInterceptor;
+import net.bteuk.network.chat.bypass.CommandBookListener;
 import net.bteuk.network.commands.Afk;
 import net.bteuk.network.commands.BuildingCompanionCommand;
 import net.bteuk.network.commands.Buildings;
@@ -103,6 +103,8 @@ import net.bteuk.network.utils.worldguard.WorldGuard;
 import net.bteuk.proxy.database.DatabaseInit;
 import net.bteuk.teachingtutorials.services.PromotionService;
 import net.buildtheearth.terraminusminus.TerraConfig;
+import org.btuk.minecraft.gui.GuiListener;
+import org.btuk.minecraft.gui.GuiManager;
 import org.bukkit.Material;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
@@ -110,6 +112,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.Nullable;
 import teachingtutorials.utils.DBConnection;
 
 import javax.sql.DataSource;
@@ -130,8 +133,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
     @Getter
     private ItemStack navigatorItem;
-    @Getter
-    private ItemStack commandBookItem;
+
     public RegionSQL regionSQL;
     // Movement listeners.
     public NetworkMoveListener moveListener;
@@ -370,14 +372,12 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
         // Create the navigator.
         navigatorItem = Utils.createItem(Material.NETHER_STAR, 1, Utils.title("Navigator"), Utils.line("Click to open the navigator."));
-        // Create the command book item.
-        commandBookItem = Utils.createItem(Material.WRITABLE_BOOK, 1, Utils.title("Command Book"), Utils.line("Open, type a command, then sign/close to run."));
 
         // Register events.
         new PreJoinServer(this, constants, moderation);
 
         // Register chat bypass interceptor to route all outgoing chat to actionbar for restricted users
-        new net.bteuk.network.chat.bypass.ChatBypassInterceptor(this);
+        new ChatBypassInterceptor(this);
 
         new GuiListener(networkGuiManager).register(this);
 
@@ -552,6 +552,9 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         }
         eventAPI.registerEvent("kick", new KickEvent());
 
+        // Enable the command book listener.
+        shutdownHooks.add(new CommandBookListener(this));
+
         // Start the Network timers.
         new Timers(this, globalSQL, eventAPI, constants, afk);
 
@@ -605,7 +608,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
     }
 
     // Get user from player.
-    public NetworkUser getUser(Player p) {
+    public @Nullable NetworkUser getUser(Player p) {
         return networkUsers.stream().filter((NetworkUser user) -> user.player.equals(p)).findFirst().orElse(null);
     }
 

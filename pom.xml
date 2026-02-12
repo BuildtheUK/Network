@@ -24,7 +24,7 @@
         <paper.api.version>1.21.8-R0.1-SNAPSHOT</paper.api.version>
 
         <bteuk.proxy.version>e14b531c08</bteuk.proxy.version>
-        <bteuk.lib.version>5958727df9</bteuk.lib.version>
+        <btuk.lib.version>main-36b0421e66-1</btuk.lib.version>
         <bteuk.networklib.version>24c3fc82f5</bteuk.networklib.version>
 
         <lombok.version>1.18.34</lombok.version>
@@ -82,9 +82,9 @@
             </dependency>
 
             <dependency>
-                <groupId>com.github.BTEUK.BTEUKLib</groupId>
+                <groupId>com.github.BuildtheUK.BTUKLib</groupId>
                 <artifactId>Minecraft</artifactId>
-                <version>${bteuk.lib.version}</version>
+                <version>${btuk.lib.version}</version>
             </dependency>
 
             <dependency>

@@ -1,10 +1,10 @@
 package net.bteuk.network.gui.tutorials;
 
 import lombok.extern.java.Log;
-import net.bteuk.minecraft.gui.Gui;
 import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
+import org.btuk.minecraft.gui.Gui;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import teachingtutorials.guis.Event;

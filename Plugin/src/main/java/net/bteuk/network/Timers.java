@@ -1,6 +1,7 @@
 package net.bteuk.network;
 
 import lombok.extern.java.Log;
+import net.bteuk.network.chat.bypass.CommandBook;
 import net.bteuk.network.commands.Afk;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.Time;
@@ -115,23 +116,12 @@ public class Timers {
                     }
                 }
 
-                // If command book is enabled check if they have it.
+                // If the command book is enabled, check if they have it.
                 if (user.isCommandBookEnabled()) {
-                    // Check if they have the command book anywhere in their inventory.
-                    if (!user.player.getInventory().contains(instance.getCommandBookItem())) {
-                        // If not, give it to them in slot 8 (index 7) if it's empty, otherwise find the first empty slot.
-                        ItemStack slot8Item = user.player.getInventory().getItem(7);
-                        if (slot8Item == null) {
-                            user.player.getInventory().setItem(7, instance.getCommandBookItem());
-                        } else {
-                            user.player.getInventory().addItem(instance.getCommandBookItem());
-                        }
-                    }
+                    CommandBook.ensureUserHasSingleCommandBook(instance, user);
                 } else {
-                    // If command book is disabled, remove it from their inventory if it exists.
-                    if (user.player.getInventory().contains(instance.getCommandBookItem())) {
-                        user.player.getInventory().remove(instance.getCommandBookItem());
-                    }
+                    // If the command book is disabled, remove it from their inventory if it exists.
+                    CommandBook.removeCommandBook(user);
                 }
 
                 // Check if the player is afk.
@@ -140,7 +130,7 @@ public class Timers {
                     // Set player as AFK
                     user.setAfk(true);
 
-                    // Send message to chat and discord.
+                    // Send a message to chat and discord.
                     afk.updateAfkStatus(user, true);
                 }
             }

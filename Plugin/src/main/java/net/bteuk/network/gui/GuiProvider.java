@@ -1,6 +1,5 @@
 package net.bteuk.network.gui;
 
-import net.bteuk.minecraft.gui.GuiManager;
 import net.bteuk.network.Network;
 import net.bteuk.network.api.ChatAPI;
 import net.bteuk.network.api.EventAPI;
@@ -17,6 +16,7 @@ import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.sql.PlotSQL;
 import net.bteuk.network.utils.Roles;
 import net.bteuk.network.utils.staff.Moderation;
+import org.btuk.minecraft.gui.GuiManager;
 import teachingtutorials.utils.DBConnection;
 
 /**
