@@ -5,6 +5,8 @@ import net.bteuk.network.Network;
 import net.bteuk.network.building_counter.Building;
 import net.bteuk.network.building_counter.ConfirmationListener;
 import net.bteuk.network.commands.tabcompleters.FixedArgSelector;
+import net.bteuk.network.commands.tabcompleters.TabCompleterTree;
+import net.bteuk.network.commands.tabcompleters.TreeTabCompleter;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.enums.ServerType;
 import net.kyori.adventure.text.Component;
@@ -31,7 +33,7 @@ public class Buildings extends AbstractCommand {
     public Buildings(Network instance) {
         super();
         this.instance = instance;
-        setTabCompleter(new FixedArgSelector(Arrays.asList("add", "show", "count", "delete", "definition", "query"), 0));
+        setTabCompleter(new TreeTabCompleter(new TabCompleterTree("add, show, count (total, personal), delete, help, query, definition, help, flag (public, private, built, counted), claim, recent")));
     }
 
     @Override
@@ -40,7 +42,6 @@ public class Buildings extends AbstractCommand {
         if (player == null) {
             return;
         }
-        System.out.println(args.length);
         if (args.length < 1) {
             player.sendMessage(ERROR);
             return;
@@ -48,8 +49,8 @@ public class Buildings extends AbstractCommand {
 
         switch (args[0]) {
             case "add":
-                if (SERVER_TYPE != ServerType.EARTH) {
-                    player.sendMessage(ChatUtils.error("Please join the earth server before running this command"));
+                if (SERVER_TYPE != ServerType.EARTH && SERVER_TYPE != ServerType.PLOT) {
+                    player.sendMessage(ChatUtils.error("This command can't be run on this server"));
                     return;
                 }
                 if (player.hasPermission("network.buildings.add")) {
@@ -60,18 +61,27 @@ public class Buildings extends AbstractCommand {
                 }
                 break;
             case "show":
-                if (SERVER_TYPE != ServerType.EARTH) {
-                    player.sendMessage(ChatUtils.error("Please join the earth server before running this command"));
+                if (SERVER_TYPE != ServerType.EARTH && SERVER_TYPE != ServerType.PLOT) {
+                    player.sendMessage(ChatUtils.error("This command can't be run on this server"));
                     return;
                 }
                 showBuildings(player);
                 break;
             case "count":
+                if (args.length > 1 && args[1].equals( "personal") )
+                {
+                    if (player.hasPermission("network.buildings.add")) {
+
+                        displayPlayerCount(player);
+                    } else {
+                        player.sendMessage(ChatUtils.error("You don't have permission to use this command"));
+                    }
+                }
                 displayCount(player);
                 break;
             case "delete":
-                if (SERVER_TYPE != ServerType.EARTH) {
-                    player.sendMessage(ChatUtils.error("Please join the earth server before running this command"));
+                if (SERVER_TYPE != ServerType.EARTH && SERVER_TYPE != ServerType.PLOT) {
+                    player.sendMessage(ChatUtils.error("This command can't be run on this server"));
                     return;
                 }
                 deleteBuilding(player);
@@ -83,15 +93,106 @@ public class Buildings extends AbstractCommand {
                                 "terrace is many buildings (one for each property). A semi detached is one building. Apartments are one building"));
                 break;
             case "query":
-                if (SERVER_TYPE != ServerType.EARTH) {
-                    player.sendMessage(ChatUtils.error("Please join the earth server before running this command"));
+                if (SERVER_TYPE != ServerType.EARTH && SERVER_TYPE != ServerType.PLOT) {
+                    player.sendMessage(ChatUtils.error("This command can't be run on this server"));
                     return;
                 }
                 queryBuilding(player);
                 break;
+            case "help":
+                player.sendMessage(ChatUtils.greyText("To add a building stand on top of the building and run /building add. You can see the buildings with /building show. If you want to delete a building you can run /building delete it will delete the closest building. To hide a building from the progress map you can give it a private flag with /flag or when adding with /building add -f private"));
+                break;
+            case "flag":
+                if (SERVER_TYPE != ServerType.EARTH && SERVER_TYPE != ServerType.PLOT) {
+                    player.sendMessage(ChatUtils.error("This command can't be run on this server"));
+                    return;
+                }
+                if (player.hasPermission("network.buildings.add")) {
 
+                    if (args.length > 1 )
+                    {
+                            updateBuildingFlags(player,args[1]);
+                    }
+                    else
+                    {
+                        player.sendMessage(ChatUtils.error("Please add a flag to change"));
+                    }
+                } else {
+                    player.sendMessage(ChatUtils.error("You don't have permission to use this command"));
+                }
+                break;
+            case "claim":
+                if (SERVER_TYPE != ServerType.EARTH && SERVER_TYPE != ServerType.PLOT) {
+                    player.sendMessage(ChatUtils.error("This command can't be run on this server"));
+                    return;
+                }
+                if (player.hasPermission("network.buildings.add")) {
+
+                    claimBuilding(player);
+                } else {
+                    player.sendMessage(ChatUtils.error("You don't have permission to use this command"));
+                }
+                break;
+            case "recent":
+                if (player.hasPermission("network.buildings.recent")) {
+
+                }
+                break;
         }
 
+    }
+
+    private void updateBuildingFlags(Player player, String flag)
+    {
+        Building minbuilding = getClosestBuilding(player);
+        if (minbuilding == null){
+            return;
+        }
+        if (minbuilding.playerId().equals(player.getUniqueId().toString()))
+        {
+            String field = "";
+            String newValue = "";
+            switch (flag)
+            {
+                case "private":
+                    field = "isPublic";
+                    newValue = "false";
+                    break;
+                case "public":
+                    field ="isPublic";
+                    newValue = "true";
+                    break;
+                case "built":
+                    field = "playerBuilt";
+                    newValue = "true";
+                    break;
+                case "counted":
+                    field = "playerBuilt";
+                    newValue = "false";
+                    break;
+                default:
+                    player.sendMessage(ChatUtils.error("given flag doesn't exist"));
+                    return;
+            }
+            instance.getGlobalSQL().update(String.format("UPDATE buildings SET %s = %s WHERE building_id = %d",field, newValue,minbuilding.buildingId() ));
+        }
+    }
+
+
+    private void claimBuilding(Player player){
+        Building minbuilding = getClosestBuilding(player);
+        if (minbuilding == null){
+            return;
+        }
+        if (!minbuilding.playerBuilt())
+        {
+            instance.getGlobalSQL().update(String.format( "UPDATE buildings SET player_id = '%s', playerBuilt = TRUE WHERE building_id = %d",player.getUniqueId(), minbuilding.buildingId() ));
+            player.sendMessage(ChatUtils.success("Building builder updated to you"));
+        }
+        else
+        {
+            player.sendMessage(ChatUtils.error("This building is already claimed"));
+        }
     }
 
     private void deleteBuilding(Player player) {
@@ -136,6 +237,20 @@ public class Buildings extends AbstractCommand {
         int buildingCount = instance.getGlobalSQL().getInt("SELECT COUNT(*) FROM buildings;");
         player.sendMessage(ChatUtils.success("%s buildings have been built!", String.valueOf(buildingCount)));
     }
+
+    private void displayPlayerCount(Player player){
+        int buildingCount = instance.getGlobalSQL().getInt(String.format("SELECT COUNT(*) FROM buildings WHERE player_id ='%s' AND playerBuilt = true",player.getUniqueId()));
+        player.sendMessage(ChatUtils.success("you have built %s buildings!", String.valueOf(buildingCount)));
+
+    }
+
+    private void addMockBuilding(Player player)
+    {
+        Location l = player.getLocation();
+        player.sendMessage(ChatUtils.success("Building added at %s,%s", String.valueOf(l.getX()), String.valueOf(l.getZ())));
+    }
+
+
 
     public void addPlayerToListenerList(Player player) {
         playersUsingConfirmationListeners.add(player);

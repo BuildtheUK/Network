@@ -149,6 +149,11 @@
             <url>https://repo.codemc.io/repository/maven-public/</url>
             <layout>default</layout>
         </repository>
+        <repository>
+            <id>smyler-releases</id>
+            <name>Smyler's maven repository</name>
+            <url>https://maven.smyler.net/releases</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -215,15 +220,9 @@
             <version>2.17.0</version>
         </dependency>
         <dependency>
-            <groupId>com.github.BTEUK</groupId>
-            <artifactId>terraminusminus</artifactId>
-            <version>41d3843a79</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-databind</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>net.buildtheearth.terraminusminus</groupId>
+            <artifactId>terraminusminus-bukkit</artifactId>
+            <version>2.2.0-1.21.8</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>

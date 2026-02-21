@@ -2,5 +2,7 @@ package net.bteuk.network.building_counter;
 
 import org.bukkit.Location;
 
-public record Building(int buildingId, Location coordinate, String playerId, int coordinateId) {
+import java.time.LocalDateTime;
+
+public record Building(int buildingId, Location coordinate, String playerId, int coordinateId, LocalDateTime timeCreated, boolean isPublic, boolean playerBuilt) {
 }
