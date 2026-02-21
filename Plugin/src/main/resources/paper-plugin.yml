@@ -1,0 +1,31 @@
+name: Network
+version: '${project.version}'
+main: net.bteuk.network.Network
+api-version: '1.21.4'
+
+dependencies:
+  server:
+    WorldGuard:
+      load: BEFORE
+      required: true
+      join-classpath: true
+    ProtocolLib:
+      load: BEFORE
+      required: true
+      join-classpath: true
+    LuckPerms:
+      load: BEFORE
+      required: true
+      join-classpath: true
+    DecentHolograms:
+      load: BEFORE
+      required: false
+      join-classpath: true
+    TeachingTutorials:
+      load: AFTER
+      required: false
+      join-classpath: true
+    Terraplusminus:
+      load: BEFORE
+      required: false
+      join-classpath: true
