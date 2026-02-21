@@ -87,20 +87,17 @@ public class VerificationMenu extends NetworkRefreshableGui {
                 // Increase value by 1.
                 slot++;
             }
-
-            // Return
-            setItem(44, Utils.createItem(Material.SPRUCE_DOOR, 1,
-                            Utils.title("Return"),
-                            Utils.line("Open the plot menu.")),
-                    (NetworkUser u) -> {
-                        // Delete this gui.
-                        this.delete();
-                        u.mainGui = null;
-
-                        // Switch to plot info.
-                        u.mainGui = new PlotMenu(provider, u);
-                        u.mainGui.open(u.player);
-                    });
         }
+
+        // Return
+        addReturnToLastSlot((NetworkUser u) -> {
+            // Delete this gui.
+            this.delete();
+            u.mainGui = null;
+
+            // Switch to plot info.
+            u.mainGui = new PlotMenu(provider, u);
+            u.mainGui.open(u.player);
+        }, Utils.line("Open the plot menu."));
     }
 }

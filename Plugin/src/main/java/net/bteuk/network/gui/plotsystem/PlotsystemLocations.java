@@ -55,12 +55,12 @@ public class PlotsystemLocations extends NetworkRefreshableGui {
                             Utils.line("of this plotsystem location.")),
                     (NetworkUser u) -> {
 
-                        // Teleport to centre of the plotsystem location.
+                        // Teleport to the centre of the plotsystem location.
                         // Get coordinate ids for min and max.
                         int min = plotSQL.getInt("SELECT coordMin FROM location_data WHERE name='" + name + "';");
                         int max = plotSQL.getInt("SELECT coordMax FROM location_data WHERE name='" + name + "';");
 
-                        // Get middle.
+                        // Get middle points, adding the coordinate transformation.
                         double x = ((globalSQL.getDouble("SELECT x FROM coordinates WHERE id=" + max + ";") +
                                 globalSQL.getDouble("SELECT x FROM coordinates WHERE id=" + min + ";")) / 2) +
                                 plotSQL.getInt("SELECT xTransform FROM location_data WHERE name='" + name + "';");
