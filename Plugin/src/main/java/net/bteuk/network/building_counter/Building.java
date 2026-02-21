@@ -4,5 +4,5 @@ import org.bukkit.Location;
 
 import java.time.LocalDateTime;
 
-public record Building(int buildingId, Location coordinate, String playerId, int coordinateId, LocalDateTime timeCreated, boolean isPublic, boolean playerBuilt) {
+public record Building(int buildingId, Location coordinate, String playerId, int coordinateId, LocalDateTime timeCreated, boolean isPublic, boolean playerBuilt, double lat, double lon) {
 }

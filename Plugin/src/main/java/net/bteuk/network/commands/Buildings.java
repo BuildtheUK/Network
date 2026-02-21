@@ -10,32 +10,45 @@ import net.bteuk.network.commands.tabcompleters.TreeTabCompleter;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.ServerType;
 import net.bteuk.network.lib.utils.ChatUtils;
+import net.bteuk.network.sql.PlotSQL;
+import net.buildtheearth.terraminusminus.generator.EarthGeneratorSettings;
+import net.buildtheearth.terraminusminus.projection.OutOfProjectionBoundsException;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
+import org.apache.maven.model.Build;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static net.bteuk.network.core.ServerType.PLOT;
+
 public class Buildings extends AbstractCommand {
     private static final Component ERROR = ChatUtils.error("/building add/show/count/delete/definition/query");
+    private final EarthGeneratorSettings bteGeneratorSettings =
+            EarthGeneratorSettings.parse(EarthGeneratorSettings.BTE_DEFAULT_SETTINGS);
 
     private static final int SHOW_BUILDINGS_DURATION = 300;
+    private final PlotSQL plotSQL;
 
     private final Network instance;
     private final Constants constants;
     private final List<Player> playersUsingConfirmationListeners = new ArrayList<>();
-    ;
 
-    public Buildings(Network instance, Constants constants) {
+    public Buildings(Network instance,PlotSQL plotSQL, Constants constants) {
         super();
         this.instance = instance;
+        this.plotSQL = plotSQL;
         setTabCompleter(new TreeTabCompleter(new TabCompleterTree("add, show, count (total, personal), delete, help, query, definition, help, flag (public, private, built, counted), claim, recent")));
         this.constants = constants;
-        setTabCompleter(new FixedArgSelector(Arrays.asList("add", "show", "count", "delete", "definition", "query"), 0));
     }
 
     @Override
@@ -51,23 +64,23 @@ public class Buildings extends AbstractCommand {
 
         switch (args[0]) {
             case "add":
-                if (constants.serverType() != ServerType.EARTH) {
-                    player.sendMessage(ChatUtils.error("Please join the earth server before running this command"));
-                if (SERVER_TYPE != ServerType.EARTH && SERVER_TYPE != ServerType.PLOT) {
+                if (constants.serverType() != ServerType.EARTH && constants.serverType() != ServerType.PLOT) {
                     player.sendMessage(ChatUtils.error("This command can't be run on this server"));
                     return;
                 }
                 if (player.hasPermission("network.buildings.add")) {
-
-                    addBuilding(player);
+                    String[] uniqueArgs;
+                    if (args.length > 1 && args[1].equals("-f"))
+                         uniqueArgs = Arrays.stream(args).skip(2).distinct().toArray(String[]::new);
+                    else
+                        uniqueArgs = new String[0];
+                    addBuilding(player,uniqueArgs);
                 } else {
                     player.sendMessage(ChatUtils.error("You don't have permission to use this command"));
                 }
                 break;
             case "show":
-                if (constants.serverType() != ServerType.EARTH) {
-                    player.sendMessage(ChatUtils.error("Please join the earth server before running this command"));
-                if (SERVER_TYPE != ServerType.EARTH && SERVER_TYPE != ServerType.PLOT) {
+                if (constants.serverType() != ServerType.EARTH && constants.serverType() != ServerType.PLOT) {
                     player.sendMessage(ChatUtils.error("This command can't be run on this server"));
                     return;
                 }
@@ -83,12 +96,12 @@ public class Buildings extends AbstractCommand {
                         player.sendMessage(ChatUtils.error("You don't have permission to use this command"));
                     }
                 }
-                displayCount(player);
+                else {
+                    displayCount(player);
+                }
                 break;
             case "delete":
-                if (constants.serverType() != ServerType.EARTH) {
-                    player.sendMessage(ChatUtils.error("Please join the earth server before running this command"));
-                if (SERVER_TYPE != ServerType.EARTH && SERVER_TYPE != ServerType.PLOT) {
+                if (constants.serverType() != ServerType.EARTH && constants.serverType() != ServerType.PLOT) {
                     player.sendMessage(ChatUtils.error("This command can't be run on this server"));
                     return;
                 }
@@ -100,9 +113,7 @@ public class Buildings extends AbstractCommand {
                                 + "use common sense. A " + "terrace is many buildings (one for each property). A semi detached is one building. Apartments are one building"));
                 break;
             case "query":
-                if (constants.serverType() != ServerType.EARTH) {
-                    player.sendMessage(ChatUtils.error("Please join the earth server before running this command"));
-                if (SERVER_TYPE != ServerType.EARTH && SERVER_TYPE != ServerType.PLOT) {
+                if (constants.serverType() != ServerType.EARTH && constants.serverType() != ServerType.PLOT) {
                     player.sendMessage(ChatUtils.error("This command can't be run on this server"));
                     return;
                 }
@@ -112,7 +123,7 @@ public class Buildings extends AbstractCommand {
                 player.sendMessage(ChatUtils.greyText("To add a building stand on top of the building and run /building add. You can see the buildings with /building show. If you want to delete a building you can run /building delete it will delete the closest building. To hide a building from the progress map you can give it a private flag with /flag or when adding with /building add -f private"));
                 break;
             case "flag":
-                if (SERVER_TYPE != ServerType.EARTH && SERVER_TYPE != ServerType.PLOT) {
+                if (constants.serverType() != ServerType.EARTH && constants.serverType() != ServerType.PLOT) {
                     player.sendMessage(ChatUtils.error("This command can't be run on this server"));
                     return;
                 }
@@ -131,7 +142,7 @@ public class Buildings extends AbstractCommand {
                 }
                 break;
             case "claim":
-                if (SERVER_TYPE != ServerType.EARTH && SERVER_TYPE != ServerType.PLOT) {
+                if (constants.serverType() != ServerType.EARTH && constants.serverType() != ServerType.PLOT) {
                     player.sendMessage(ChatUtils.error("This command can't be run on this server"));
                     return;
                 }
@@ -144,11 +155,108 @@ public class Buildings extends AbstractCommand {
                 break;
             case "recent":
                 if (player.hasPermission("network.buildings.recent")) {
-
+                    if (args.length > 1) {
+                        try {
+                            int page = Integer.parseInt(args[1]); // note args[1], not args[0], since args[0] is command
+                            displayMostRecent(player, page);
+                        } catch (NumberFormatException e) {
+                            player.sendMessage(ChatUtils.error("Invalid page number. Using page 1."));
+                            displayMostRecent(player, 1);
+                        }
+                    } else {
+                        displayMostRecent(player, 1);
+                    }
+                }
+                else
+                {
+                    player.sendMessage(ChatUtils.error("You don't have permission to use this command"));
                 }
                 break;
         }
 
+    }
+
+    private void displayMostRecent(Player player, int page) {
+
+        int pageSize = 6;
+
+        if (page < 1) {
+            page = 1;
+        }
+
+        int offset = (page - 1) * pageSize;
+
+        String condition = String.format(
+                "WHERE isPublic = true AND playerBuilt = true ORDER BY timeAdded DESC LIMIT %d OFFSET %d",
+                pageSize,
+                offset
+        );
+
+        List<Building> recent = instance.getGlobalSQL().getBuildings(condition);
+
+        if (recent.isEmpty()) {
+            player.sendMessage(ChatUtils.error("No more buildings found."));
+            return;
+        }
+        Component message = Component.text("");
+        // Previous page button
+        if (page > 1) {
+            Component previousPage = Component.text("⏪⏪⏪", TextColor.color(212, 113, 15));
+            previousPage = previousPage.hoverEvent(HoverEvent.hoverEvent(HoverEvent.Action.SHOW_TEXT, Component.text("Click to view the previous page of recent buildings.")));
+            previousPage = previousPage.clickEvent(ClickEvent.runCommand("/building recent " + (page - 1)));
+
+            message = message.append(previousPage).append(Component.text(" "));
+        }
+
+        message = message.append(Component.text("Page ", NamedTextColor.GREEN)
+                .append(Component.text(page, TextColor.color(245, 221, 100))));
+
+        // Next page button (only show if full page returned)
+        if (recent.size() == pageSize) {
+            Component nextPage = Component.text(" ⏩⏩⏩\n", TextColor.color(212, 113, 15));
+            nextPage = nextPage.hoverEvent(HoverEvent.hoverEvent(HoverEvent.Action.SHOW_TEXT, Component.text("Click to view the next page of recent buildings.")));
+            nextPage = nextPage.clickEvent(ClickEvent.runCommand("/building recent " + (page + 1)));
+            message = message.append(Component.text(" "));
+            message = message.append(nextPage);
+        } else {
+            message = message.append(Component.text("\n"));
+        }
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        int count = 0;
+        for (Building b : recent) {
+            String playerName = instance.getGlobalSQL().getString(String.format("SELECT name FROM player_data WHERE uuid='%s';", b.playerId()));
+            String formattedDate = b.timeCreated().format(formatter);
+            Component buildingComponent = Component.text("");
+            buildingComponent = buildingComponent.append(
+                    Component.text("# " + b.buildingId(), NamedTextColor.AQUA));
+            buildingComponent = buildingComponent.append(
+                    Component.text(" - builder: ", NamedTextColor.WHITE));
+            buildingComponent = buildingComponent.append(
+                    Component.text(playerName, NamedTextColor.GREEN));
+            buildingComponent = buildingComponent.append(
+                    Component.text(" | DateConstructed: ", NamedTextColor.WHITE));
+            buildingComponent = buildingComponent.append(
+                    Component.text(formattedDate, NamedTextColor.BLUE));
+            buildingComponent = buildingComponent.hoverEvent(
+                    HoverEvent.hoverEvent(
+                            HoverEvent.Action.SHOW_TEXT,
+                            Component.text("Click to teleport")
+                    )
+            );
+            buildingComponent = buildingComponent.clickEvent(
+                    ClickEvent.runCommand("/tpll " + b.lat() + ", " + b.lon())
+            );
+            buildingComponent = buildingComponent.hoverEvent(HoverEvent.hoverEvent(HoverEvent.Action.SHOW_TEXT, Component.text("Click to teleport")));
+            buildingComponent = buildingComponent.clickEvent(ClickEvent.runCommand("/tpll " + b.lat() + ", " + b.lon()));
+            message = message.append(buildingComponent);
+            count++;
+            if (count < recent.size()) {
+                message = message.append(Component.text("\n", NamedTextColor.WHITE));
+            }
+        }
+
+        player.sendMessage(message);
     }
 
     private void updateBuildingFlags(Player player, String flag)
@@ -157,33 +265,46 @@ public class Buildings extends AbstractCommand {
         if (minbuilding == null){
             return;
         }
-        if (minbuilding.playerId().equals(player.getUniqueId().toString()))
+        if (minbuilding.playerId().equals(player.getUniqueId().toString()) || player.hasPermission("network.buildings.update"))
         {
-            String field = "";
-            String newValue = "";
+            boolean isPublic = instance.getGlobalSQL().getBoolean(String.format("SELECT isPublic FROM buildings WHERE building_id = %d", minbuilding.buildingId()));
+            boolean isBuilt = instance.getGlobalSQL().getBoolean(String.format("SELECT playerBuilt FROM buildings WHERE building_id = %d", minbuilding.buildingId()));
             switch (flag)
             {
                 case "private":
-                    field = "isPublic";
-                    newValue = "false";
+                    if (!isBuilt)
+                    {
+                        player.sendMessage(ChatUtils.error("This flag can't be given to a building that you have marked as counted only"));
+                        break;
+                    }
+                    instance.getGlobalSQL().update(String.format("UPDATE buildings SET isPublic = false WHERE building_id = %d",minbuilding.buildingId() ));
+                    player.sendMessage(ChatUtils.success("Building is now private"));
                     break;
                 case "public":
-                    field ="isPublic";
-                    newValue = "true";
+                    instance.getGlobalSQL().update(String.format("UPDATE buildings SET isPublic = true WHERE building_id = %d",minbuilding.buildingId() ));
+                    player.sendMessage(ChatUtils.success("Building is now public"));
                     break;
                 case "built":
-                    field = "playerBuilt";
-                    newValue = "true";
+                    instance.getGlobalSQL().update(String.format("UPDATE buildings SET playerBuilt = true WHERE building_id = %d",minbuilding.buildingId() ));
+                    player.sendMessage(ChatUtils.success("Building will now count towards your personal total"));
                     break;
                 case "counted":
-                    field = "playerBuilt";
-                    newValue = "false";
+                    if (!isPublic)
+                    {
+                        player.sendMessage(ChatUtils.error("This flag can't be given to a building that you have marked as private"));
+                        break;
+                    }
+                    instance.getGlobalSQL().update(String.format("UPDATE buildings SET playerBuilt = false WHERE building_id = %d",minbuilding.buildingId() ));
+                    player.sendMessage(ChatUtils.success("Building will no longer count towards your personal total. This building can now be claimed by someone else"));
                     break;
                 default:
                     player.sendMessage(ChatUtils.error("given flag doesn't exist"));
                     return;
             }
-            instance.getGlobalSQL().update(String.format("UPDATE buildings SET %s = %s WHERE building_id = %d",field, newValue,minbuilding.buildingId() ));
+        }
+        else
+        {
+            player.sendMessage(ChatUtils.error("You don't have permission to update this building"));
         }
     }
 
@@ -236,9 +357,9 @@ public class Buildings extends AbstractCommand {
         return minbuilding;
     }
 
-    public static double getDist(Location l1, Location l2) {
+    public static double getXZDistance(Location l1, Location l2) {
         double deltax = l1.getX() - l2.getX();
-        double deltaz = l2.getZ() - l2.getZ();
+        double deltaz = l1.getZ() - l2.getZ();
         return Math.sqrt((deltax * deltax) + (deltaz * deltaz));
     }
 
@@ -249,7 +370,12 @@ public class Buildings extends AbstractCommand {
 
     private void displayPlayerCount(Player player){
         int buildingCount = instance.getGlobalSQL().getInt(String.format("SELECT COUNT(*) FROM buildings WHERE player_id ='%s' AND playerBuilt = true",player.getUniqueId()));
-        player.sendMessage(ChatUtils.success("you have built %s buildings!", String.valueOf(buildingCount)));
+        if (buildingCount != 1) {
+            player.sendMessage(ChatUtils.success("You have built %s buildings!", String.valueOf(buildingCount)));
+        }
+        else{
+            player.sendMessage(ChatUtils.success("You have built 1 building!"));
+        }
 
     }
 
@@ -269,31 +395,76 @@ public class Buildings extends AbstractCommand {
         playersUsingConfirmationListeners.remove(player);
     }
 
-    private void addBuilding(Player player) {
+    private void addBuilding(Player player, String[] flags) {
         List<Building> nearbyBuildings = getNearbyBuildings(player, 20);
         if (playersUsingConfirmationListeners.contains(player)) {
             player.sendMessage(ChatUtils.error("Please respond to your current building add attempt before adding a new building."));
             return;
         }
-        // StringBuilder locs = new StringBuilder("buildings nearby:");
-        // for (Building j : nearbyBuildings) {
-        //     Location i = j.coordinate();
-        //     locs.append(" (").append(Math.round(i.getX())).append(",").append(Math.round(i.getZ())).append("),");
-        // }
         if (!nearbyBuildings.isEmpty()) {
-            // locs.deleteCharAt(locs.length() - 1);
             player.sendMessage(ChatUtils.error("Other buildings nearby, to confirm a new building being added type 'y'. If unsure type 'n' and run /building show."));
-            new ConfirmationListener(this, player.getLocation(), player, instance);
+            new ConfirmationListener(this, player.getLocation(), player, instance, flags);
         } else {
-            addBuildingToDataBase(player, player.getLocation());
+            addBuildingToDataBase(player, player.getLocation(),flags);
         }
     }
 
-    public void addBuildingToDataBase(Player player, Location l) {
-        player.sendMessage(ChatUtils.success("Building added at %s,%s", String.valueOf(l.getX()), String.valueOf(l.getZ())));
+    public void addBuildingToDataBase(Player player, Location l, String[] flags) {
+
+
         int coordinateId = instance.getGlobalSQL().addCoordinate(l);
-        instance.getGlobalSQL().update(String.format("INSERT INTO buildings (coordinate_id, player_id) VALUES (%d, '%s');", coordinateId, player.getUniqueId()));
-    }
+        try{
+            int deltaX = 0;
+            int deltaZ = 0;
+            if (constants.serverType() == PLOT && plotSQL.hasRow("SELECT name FROM location_data WHERE name='" + player.getWorld().getName() + "';")) {
+                // Get negative coordinate transform of new location.
+                deltaX = -plotSQL.getInt("SELECT xTransform FROM location_data WHERE name='" + player.getWorld().getName() + "';");
+                deltaZ = -plotSQL.getInt("SELECT zTransform FROM location_data WHERE name='" + player.getWorld().getName() + "';");
+            }
+            double[] coords = bteGeneratorSettings.projection().toGeo(player.getLocation().getX() + deltaX,
+                player.getLocation().getZ() + deltaZ);
+
+        boolean isPublic = true;
+        boolean playerBuilt = true;
+        boolean isConflict = false;
+        for (String f : flags)
+        {
+            switch (f){
+                case "private":
+                    if (playerBuilt)
+                        isPublic = false;
+                    else
+                        isConflict = true;
+                    break;
+                case "public":
+                    isPublic = true;
+                    break;
+                case "built":
+                    playerBuilt = true;
+                    break;
+                case "counted":
+                    if(isPublic)
+                        playerBuilt = false;
+                    else
+                        isConflict = true;
+                    break;
+                default:
+                    break;
+            }
+        }
+        if (isConflict) {
+            player.sendMessage(ChatUtils.error("Incompatible flags given. Resorting to default flags. These can be changed with /flag later"));
+            isPublic = true;
+            playerBuilt = true;
+        }
+        instance.getGlobalSQL().update(String.format("INSERT INTO buildings (coordinate_id, player_id, isPublic, playerBuilt, lat, lon) VALUES (%d, '%s' ,%b, %b, %f ,%f);", coordinateId, player.getUniqueId(), isPublic, playerBuilt, coords[1], coords[0]));
+        player.sendMessage(ChatUtils.success("Building added at %s,%s", String.valueOf(coords[0]), String.valueOf(coords[1])));
+        } catch (
+                OutOfProjectionBoundsException e) {
+            player.sendMessage(ChatUtils.error("You are not standing in a location where coordinates can be retrieved" +
+                    "."));
+        }
+        }
 
     private void queryBuilding(Player player) {
         Building b = getClosestBuilding(player);
@@ -301,7 +472,25 @@ public class Buildings extends AbstractCommand {
             return;
         }
         String playerName = instance.getGlobalSQL().getString(String.format("SELECT name FROM player_data WHERE uuid='%s';", b.playerId()));
-        player.sendMessage(ChatUtils.success(String.format("Building ID: %d, Player: %s", b.buildingId(), playerName)));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        String formattedDate = b.timeCreated().format(formatter);
+
+        if (b.isPublic() && b.playerBuilt())
+        {
+            player.sendMessage(ChatUtils.success(String.format("Building ID: %d, Player: %s, Date Added: %s", b.buildingId(), playerName,formattedDate)));
+        }
+        else if (b.isPublic() && !b.playerBuilt())
+        {
+            player.sendMessage(ChatUtils.success(String.format("Building ID: %d, Unclaimed, Date Added: %s", b.buildingId(), formattedDate)));
+        }
+        else if (b.playerId().equals(player.getUniqueId().toString()))
+        {
+            player.sendMessage(ChatUtils.success(String.format("Building ID: %d, Player: %s, Date Added: %s", b.buildingId(), playerName,formattedDate)));
+        }
+        else {
+            player.sendMessage(ChatUtils.success(String.format("Building ID: %d", b.buildingId())));
+        }
+
 
     }
 
@@ -323,17 +512,18 @@ public class Buildings extends AbstractCommand {
             }
 
             Location glassLoc = finalHeight.clone().add(0, 1, 0);
-            if (j.playerId().equals(player.getUniqueId().toString())) {
+            if (!j.playerBuilt()) {
+                player.sendBlockChange(glassLoc, Material.ORANGE_STAINED_GLASS.createBlockData());
+            }
+            else if (j.playerId().equals(player.getUniqueId().toString())) {
                 player.sendBlockChange(glassLoc, Material.GREEN_STAINED_GLASS.createBlockData());
-            } else {
+            }
+            else {
                 player.sendBlockChange(glassLoc, Material.RED_STAINED_GLASS.createBlockData());
             }
-            instance.getServer().getScheduler().runTaskLater(instance, () -> removeDisplayBeacons(player, heightBuildingsAdded), SHOW_BUILDINGS_DURATION);
         }
-        // if (!nearbyBuildings.isEmpty()) {
-        //     locs.deleteCharAt(locs.length() - 1);
-        //     player.sendMessage(ChatUtils.success(locs.toString()));
-        // }
+        instance.getServer().getScheduler().runTaskLater(instance, () -> removeDisplayBeacons(player, heightBuildingsAdded), SHOW_BUILDINGS_DURATION);
+        player.sendMessage(ChatUtils.success(nearbyBuildings.size() + " nearby buildings have been shown"));
     }
 
     private List<Building> getNearbyBuildings(Player player, int radius) {
@@ -371,3 +561,4 @@ public class Buildings extends AbstractCommand {
         return "adds or shows completed buildings";
     }
 }
+//TO DO - make recent get data from a join so one request instead of many

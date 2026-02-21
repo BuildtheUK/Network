@@ -17,11 +17,13 @@ public class ConfirmationListener implements Listener {
     private final Location location;
     private final Player player;
     private final BukkitTask timeoutTask;
+    private final String[] flags;
 
-    public ConfirmationListener(Buildings buildings, Location location, Player player, Plugin plugin) {
+    public ConfirmationListener(Buildings buildings, Location location, Player player, Plugin plugin, String[] flags) {
         this.buildings = buildings;
         this.location = location;
         this.player = player;
+        this.flags = flags;
         buildings.addPlayerToListenerList(player);
         Bukkit.getServer().getPluginManager().registerEvents(this, plugin);
         timeoutTask = plugin.getServer().getScheduler().runTaskLater(plugin, this::timeout, 20 * 120);
@@ -35,7 +37,7 @@ public class ConfirmationListener implements Listener {
             buildings.removePlayerFromListenerList(player);
             e.setCancelled(true);
             if (((net.kyori.adventure.text.TextComponent) e.message()).content().equals("y")) {
-                buildings.addBuildingToDataBase(e.getPlayer(), location);
+                buildings.addBuildingToDataBase(e.getPlayer(), location,flags);
             } else {
                 e.getPlayer().sendMessage(ChatUtils.error("No building added"));
             }

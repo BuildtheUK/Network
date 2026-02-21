@@ -66,6 +66,9 @@ public class TabCompleterTree {
                 current.append(currentChar);
             }
         }
+        if (!current.isEmpty()) {
+            tokens.add(current.toString());
+        }
         List<TabCompleterNode> finalList = new ArrayList<TabCompleterNode>();
         for (String s: tokens)
         {
