@@ -1,6 +1,9 @@
-package net.bteuk.network;
+package net.bteuk.network.socket;
 
 import lombok.extern.java.Log;
+import net.bteuk.network.CustomChat;
+import net.bteuk.network.Network;
+import net.bteuk.network.TabManager;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.eventing.listeners.Connect;
 import net.bteuk.network.lib.dto.AbstractTransferObject;
@@ -14,48 +17,26 @@ import net.bteuk.network.lib.dto.UserConnectReply;
 import net.bteuk.network.lib.dto.UserRemove;
 import net.bteuk.network.lib.dto.UserUpdate;
 import net.bteuk.network.lib.socket.InputSocket;
-import net.bteuk.network.lib.socket.OutputSocket;
 import net.bteuk.network.lib.socket.SocketHandler;
 
 @Log
-public class SocketHandlerImpl implements SocketHandler {
+public class NetworkSocketHandler implements SocketHandler {
 
     private final Network instance;
 
-    private CustomChat chat;
+    private final CustomChat chat;
 
-    private TabManager tabManager;
+    private final TabManager tabManager;
 
-    private Connect connect;
+    private final Connect connect;
 
-    private OutputSocket outputSocket;
     private InputSocket inputSocket;
 
-    private static SocketHandlerImpl socketHandler;
-
-    /**
-     *
-     * @param message
-     * @return Whether the socket message was sent
-     */
-    public static boolean sendSocketMessageIfOnline(AbstractTransferObject message)
-    {
-        if (socketHandler != null) {
-            socketHandler.sendSocketMessage(message);
-            return true;
-        }
-        else
-            return false;
-    }
-
-    public SocketHandlerImpl(Network instance, CustomChat chat, TabManager tabManager, Connect connect, Constants constants) {
+    public NetworkSocketHandler(Network instance, CustomChat chat, TabManager tabManager, Connect connect, Constants constants) {
         this.instance = instance;
         this.chat = chat;
         this.tabManager = tabManager;
         this.connect = connect;
-
-        // Set up the output socket.
-        outputSocket = new OutputSocket(constants.chatSocketOutputIP(), constants.chatSocketOutputPort());
 
         // Register input socket for receiving messages from the proxy.
         int inputSocketPort = constants.chatSocketInputPort();
@@ -68,41 +49,7 @@ public class SocketHandlerImpl implements SocketHandler {
 
         // Register the socket handler.
         registerSocketHandler(this);
-
-        socketHandler = this;
     }
-
-    public SocketHandlerImpl(Network instance, Constants constants) {
-        this.instance = instance;
-
-        // Set up the output socket.
-        outputSocket = new OutputSocket(constants.chatSocketOutputIP(), constants.chatSocketOutputPort());
-
-        // Register input socket for receiving messages from the proxy.
-        int inputSocketPort = constants.chatSocketInputPort();
-        if (inputSocketPort == 0) {
-            log.severe("Input socket port is not set in config or is set to 0. Please set a valid port!");
-        } else {
-            // Create the input socket.
-            inputSocket = new InputSocket(inputSocketPort);
-        }
-
-        // Register the socket handler.
-        registerSocketHandler(this);
-
-        socketHandler = this;
-    }
-
-    public void addComponents(CustomChat chat, TabManager tabManager, Connect connect) {
-        this.chat = chat;
-        this.tabManager = tabManager;
-        this.connect = connect;
-    }
-
-    public void sendSocketMessage(AbstractTransferObject message) {
-        outputSocket.sendSocketMessage(message);
-    }
-
 
     @Override
     public AbstractTransferObject handle(AbstractTransferObject abstractTransferObject) {

@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.Setter;
 import net.bteuk.minecraft.gui.Gui;
 import net.bteuk.network.Network;
-import net.bteuk.network.SocketHandlerImpl;
 import net.bteuk.network.api.entity.Role;
 import net.bteuk.network.building_companion.BuildingCompanion;
 import net.bteuk.network.commands.Nightvision;
@@ -16,6 +15,7 @@ import net.bteuk.network.lib.dto.UserConnectReply;
 import net.bteuk.network.lib.dto.UserDisconnect;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.regions.RegionUser;
+import net.bteuk.network.socket.MessageSender;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -104,7 +104,7 @@ public class NetworkUser {
     private final RegionUser regionUser;
 
     public NetworkUser(Player player, UserConnectReply reply, Network instance, Constants constants, Roles roles, Nightvision nightvision, EventManager eventManager,
-                       RegionUser regionUser) {
+                       RegionUser regionUser, MessageSender messageSender) {
 
         this.instance = instance;
         this.constants = constants;
@@ -117,7 +117,7 @@ public class NetworkUser {
         nightvisionEnabled = reply.isNightvisionEnabled();
         chatChannel = reply.getChatChannel();
         tipsEnabled = reply.isTipsEnabled();
-        setFocusEnabled(reply.isFocusEnabled());
+        setFocusEnabled(reply.isFocusEnabled(), messageSender);
 
         switching = false;
         inPortal = false;
@@ -279,8 +279,8 @@ public class NetworkUser {
         return player.getUniqueId().toString();
     }
 
-    public void toggleFocus() {
-        setFocusEnabled(!isFocusEnabled());
+    public void toggleFocus(MessageSender messageSender) {
+        setFocusEnabled(!isFocusEnabled(), messageSender);
         if (isFocusEnabled()) {
             player.sendMessage(ChatUtils.success("Enabled focus mode"));
         } else {
@@ -292,7 +292,7 @@ public class NetworkUser {
         player.displayName(displayName);
     }
 
-    private void setFocusEnabled(boolean enabled) {
+    private void setFocusEnabled(boolean enabled, MessageSender messageSender) {
         focusEnabled = enabled;
         if (focusEnabled) {
             hidePlayers();
@@ -300,7 +300,7 @@ public class NetworkUser {
             showPlayers();
         }
         FocusEvent focusEvent = new FocusEvent(player.getUniqueId().toString(), focusEnabled);
-        SocketHandlerImpl.sendSocketMessageIfOnline(focusEvent);
+        messageSender.sendSocketMessage(focusEvent);
     }
 
     public void hidePlayer(Player playerToHide) {

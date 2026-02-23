@@ -6,13 +6,13 @@ import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import lombok.extern.java.Log;
 import net.bteuk.network.Network;
-import net.bteuk.network.SocketHandlerImpl;
 import net.bteuk.network.api.ServerAPI;
 import net.bteuk.network.api.entity.NetworkPlayer;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.lib.dto.SwitchServerEvent;
 import net.bteuk.network.lib.dto.UserDisconnect;
 import net.bteuk.network.lib.utils.ChatUtils;
+import net.bteuk.network.socket.MessageSender;
 import org.bukkit.entity.Player;
 
 import java.util.Optional;
@@ -22,10 +22,12 @@ public class SwitchServer implements ServerAPI {
 
     private final Network instance;
     private final Constants constants;
+    private final MessageSender messageSender;
 
-    public SwitchServer(Network instance, Constants constants) {
+    public SwitchServer(Network instance, Constants constants, MessageSender messageSender) {
         this.instance = instance;
         this.constants = constants;
+        this.messageSender = messageSender;
     }
 
     public void switchServer(NetworkPlayer player, String server) {
@@ -75,7 +77,7 @@ public class SwitchServer implements ServerAPI {
         UserDisconnect userDisconnect = user.get().createDisconnectEvent();
         SwitchServerEvent switchServerEvent = new SwitchServerEvent(player.getUuidAsString(), server, constants.serverName(),
                 userDisconnect);
-        SocketHandlerImpl.sendSocketMessageIfOnline(switchServerEvent);
+        messageSender.sendSocketMessage(switchServerEvent);
     }
 
     public static void switchToExternalServer(Player player) {

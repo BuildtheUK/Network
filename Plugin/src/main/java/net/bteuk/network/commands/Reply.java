@@ -1,11 +1,10 @@
 package net.bteuk.network.commands;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
-import net.bteuk.network.CustomChat;
-import net.bteuk.network.SocketHandlerImpl;
 import net.bteuk.network.lib.dto.ReplyMessage;
 import net.bteuk.network.lib.enums.ChatChannels;
 import net.bteuk.network.lib.utils.ChatUtils;
+import net.bteuk.network.socket.MessageSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -14,6 +13,12 @@ import java.util.List;
 
 public class Reply extends AbstractCommand {
     private static final String ERROR = "/r [message]";
+
+    private final MessageSender messageSender;
+
+    public Reply(MessageSender messageSender) {
+        this.messageSender = messageSender;
+    }
 
     public void execute(@NotNull CommandSourceStack stack, String @NotNull [] args) {
 
@@ -30,7 +35,7 @@ public class Reply extends AbstractCommand {
         }
         String message = String.join(" ", Arrays.copyOfRange(args, 0, args.length));
         ReplyMessage replymessage = new ReplyMessage(ChatChannels.GLOBAL.getChannelName(),player.getName(),message,false);
-        SocketHandlerImpl.sendSocketMessageIfOnline(replymessage);
+        messageSender.sendSocketMessage(replymessage);
     }
 
     @Override

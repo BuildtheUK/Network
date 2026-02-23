@@ -2,7 +2,6 @@ package net.bteuk.network.eventing.listeners;
 
 import lombok.extern.java.Log;
 import net.bteuk.network.Network;
-import net.bteuk.network.SocketHandlerImpl;
 import net.bteuk.network.api.ServerAPI;
 import net.bteuk.network.commands.Afk;
 import net.bteuk.network.core.Constants;
@@ -10,6 +9,7 @@ import net.bteuk.network.core.Time;
 import net.bteuk.network.lib.dto.ServerShutdown;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.papercore.PlayerAdapter;
+import net.bteuk.network.socket.MessageSender;
 import net.bteuk.network.utils.NetworkUser;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -30,13 +30,15 @@ public class CommandPreProcess implements Listener {
     private final Afk afk;
     private final Connect connect;
     private final ServerAPI serverAPI;
+    private final MessageSender messageSender;
 
-    public CommandPreProcess(Network instance, Constants constants, Afk afk, Connect connect, ServerAPI serverAPI) {
+    public CommandPreProcess(Network instance, Constants constants, Afk afk, Connect connect, ServerAPI serverAPI, MessageSender messageSender) {
         this.instance = instance;
         this.constants = constants;
         this.afk = afk;
         this.connect = connect;
         this.serverAPI = serverAPI;
+        this.messageSender = messageSender;
         instance.allowShutdown = false;
         Bukkit.getServer().getPluginManager().registerEvents(this, instance);
     }
@@ -170,6 +172,6 @@ public class CommandPreProcess implements Listener {
         users.clear();
 
         // Let the Proxy know the server is closing.
-        SocketHandlerImpl.sendSocketMessageIfOnline(new ServerShutdown(constants.serverName()));
+        messageSender.sendSocketMessage(new ServerShutdown(constants.serverName()));
     }
 }

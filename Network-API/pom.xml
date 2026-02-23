@@ -6,14 +6,13 @@
     <parent>
         <groupId>net.bteuk</groupId>
         <artifactId>Network</artifactId>
-        <version>1.8.2</version>
+        <version>1.9.0</version>
     </parent>
 
     <groupId>net.bteuk.network</groupId>
     <artifactId>api</artifactId>
     <name>Network API</name>
     <description>API for the Network plugin</description>
-    <version>1.8.2</version>
 
     <repositories>
         <repository>
@@ -28,4 +27,17 @@
             <artifactId>NetworkLib</artifactId>
         </dependency>
     </dependencies>
-    </project>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

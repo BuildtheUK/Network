@@ -55,7 +55,7 @@ public class NavigatorGui extends NetworkGui {
         });
 
         setItem(6, Utils.createItem(Material.KNOWLEDGE_BOOK, 1, Utils.title("Tutorials"), Utils.line("Click to open the tutorials menu.")), (NetworkUser u) -> {
-            // Switch to tutorials menu if it's online and enabled.
+            // Switch to the tutorials menu if it's online and enabled.
             // If the current server is already tutorials, don't open the gui.
             if (constants.serverType() == ServerType.TUTORIAL) {
                 u.player.closeInventory();

@@ -1,14 +1,9 @@
 package net.bteuk.network;
 
-import io.papermc.paper.event.player.AsyncChatEvent;
 import lombok.extern.java.Log;
 import net.bteuk.network.api.ChatAPI;
 import net.bteuk.network.api.entity.Role;
-import net.bteuk.network.commands.Afk;
 import net.bteuk.network.core.Constants;
-import net.bteuk.network.core.Time;
-import net.bteuk.network.exceptions.NotMutedException;
-import net.bteuk.network.lib.dto.AbstractTransferObject;
 import net.bteuk.network.lib.dto.ChatMessage;
 import net.bteuk.network.lib.dto.DirectMessage;
 import net.bteuk.network.lib.dto.DiscordDirectMessage;
@@ -17,46 +12,33 @@ import net.bteuk.network.lib.dto.DiscordRole;
 import net.bteuk.network.lib.dto.PlotMessage;
 import net.bteuk.network.lib.dto.UserUpdate;
 import net.bteuk.network.lib.enums.ChatChannels;
-import net.bteuk.network.lib.socket.InputSocket;
-import net.bteuk.network.lib.socket.OutputSocket;
-import net.bteuk.network.lib.socket.SocketHandler;
 import net.bteuk.network.lib.utils.ChatUtils;
-import net.bteuk.network.sql.GlobalSQL;
+import net.bteuk.network.socket.MessageSender;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Roles;
-import net.bteuk.network.utils.staff.Moderation;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
 
 import static net.bteuk.network.lib.enums.ChatChannels.STAFF;
 
 @Log
-public class CustomChat implements Listener, ChatAPI {
+public class CustomChat implements ChatAPI {
 
     private static final String AFK = "%s is now afk";
     private static final String NOT_AFK = "%s is no longer afk";
     private final Network instance;
+    private final MessageSender messageSender;
     private final Constants constants;
-    private final Afk afk;
-    private final GlobalSQL globalSQL;
-    private final Moderation moderation;
     private final Roles roles;
 
-    public CustomChat(Network instance, Constants constants, Afk afk, GlobalSQL globalSQL, Moderation moderation, Roles roles) {
+    public CustomChat(Network instance, MessageSender messageSender, Constants constants, Roles roles) {
 
         this.instance = instance;
+        this.messageSender = messageSender;
         this.constants = constants;
-        this.afk = afk;
-        this.globalSQL = globalSQL;
-        this.moderation = moderation;
         this.roles = roles;
-
-        instance.getServer().getPluginManager().registerEvents(this, instance);
 
         log.info("Successfully enabled Chat!");
     }
@@ -118,48 +100,6 @@ public class CustomChat implements Listener, ChatAPI {
 
     public void onDisable() {
         instance.getServer().getMessenger().unregisterIncomingPluginChannel(instance, "uknet:network");
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onPlayerChatEvent(AsyncChatEvent e) {
-
-        // If player is muted cancel.
-        if (moderation.isMuted(e.getPlayer().getUniqueId().toString())) {
-            e.setCancelled(true);
-            try {
-
-                // Send message and end event.
-                e.getPlayer().sendMessage(moderation.getMutedComponent(e.getPlayer().getUniqueId().toString()));
-                return;
-            } catch (NotMutedException ex) {
-
-                // Unset the muted status.
-                e.setCancelled(false);
-            }
-        }
-
-        if (!e.isCancelled()) {
-            e.setCancelled(true);
-            // Get user, if staff chat is enabled, send the message to staff chat.
-            NetworkUser user = instance.getUser(e.getPlayer());
-
-            // If u is null, cancel.
-            if (user == null) {
-                log.severe("User " + e.getPlayer().getName() + " can not be found!");
-                e.getPlayer().sendMessage(ChatUtils.error("User can not be found, please relog!"));
-                return;
-            }
-
-            // Reset last movement of player, if they're afk unset that.
-            user.last_movement = Time.currentTime();
-
-            if (user.isAfk()) {
-                user.setAfk(false);
-                afk.updateAfkStatus(user, false);
-            }
-            ChatMessage chatMessage = getChatMessage(e.message(), user);
-            sendChatMessage(chatMessage);
-        }
     }
 
     public void handleDirectMessage(DirectMessage message) {
@@ -227,7 +167,7 @@ public class CustomChat implements Listener, ChatAPI {
                     }
 
                     DiscordRole discordRole = new DiscordRole(user.player.getUniqueId().toString(), role.getId(), true);
-                    SocketHandlerImpl.sendSocketMessageIfOnline(discordRole);
+                    messageSender.sendSocketMessage(discordRole);
 
                     user.sendMessage(ChatUtils.success("Your discord has been linked!"));
                 });
@@ -269,38 +209,26 @@ public class CustomChat implements Listener, ChatAPI {
         }
 
         // Send the message
-        sendChatMessage(chatMessage);
+        messageSender.sendSocketMessage(chatMessage);
     }
 
-    public void sendChatMessage(ChatMessage message) {
-        if (constants.standalone() && message.getChannel().equals(ChatChannels.GLOBAL.getChannelName())) {
-            instance.getServer().broadcast(message.getComponent());
-        } else {
-            SocketHandlerImpl.sendSocketMessageIfOnline(message);
-        }
+    @Override
+    public void sendChatMessage(ChatMessage chatMessage) {
+        messageSender.sendSocketMessage(chatMessage);
     }
 
     public void sendDirectMessage(DirectMessage message) {
-        if (constants.standalone()) {
-            // Try to send the message to the player if they're online.
-            // Else use the database to store it for when they next connect.
-            instance.getServer().getOnlinePlayers().stream().filter(player -> player.getUniqueId().toString().equals(message.getRecipient())).findFirst()
-                    .ifPresentOrElse(player -> player.sendMessage(message.getComponent()), () -> globalSQL.insertMessage(message));
-        } else {
-            SocketHandlerImpl.sendSocketMessageIfOnline(message);
-        }
+        messageSender.sendSocketMessage(message);
     }
 
     public void sendDiscordDirectMessage(DiscordDirectMessage message) {
-        if (!constants.standalone()) {
-            SocketHandlerImpl.sendSocketMessageIfOnline(message);
-        }
+        messageSender.sendSocketMessage(message);
     }
 
     @Override
     public void sendPlotMessage(PlotMessage message) {
-        if (!constants.standalone() && constants.plotSystemEnabled()) {
-            SocketHandlerImpl.sendSocketMessageIfOnline(message);
+        if (constants.plotSystemEnabled()) {
+            messageSender.sendSocketMessage(message);
         }
     }
 }

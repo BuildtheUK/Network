@@ -4,25 +4,20 @@ import lombok.Setter;
 import lombok.extern.java.Log;
 import net.bteuk.minecraft.gui.GuiManager;
 import net.bteuk.network.Network;
-import net.bteuk.network.SocketHandlerImpl;
 import net.bteuk.network.TabManager;
 import net.bteuk.network.building_companion.BuildingCompanion;
 import net.bteuk.network.commands.Nightvision;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.Time;
 import net.bteuk.network.eventing.events.EventManager;
-import net.bteuk.network.lib.dto.OnlineUser;
-import net.bteuk.network.lib.dto.OnlineUserAdd;
-import net.bteuk.network.lib.dto.OnlineUserRemove;
 import net.bteuk.network.lib.dto.TabPlayer;
 import net.bteuk.network.lib.dto.UserConnectReply;
 import net.bteuk.network.lib.dto.UserConnectRequest;
 import net.bteuk.network.lib.dto.UserDisconnect;
 import net.bteuk.network.lib.dto.UserRemove;
-import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.regions.RegionManager;
 import net.bteuk.network.regions.RegionUser;
-import net.bteuk.network.sql.GlobalSQL;
+import net.bteuk.network.socket.MessageSender;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Roles;
 import net.bteuk.network.utils.TextureUtils;
@@ -30,7 +25,6 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -39,8 +33,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -52,26 +44,27 @@ public class Connect implements Listener {
     private final Constants constants;
     private final TabManager tabManager;
     private final Roles roles;
-    private final GlobalSQL globalSQL;
     private final GuiManager guiManager;
     private final Nightvision nightvision;
     private final EventManager eventManager;
     private final RegionManager regionManager;
+    private final MessageSender messageSender;
 
     @Setter
     private boolean blockLeaveEvent;
 
-    public Connect(Network instance, Constants constants, TabManager tabManager, Roles roles, GlobalSQL globalSQL, GuiManager guiManager, Nightvision nightvision, EventManager eventManager, RegionManager regionManager) {
+    public Connect(Network instance, Constants constants, TabManager tabManager, Roles roles, GuiManager guiManager, Nightvision nightvision,
+                   EventManager eventManager, RegionManager regionManager, MessageSender messageSender) {
 
         this.instance = instance;
         this.constants = constants;
         this.tabManager = tabManager;
         this.roles = roles;
-        this.globalSQL = globalSQL;
         this.guiManager = guiManager;
         this.nightvision = nightvision;
         this.eventManager = eventManager;
         this.regionManager = regionManager;
+        this.messageSender = messageSender;
 
         this.blockLeaveEvent = false;
 
@@ -102,7 +95,7 @@ public class Connect implements Listener {
             if (constants.regionsEnabled()) {
                 regionUser = regionManager.getUserByPlayer(player).orElse(null);
             }
-            NetworkUser user = new NetworkUser(player, reply, instance, constants, roles, nightvision, eventManager, regionUser);
+            NetworkUser user = new NetworkUser(player, reply, instance, constants, roles, nightvision, eventManager, regionUser, messageSender);
             instance.addUser(user);
 
             // Hide this player for all players in focus mode.
@@ -141,53 +134,12 @@ public class Connect implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void joinServerEvent(PlayerJoinEvent joinEvent) {
-        if (constants.standalone()) {
-            Player player = joinEvent.getPlayer();
-
-            globalSQL.createUser(player.getUniqueId().toString(), player.getName(),
-                    TextureUtils.getTexture(player.getPlayerProfile()));
-
-            boolean navigatorEnabled = globalSQL.getBoolean("SELECT navigator FROM player_data WHERE uuid='" + player.getUniqueId() + "'");
-            boolean teleportEnabled = globalSQL.getBoolean("SELECT teleport_enabled FROM player_data WHERE uuid='" + player.getUniqueId() + "'");
-            boolean nightVisionEnabled = globalSQL.getBoolean("SELECT nightvision_enabled FROM player_data WHERE uuid='" + player.getUniqueId() + "'");
-            String chatChannel = globalSQL.getString("SELECT chat_channel FROM player_data WHERE uuid='" + player.getUniqueId() + "'");
-            boolean tipsEnabled = globalSQL.getBoolean("SELECT tips_enabled FROM player_data WHERE uuid='" + player.getUniqueId() + "'");
-            String displayName = globalSQL.getString("SELECT display_name FROM player_data WHERE uuid='" + player.getUniqueId() + "'");
-            Component displayNameComponent;
-            if (displayName != null) {
-                displayNameComponent = GsonComponentSerializer.gson().deserialize(displayName);
-            } else {
-                displayNameComponent = ChatUtils.line(player.getName());
-            }
-
-            List<String> messages = globalSQL.getOfflineMessages(player.getUniqueId().toString());
-            List<Component> components = new ArrayList<>();
-            messages.forEach(message -> components.add(GsonComponentSerializer.gson().deserialize(message)));
-
-            UserConnectReply reply = new UserConnectReply(player.getUniqueId().toString(), navigatorEnabled, teleportEnabled, nightVisionEnabled, chatChannel, tipsEnabled,
-                    components, false, displayNameComponent);
-            RegionUser regionUser = null;
-            if (constants.regionsEnabled()) {
-                regionUser = regionManager.getUserByPlayer(player).orElse(null);
-            }
-            NetworkUser user = new NetworkUser(player, reply, instance, constants, roles, nightvision, eventManager, regionUser);
-
-            OnlineUserAdd onlineUserAdd = new OnlineUserAdd();
-            onlineUserAdd.setUser(new OnlineUser(player.getUniqueId().toString(), player.getName(), constants.serverName()));
-
-            instance.addUser(user);
-            instance.handleOnlineUserAdd(onlineUserAdd);
-        } else {
-            networkJoinEvent(joinEvent);
-        }
+        networkJoinEvent(joinEvent);
     }
 
     @EventHandler
     public void leaveServerEvent(PlayerQuitEvent e) {
-
-        if (!constants.standalone()) {
-            e.quitMessage(null);
-        }
+        e.quitMessage(null);
 
         if (blockLeaveEvent) {
             return;
@@ -201,7 +153,7 @@ public class Connect implements Listener {
             UserDisconnect disconnectEvent = new UserDisconnect();
             disconnectEvent.setUuid(e.getPlayer().getUniqueId().toString());
             disconnectEvent.setServer(constants.serverName());
-            Bukkit.getScheduler().runTaskAsynchronously(instance, () -> SocketHandlerImpl.sendSocketMessageIfOnline(disconnectEvent));
+            Bukkit.getScheduler().runTaskAsynchronously(instance, () -> messageSender.sendSocketMessage(disconnectEvent));
             return;
         }
 
@@ -237,14 +189,9 @@ public class Connect implements Listener {
             user.lightsOut.delete();
         }
 
-        if (constants.standalone()) {
-            OnlineUserRemove onlineUserRemove = new OnlineUserRemove(playerUUID.toString());
-            instance.handleOnlineUserRemove(onlineUserRemove);
-        } else {
-            // Send a disconnect event to the proxy to handle potential messages.
-            UserDisconnect userDisconnect = user.createDisconnectEvent();
-            Bukkit.getScheduler().runTaskAsynchronously(instance, () -> SocketHandlerImpl.sendSocketMessageIfOnline(userDisconnect));
-        }
+        // Send a disconnect event to the proxy to handle potential messages.
+        UserDisconnect userDisconnect = user.createDisconnectEvent();
+        Bukkit.getScheduler().runTaskAsynchronously(instance, () -> messageSender.sendSocketMessage(userDisconnect));
     }
 
     private void networkJoinEvent(PlayerJoinEvent e) {
@@ -263,7 +210,7 @@ public class Connect implements Listener {
         UserConnectRequest userConnectRequest = new UserConnectRequest(constants.serverName(), e.getPlayer().getUniqueId().toString(), e.getPlayer().getName(),
                 TextureUtils.getTexture(e.getPlayer().getPlayerProfile()), channels, tabPlayer, e.getPlayer().hasPermission("group.architect"),
                 e.getPlayer().hasPermission("group.reviewer"));
-        Bukkit.getScheduler().runTaskAsynchronously(instance, () -> SocketHandlerImpl.sendSocketMessageIfOnline(userConnectRequest));
+        Bukkit.getScheduler().runTaskAsynchronously(instance, () -> messageSender.sendSocketMessage(userConnectRequest));
         log.info(String.format("%s connected to the server, sent request to proxy to add player as NetworkUser", e.getPlayer().getName()));
     }
 }

@@ -2,11 +2,11 @@ package net.bteuk.network.commands;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.bteuk.network.Network;
-import net.bteuk.network.SocketHandlerImpl;
 import net.bteuk.network.commands.tabcompleters.PlayerSelector;
 import net.bteuk.network.lib.dto.PrivateMessage;
 import net.bteuk.network.lib.enums.ChatChannels;
 import net.bteuk.network.lib.utils.ChatUtils;
+import net.bteuk.network.socket.MessageSender;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -21,9 +21,11 @@ public class Msg extends AbstractCommand {
     private static final Component ERROR = ChatUtils.error("/msg [player] <message>");
 
     private final String commandName;
+    private final MessageSender messageSender;
 
-    public Msg(Network instance, String commandName) {
+    public Msg(Network instance, String commandName, MessageSender messageSender) {
         this.commandName = commandName;
+        this.messageSender = messageSender;
         setTabCompleter(new PlayerSelector(instance));
     }
 
@@ -45,11 +47,11 @@ public class Msg extends AbstractCommand {
         // Send a direct message, the message is created using all other command arguments.
         String message = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
         PrivateMessage privateMessage = new PrivateMessage(ChatChannels.GLOBAL.getChannelName(), player.getName(), args[0],message, false);
-        SocketHandlerImpl.sendSocketMessageIfOnline(privateMessage);
+        messageSender.sendSocketMessage(privateMessage);
     }
 
-    public static Msg of(Network instance, String label) {
-        return new Msg(instance, label);
+    public static Msg of(Network instance, String label, MessageSender messageSender) {
+        return new Msg(instance, label, messageSender);
     }
 
     @Override
