@@ -8,6 +8,7 @@ import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.PlayerInfoData;
 import com.comphenix.protocol.wrappers.WrappedChatComponent;
 import com.comphenix.protocol.wrappers.WrappedGameProfile;
+import com.comphenix.protocol.wrappers.WrappedSignedProperty;
 import net.bteuk.network.lib.dto.TabPlayer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
@@ -22,6 +23,7 @@ import org.bukkit.Server;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
@@ -181,14 +183,29 @@ public class NetworkTabManager extends AbstractTabManager {
     private PlayerInfoData toFakeInfoData(User user, TabPlayer tabPlayer) {
         String realUuid = tabPlayer.getUuid();
         UUID fakeUuid = fakeUuidForRealUuid(realUuid);
+        org.bukkit.entity.Player bukkitPlayer = resolveBukkitPlayer(user.getUuid());
 
         WrappedGameProfile profile = new WrappedGameProfile(fakeUuid, null);
+        getSignedTextures(bukkitPlayer).ifPresent(textures -> {
+            profile.getProperties().put("textures", textures);
+        });
         EnumWrappers.NativeGameMode gameMode = EnumWrappers.NativeGameMode.CREATIVE;
 
         Component displayName = formattedName(user, tabPlayer);
         WrappedChatComponent wrappedDisplayName = toWrappedChat(displayName);
 
         return new PlayerInfoData(fakeUuid, tabPlayer.getPing(), true, gameMode, profile, wrappedDisplayName);
+    }
+
+    private static Optional<WrappedSignedProperty> getSignedTextures(org.bukkit.entity.Player player) {
+        WrappedGameProfile profile = WrappedGameProfile.fromPlayer(player);
+
+        Collection<WrappedSignedProperty> textures = profile.getProperties().get("textures");
+        if (textures.isEmpty()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(textures.iterator().next());
     }
 
     private UUID fakeUuidForRealUuid(String realUuidString) {

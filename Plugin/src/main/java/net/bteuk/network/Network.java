@@ -72,6 +72,7 @@ import net.bteuk.network.eventing.events.EventManager;
 import net.bteuk.network.eventing.events.InviteEvent;
 import net.bteuk.network.eventing.events.KickEvent;
 import net.bteuk.network.eventing.events.TeleportEvent;
+import net.bteuk.network.eventing.listeners.ChatListener;
 import net.bteuk.network.eventing.listeners.CommandPreProcess;
 import net.bteuk.network.eventing.listeners.Connect;
 import net.bteuk.network.eventing.listeners.NetworkMoveListener;
@@ -541,6 +542,9 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         // Start the Network timers.
         new Timers(this, globalSQL, eventAPI, constants, afk);
 
+        // Register the chat listener.
+        new ChatListener(this, moderation, afk, messageSender);
+
         // Let the Proxy know that the server is enabled.
         messageSender.sendSocketMessage(new ServerStartup(constants.serverName()));
 
@@ -550,6 +554,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
     }
 
     private void initStandaloneMode(NetworkSocketHandler socketHandler, MessageSender messageSender) {
+        log.info("Loading Network in standalone mode.");
         ProxyController proxyController = new ProxyController(getDataFolder());
 
         NetworkScheduler scheduler = new NetworkScheduler(this);
