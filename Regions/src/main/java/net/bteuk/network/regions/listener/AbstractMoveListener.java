@@ -28,7 +28,6 @@ public abstract class AbstractMoveListener {
 
         // Implies that the user has left their current region.
         if (newRegion == null) {
-            log.info("New region of " +regionUser.getPlayer().getName() +" is null");
             // Send default leave message.
             regionUser.getPlayer().sendActionBar(
                     ChatUtils.success("You have left ")
