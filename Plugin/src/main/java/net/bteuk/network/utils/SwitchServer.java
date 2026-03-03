@@ -37,8 +37,9 @@ public class SwitchServer implements ServerAPI {
      */
     public void switchServer(NetworkPlayer player, String server) {
 
-        if (constants.standalone())
+        if (constants.standalone()) {
             return;
+        }
 
         Optional<NetworkUser> user = instance.getNetworkUserByUuid(player.getUuidAsString());
 

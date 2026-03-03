@@ -486,7 +486,7 @@ public class PlotAPIImpl implements PlotAPI {
 
     @Override
     public int getVerificationBookIdOld(int verificationId, ReviewCategory category) {
-        return plotSQL.getInt("SELECT book_id_old FROM plot_category_feedback WHERE verification_id=" + verificationId + " AND category='" + category + "';");
+        return plotSQL.getInt("SELECT book_id_old FROM plot_verification_category WHERE verification_id=" + verificationId + " AND category='" + category + "';");
     }
 
     @Override
@@ -505,7 +505,7 @@ public class PlotAPIImpl implements PlotAPI {
 
     @Override
     public int getVerificationBookIdNew(int verificationId, ReviewCategory category) {
-        return plotSQL.getInt("SELECT book_id_new FROM plot_category_feedback WHERE verification_id=" + verificationId + " AND category='" + category + "';");
+        return plotSQL.getInt("SELECT book_id_new FROM plot_verification_category WHERE verification_id=" + verificationId + " AND category='" + category + "';");
     }
 
     @Override
