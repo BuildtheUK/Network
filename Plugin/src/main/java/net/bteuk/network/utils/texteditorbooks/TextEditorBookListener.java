@@ -1,13 +1,13 @@
 package net.bteuk.network.utils.texteditorbooks;
 
 import lombok.Getter;
-import net.bteuk.minecraft.gui.Gui;
 import net.bteuk.network.Network;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.btuk.minecraft.gui.Gui;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;

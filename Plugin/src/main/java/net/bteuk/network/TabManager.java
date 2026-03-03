@@ -201,7 +201,7 @@ public class TabManager implements ShutdownHook {
 
                     infoList.forEach(info -> {
                         boolean isServerPlayer = instance.getServer().getPlayer(info.getProfileId()) != null;
-                        // Create an exact copy, but set 'listed' to false.
+                        // Create an exact copy but set 'listed' to false.
                         if (isServerPlayer) {
                             newInfoList.add(new PlayerInfoData(info.getProfileId(), info.getLatency(), false,
                                     info.getGameMode(), info.getProfile(), info.getDisplayName(),

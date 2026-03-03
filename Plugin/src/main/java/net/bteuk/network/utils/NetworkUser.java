@@ -2,7 +2,6 @@ package net.bteuk.network.utils;
 
 import lombok.Getter;
 import lombok.Setter;
-import net.bteuk.minecraft.gui.Gui;
 import net.bteuk.network.Network;
 import net.bteuk.network.api.entity.Role;
 import net.bteuk.network.building_companion.BuildingCompanion;
@@ -17,6 +16,7 @@ import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.regions.RegionUser;
 import net.bteuk.network.socket.MessageSender;
 import net.kyori.adventure.text.Component;
+import org.btuk.minecraft.gui.Gui;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;

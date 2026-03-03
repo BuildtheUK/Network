@@ -1,10 +1,10 @@
 package net.bteuk.network.gui;
 
-import net.bteuk.minecraft.gui.Gui;
-import net.bteuk.minecraft.gui.GuiAction;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
 import net.kyori.adventure.text.Component;
+import org.btuk.minecraft.gui.Gui;
+import org.btuk.minecraft.gui.GuiAction;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;

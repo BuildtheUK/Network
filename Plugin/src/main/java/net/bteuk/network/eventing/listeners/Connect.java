@@ -2,7 +2,6 @@ package net.bteuk.network.eventing.listeners;
 
 import lombok.Setter;
 import lombok.extern.java.Log;
-import net.bteuk.minecraft.gui.GuiManager;
 import net.bteuk.network.Network;
 import net.bteuk.network.TabManager;
 import net.bteuk.network.building_companion.BuildingCompanion;
@@ -25,6 +24,7 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.btuk.minecraft.gui.GuiManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;

@@ -2,8 +2,6 @@ package net.bteuk.network;
 
 import lombok.Getter;
 import lombok.extern.java.Log;
-import net.bteuk.minecraft.gui.GuiListener;
-import net.bteuk.minecraft.gui.GuiManager;
 import net.bteuk.network.api.CoordinateAPI;
 import net.bteuk.network.api.NetworkAPI;
 import net.bteuk.network.api.PlotAPI;
@@ -110,6 +108,8 @@ import net.bteuk.network.utils.staff.Moderation;
 import net.bteuk.network.utils.worldguard.WorldGuard;
 import net.bteuk.teachingtutorials.services.PromotionService;
 import net.buildtheearth.terraminusminus.TerraConfig;
+import org.btuk.minecraft.gui.GuiListener;
+import org.btuk.minecraft.gui.GuiManager;
 import org.btuk.proxy.core.ProxyController;
 import org.btuk.proxy.core.socket.ProxySocketHandler;
 import org.btuk.proxy.database.DatabaseInit;
