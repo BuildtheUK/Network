@@ -30,7 +30,15 @@ public class SwitchServer implements ServerAPI {
         this.messageSender = messageSender;
     }
 
+    /**
+     * Handles a player server switch within the Network. If on standalone, skips everything and returns.
+     * @param player The player to switch server
+     * @param server The server to switch the player to
+     */
     public void switchServer(NetworkPlayer player, String server) {
+
+        if (constants.standalone())
+            return;
 
         Optional<NetworkUser> user = instance.getNetworkUserByUuid(player.getUuidAsString());
 

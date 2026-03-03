@@ -368,11 +368,6 @@ public class PlotAPIImpl implements PlotAPI {
     }
 
     @Override
-    public boolean locationExists(String location) {
-        return plotSQL.hasRow("SELECT name FROM location_data WHERE name='" + location + "';");
-    }
-
-    @Override
     public void deleteLocation(String location) {
         plotSQL.update("DELETE FROM location_data WHERE name='" + location + "';");
     }

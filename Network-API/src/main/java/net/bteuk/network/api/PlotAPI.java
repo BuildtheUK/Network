@@ -156,8 +156,6 @@ public interface PlotAPI {
 
     List<String> getLocationRegions(String location);
 
-    boolean locationExists(String location);
-
     void deleteLocation(String location);
 
     void deleteRegionsForLocation(String location);

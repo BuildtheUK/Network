@@ -402,7 +402,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         }
 
         if (constants.ll()) {
-            commandManager.registerCommand(new Where(plotSQL, constants));
+            commandManager.registerCommand(new Where(plotSQL, plotAPI, constants));
         }
 
         if (!constants.standalone()) {
