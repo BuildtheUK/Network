@@ -6,11 +6,10 @@ public class TabCompleterNode {
 
     public String argument;
     public List<TabCompleterNode> children;
-    public TabCompleterNode(String d, List<TabCompleterNode> ch)
-    {
+
+    public TabCompleterNode(String d, List<TabCompleterNode> ch) {
         argument = d;
         children = ch;
     }
-
 
 }

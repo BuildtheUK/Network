@@ -37,7 +37,7 @@ public class ConfirmationListener implements Listener {
             buildings.removePlayerFromListenerList(player);
             e.setCancelled(true);
             if (((net.kyori.adventure.text.TextComponent) e.message()).content().equals("y")) {
-                buildings.addBuildingToDataBase(e.getPlayer(), location,flags);
+                buildings.addBuildingToDataBase(e.getPlayer(), location, flags);
             } else {
                 e.getPlayer().sendMessage(ChatUtils.error("No building added"));
             }
