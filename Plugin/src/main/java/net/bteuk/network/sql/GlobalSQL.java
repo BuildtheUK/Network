@@ -183,7 +183,7 @@ public class GlobalSQL extends AbstractSQL {
                 Location temp = new Location(Bukkit.getWorld(results.getString("world")), results.getDouble("x"), results.getDouble("y"), results.getDouble("z"),
                         results.getFloat("yaw"), results.getFloat("pitch"));
                 buildings.add(new Building(results.getInt("building_id"), temp, results.getString("player_id"), results.getInt("coordinate_id"),
-                        results.getObject("timeAdded", LocalDateTime.class), results.getBoolean("isPublic"), results.getBoolean("playerBuilt"), results.getDouble("lat"),
+                        results.getObject("time_added", LocalDateTime.class), results.getBoolean("is_public"), results.getBoolean("player_built"), results.getDouble("lat"),
                         results.getDouble("lon")));
             }
             return buildings;

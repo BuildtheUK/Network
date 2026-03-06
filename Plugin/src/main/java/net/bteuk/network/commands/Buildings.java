@@ -184,7 +184,7 @@ public class Buildings extends AbstractCommand {
         int offset = (page - 1) * pageSize;
 
         String condition = String.format(
-                "WHERE isPublic = true AND playerBuilt = true ORDER BY timeAdded DESC LIMIT %d OFFSET %d",
+                "WHERE is_public = true AND player_built = true ORDER BY time_added DESC LIMIT %d OFFSET %d",
                 pageSize,
                 offset
         );
@@ -262,23 +262,23 @@ public class Buildings extends AbstractCommand {
             return;
         }
         if (minbuilding.playerId().equals(player.getUniqueId().toString()) || player.hasPermission("network.buildings.update")) {
-            boolean isPublic = instance.getGlobalSQL().getBoolean(String.format("SELECT isPublic FROM buildings WHERE building_id = %d", minbuilding.buildingId()));
-            boolean isBuilt = instance.getGlobalSQL().getBoolean(String.format("SELECT playerBuilt FROM buildings WHERE building_id = %d", minbuilding.buildingId()));
+            boolean isPublic = instance.getGlobalSQL().getBoolean(String.format("SELECT is_public FROM buildings WHERE building_id = %d", minbuilding.buildingId()));
+            boolean isBuilt = instance.getGlobalSQL().getBoolean(String.format("SELECT player_built FROM buildings WHERE building_id = %d", minbuilding.buildingId()));
             switch (flag) {
                 case "private":
                     if (!isBuilt) {
                         player.sendMessage(ChatUtils.error("This flag can't be given to a building that you have marked as counted only"));
                         break;
                     }
-                    instance.getGlobalSQL().update(String.format("UPDATE buildings SET isPublic = false WHERE building_id = %d", minbuilding.buildingId()));
+                    instance.getGlobalSQL().update(String.format("UPDATE buildings SET is_public = false WHERE building_id = %d", minbuilding.buildingId()));
                     player.sendMessage(ChatUtils.success("Building is now private"));
                     break;
                 case "public":
-                    instance.getGlobalSQL().update(String.format("UPDATE buildings SET isPublic = true WHERE building_id = %d", minbuilding.buildingId()));
+                    instance.getGlobalSQL().update(String.format("UPDATE buildings SET is_public = true WHERE building_id = %d", minbuilding.buildingId()));
                     player.sendMessage(ChatUtils.success("Building is now public"));
                     break;
                 case "built":
-                    instance.getGlobalSQL().update(String.format("UPDATE buildings SET playerBuilt = true WHERE building_id = %d", minbuilding.buildingId()));
+                    instance.getGlobalSQL().update(String.format("UPDATE buildings SET player_built = true WHERE building_id = %d", minbuilding.buildingId()));
                     player.sendMessage(ChatUtils.success("Building will now count towards your personal total"));
                     break;
                 case "counted":
@@ -286,7 +286,7 @@ public class Buildings extends AbstractCommand {
                         player.sendMessage(ChatUtils.error("This flag can't be given to a building that you have marked as private"));
                         break;
                     }
-                    instance.getGlobalSQL().update(String.format("UPDATE buildings SET playerBuilt = false WHERE building_id = %d", minbuilding.buildingId()));
+                    instance.getGlobalSQL().update(String.format("UPDATE buildings SET player_built = false WHERE building_id = %d", minbuilding.buildingId()));
                     player.sendMessage(ChatUtils.success("Building will no longer count towards your personal total. This building can now be claimed by someone else"));
                     break;
                 default:
@@ -305,7 +305,7 @@ public class Buildings extends AbstractCommand {
         }
         if (!minbuilding.playerBuilt()) {
             instance.getGlobalSQL()
-                    .update(String.format("UPDATE buildings SET player_id = '%s', playerBuilt = TRUE WHERE building_id = %d", player.getUniqueId(), minbuilding.buildingId()));
+                    .update(String.format("UPDATE buildings SET player_id = '%s', player_built = TRUE WHERE building_id = %d", player.getUniqueId(), minbuilding.buildingId()));
             player.sendMessage(ChatUtils.success("Building builder updated to you"));
         } else {
             player.sendMessage(ChatUtils.error("This building is already claimed"));
@@ -356,7 +356,7 @@ public class Buildings extends AbstractCommand {
     }
 
     private void displayPlayerCount(Player player) {
-        int buildingCount = instance.getGlobalSQL().getInt(String.format("SELECT COUNT(*) FROM buildings WHERE player_id ='%s' AND playerBuilt = true", player.getUniqueId()));
+        int buildingCount = instance.getGlobalSQL().getInt(String.format("SELECT COUNT(*) FROM buildings WHERE player_id ='%s' AND player_built = true", player.getUniqueId()));
         if (buildingCount != 1) {
             player.sendMessage(ChatUtils.success("You have built %s buildings!", String.valueOf(buildingCount)));
         } else {
@@ -439,7 +439,7 @@ public class Buildings extends AbstractCommand {
                 playerBuilt = true;
             }
             instance.getGlobalSQL()
-                    .update(String.format("INSERT INTO buildings (coordinate_id, player_id, isPublic, playerBuilt, lat, lon) VALUES (%d, '%s' ,%b, %b, %f ,%f);", coordinateId,
+                    .update(String.format("INSERT INTO buildings (coordinate_id, player_id, is_public, player_built, lat, lon) VALUES (%d, '%s' ,%b, %b, %f ,%f);", coordinateId,
                             player.getUniqueId(), isPublic, playerBuilt, coords[1], coords[0]));
             player.sendMessage(ChatUtils.success("Building added at %s,%s", String.valueOf(coords[0]), String.valueOf(coords[1])));
         } catch (
