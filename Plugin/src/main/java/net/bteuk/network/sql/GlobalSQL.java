@@ -18,6 +18,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -181,7 +182,9 @@ public class GlobalSQL extends AbstractSQL {
             while (results.next()) {
                 Location temp = new Location(Bukkit.getWorld(results.getString("world")), results.getDouble("x"), results.getDouble("y"), results.getDouble("z"),
                         results.getFloat("yaw"), results.getFloat("pitch"));
-                buildings.add(new Building(results.getInt("building_id"), temp, results.getString("player_id"), results.getInt("coordinate_id")));
+                buildings.add(new Building(results.getInt("building_id"), temp, results.getString("player_id"), results.getInt("coordinate_id"),
+                        results.getObject("time_added", LocalDateTime.class), results.getBoolean("is_public"), results.getBoolean("player_built"), results.getDouble("lat"),
+                        results.getDouble("lon")));
             }
             return buildings;
         } catch (SQLException sql) {
@@ -294,8 +297,7 @@ public class GlobalSQL extends AbstractSQL {
 
         int iPlayerThere = getInt("SELECT count(1) FROM player_data WHERE uuid='" + uuid + "'");
 
-        if (iPlayerThere == 0)
-        {
+        if (iPlayerThere == 0) {
             try (
                     Connection conn = conn();
                     PreparedStatement statement = conn.prepareStatement(
@@ -315,8 +317,7 @@ public class GlobalSQL extends AbstractSQL {
                 e.printStackTrace();
                 return false;
             }
-        }
-        else
+        } else
             return true;
     }
 }
