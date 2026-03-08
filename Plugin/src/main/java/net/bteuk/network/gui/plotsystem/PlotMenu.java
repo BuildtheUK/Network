@@ -42,15 +42,9 @@ public class PlotMenu extends NetworkRefreshableGui {
 
             // Change the colour of the material for plot owners/members.
             // Lime for owners, yellow for members.
-            setItem(slot, Utils.createItem(
-                            (plotSQL.hasRow(
-                                    "SELECT uuid FROM plot_members WHERE uuid='" + user.player.getUniqueId() + "' AND" +
-                                            " id=" + plots.get(
-                                            i) + " AND is_owner=1;") ? Material.LIME_CONCRETE :
-                                    Material.YELLOW_CONCRETE),
-                            1,
-                            Utils.title("Plot " + plots.get(i)),
-                            Utils.line("Click to open the menu of this plot.")),
+            int difficulty = plotSQL.getInt("SELECT difficulty FROM plot_data WHERE id=" + plots.get(i) + ";");
+            boolean isOwner = plotSQL.hasRow("SELECT uuid FROM plot_members WHERE uuid='" + user.player.getUniqueId() + "' AND id=" + plots.get(i) + " AND is_owner=1;");
+            setItem(slot, Utils.createItem(getPlotIcon(difficulty, isOwner), 1, Utils.title("Plot " + plots.get(i)), Utils.line("Click to open the menu of this plot.")),
                     (NetworkUser u) -> {
                         // Delete this gui.
                         this.delete();
@@ -114,5 +108,14 @@ public class PlotMenu extends NetworkRefreshableGui {
                     u.mainGui = new BuildGui(provider, u);
                     u.mainGui.open(u.player);
                 });
+    }
+
+    private Material getPlotIcon(int difficulty, boolean isOwner) {
+        return switch (difficulty) {
+            case 1 -> isOwner ? Material.LIME_CONCRETE : Material.LIME_CONCRETE_POWDER;
+            case 2 -> isOwner ? Material.YELLOW_CONCRETE : Material.YELLOW_CONCRETE_POWDER;
+            case 3 -> isOwner ? Material.RED_CONCRETE : Material.RED_CONCRETE_POWDER;
+            default -> Material.BARRIER;
+        };
     }
 }
