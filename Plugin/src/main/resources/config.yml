@@ -177,3 +177,6 @@ minrank_generation: Jr.Builder
 minrank_regionclaim: Jr.Builder
 minrank_zonejoin: Jr.Builder
 minrank_publicjoin: Jr.Builder
+
+# Whether the UK Survey is enabled
+UKSurvey_enabled: false

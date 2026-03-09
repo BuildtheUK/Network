@@ -43,7 +43,7 @@ public class NetworkConfig {
     private String latestVersion() {
         String version = Objects.requireNonNull(config.getDefaults()).getString("version");
         // If null return default.
-        return Objects.requireNonNullElse(version, "1.8.0");
+        return Objects.requireNonNullElse(version, "1.9.0");
     }
 
     // Update config if the version is outdated.
@@ -202,11 +202,14 @@ public class NetworkConfig {
         NetworkLocation spawnLocation = new NetworkLocation(config.getString("spawn.world"), config.getDouble("spawn.x"), config.getDouble("spawn.y"),
                 config.getDouble("spawn.z"), (float) config.getDouble("spawn.yaw"), (float) config.getDouble("spawn.pitch"));
 
+        boolean UKSurvey = config.getBoolean("UKSurvey_enabled");
+
         log.info("Loaded constants from config.");
         return new Constants(serverName, serverType, standalone, regionsEnabled, regionInactivity, tpllEnabled, tpllRequiredPermission, maxY, minY, earthWorld, staffChat, tips,
                 tutorials, llEnabled, progressMap, progression, announceOverallLevelUps, announceSeasonalLevelUps, sidebarEnabled, sidebarTitle, sidebarTextList, motdEnabled,
-                motdText, minrankGeneration, minrankRegionClaim, minrankZoneJoin, plotSystemEnabled, moderationEnabled, warpsEnabled, homesEnabled, announcePromotions, discordLink, skullsEnabled, progressMapLink, chatSocketOutputIP,
+                motdText, minrankGeneration, minrankRegionClaim, minrankZoneJoin, plotSystemEnabled, moderationEnabled, warpsEnabled, homesEnabled, announcePromotions, discordLink,
+                skullsEnabled, progressMapLink, chatSocketOutputIP,
                 chatSocketOutputPort, chatSocketInputPort, tipsFrequency, regionStaffRequestAlways, regionStaffRequestRadius, progressMapID, mapHubAPIKey, navigationRadius,
-                compulsoryTutorial, afkTime, mapEnabled, mapServer, mapLocation, spawnLocation);
+                compulsoryTutorial, afkTime, mapEnabled, mapServer, mapLocation, spawnLocation, UKSurvey);
     }
 }
