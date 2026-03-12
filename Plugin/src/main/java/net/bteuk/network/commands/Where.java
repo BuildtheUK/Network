@@ -2,6 +2,8 @@ package net.bteuk.network.commands;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import lombok.extern.java.Log;
+import net.bteuk.network.api.NetworkAPI;
+import net.bteuk.network.api.PlotAPI;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.ServerType;
 import net.bteuk.network.lib.utils.ChatUtils;
@@ -26,10 +28,12 @@ public class Where extends AbstractCommand {
     private final EarthGeneratorSettings bteGeneratorSettings =
             EarthGeneratorSettings.parse(EarthGeneratorSettings.BTE_DEFAULT_SETTINGS);
     private final PlotSQL plotSQL;
+    private final PlotAPI plotAPI;
     private final Constants constants;
 
-    public Where(PlotSQL plotSQL, Constants constants) {
+    public Where(PlotSQL plotSQL, PlotAPI plotAPI, Constants constants) {
         this.plotSQL = plotSQL;
+        this.plotAPI = plotAPI;
         this.constants = constants;
     }
 
@@ -42,7 +46,9 @@ public class Where extends AbstractCommand {
             return;
         }
 
-        if (constants.serverType() != PLOT && !(constants.serverType() == ServerType.EARTH && player.getLocation().getWorld().getName().equals(constants.earthWorld()))) {
+        boolean bPlotWorld = (constants.serverType() == PLOT || constants.standalone()) && plotAPI.hasLocation(player.getWorld().getName());
+
+        if (!bPlotWorld && !(constants.serverType() == ServerType.EARTH && player.getWorld().getName().equals(constants.earthWorld()))) {
             player.sendMessage(ChatUtils.error("This world does not support coordinates."));
             return;
         }
@@ -51,7 +57,7 @@ public class Where extends AbstractCommand {
         try {
             int deltaX = 0;
             int deltaZ = 0;
-            if (constants.serverType() == PLOT && plotSQL.hasRow("SELECT name FROM location_data WHERE name='" + player.getWorld().getName() + "';")) {
+            if (bPlotWorld) {
                 // Get negative coordinate transform of new location.
                 deltaX = -plotSQL.getInt("SELECT xTransform FROM location_data WHERE name='" + player.getWorld().getName() + "';");
                 deltaZ = -plotSQL.getInt("SELECT zTransform FROM location_data WHERE name='" + player.getWorld().getName() + "';");

@@ -1,7 +1,6 @@
 package net.bteuk.network.utils.staff;
 
 import net.bteuk.network.Network;
-import net.bteuk.network.SocketHandlerImpl;
 import net.bteuk.network.api.EventAPI;
 import net.bteuk.network.core.Time;
 import net.bteuk.network.exceptions.DurationFormatException;
@@ -12,6 +11,7 @@ import net.bteuk.network.lib.dto.ModerationEvent;
 import net.bteuk.network.lib.enums.ChatChannels;
 import net.bteuk.network.lib.enums.ModerationAction;
 import net.bteuk.network.lib.utils.ChatUtils;
+import net.bteuk.network.socket.MessageSender;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
@@ -24,10 +24,13 @@ public class Moderation {
     private final Network instance;
 
     private final EventAPI eventAPI;
+    
+    private final MessageSender messageSender;
 
-    public Moderation(Network instance, EventAPI eventAPI) {
+    public Moderation(Network instance, EventAPI eventAPI, MessageSender messageSender) {
         this.instance = instance;
         this.eventAPI = eventAPI;
+        this.messageSender = messageSender;
     }
 
     // Ban the player.
@@ -66,12 +69,12 @@ public class Moderation {
         Component mutedComponent = getMutedComponent(uuid);
         ModerationEvent moderationEvent = new ModerationEvent(ModerationAction.MUTE, null, uuid, end_time,
                 mutedComponent);
-        SocketHandlerImpl.sendSocketMessageIfOnline(moderationEvent);
+        messageSender.sendSocketMessage(moderationEvent);
 
         // Notify the user.
         DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), uuid, "server",
                 mutedComponent, true);
-        SocketHandlerImpl.sendSocketMessageIfOnline(directMessage);
+        messageSender.sendSocketMessage(directMessage);
     }
 
     // Unban the player.
@@ -91,7 +94,7 @@ public class Moderation {
 
         // Update Tab by sending a moderation event.
         ModerationEvent moderationEvent = new ModerationEvent(ModerationAction.UNMUTE, null, uuid, 0L, null);
-        SocketHandlerImpl.sendSocketMessageIfOnline(moderationEvent);
+        messageSender.sendSocketMessage(moderationEvent);
     }
 
     // Kick the player.

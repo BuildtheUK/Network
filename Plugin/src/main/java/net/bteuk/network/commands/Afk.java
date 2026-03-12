@@ -4,29 +4,28 @@ import io.papermc.paper.command.brigadier.CommandSourceStack;
 import lombok.extern.java.Log;
 import net.bteuk.network.CustomChat;
 import net.bteuk.network.Network;
-import net.bteuk.network.SocketHandlerImpl;
 import net.bteuk.network.core.Time;
 import net.bteuk.network.lib.dto.UserUpdate;
 import net.bteuk.network.lib.utils.ChatUtils;
+import net.bteuk.network.socket.MessageSender;
 import net.bteuk.network.utils.NetworkUser;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 @Log
 public class Afk extends AbstractCommand {
 
     private final Network instance;
 
-    private CustomChat chat;
+    private final MessageSender messageSender;
 
-    public Afk(Network instance) {
+    private final CustomChat chat;
+
+    public Afk(Network instance, MessageSender messageSender, CustomChat chat) {
         this.instance = instance;
-    }
-
-    public void registerChat(CustomChat chat) {
-        if (this.chat == null) {
-            this.chat = chat;
-        }
+        this.messageSender = messageSender;
+        this.chat = chat;
     }
 
     public void updateAfkStatus(NetworkUser user, boolean afk) {
@@ -37,11 +36,11 @@ public class Afk extends AbstractCommand {
         UserUpdate userUpdateEvent = new UserUpdate();
         userUpdateEvent.setUuid(user.player.getUniqueId().toString());
         userUpdateEvent.setAfk(afk);
-        SocketHandlerImpl.sendSocketMessageIfOnline(userUpdateEvent);
+        messageSender.sendSocketMessage(userUpdateEvent);
     }
 
     @Override
-    public void execute(@NotNull CommandSourceStack stack, @NotNull String[] args) {
+    public void execute(@NotNull CommandSourceStack stack, String @NonNull [] args) {
 
         // Check if the sender is a player.
         Player player = getPlayer(stack);

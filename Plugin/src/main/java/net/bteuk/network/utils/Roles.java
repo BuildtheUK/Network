@@ -1,9 +1,7 @@
 package net.bteuk.network.utils;
 
 import lombok.extern.java.Log;
-import net.bteuk.network.CustomChat;
 import net.bteuk.network.Network;
-import net.bteuk.network.SocketHandlerImpl;
 import net.bteuk.network.api.RoleAPI;
 import net.bteuk.network.api.entity.Role;
 import net.bteuk.network.lib.dto.ChatMessage;
@@ -13,6 +11,7 @@ import net.bteuk.network.lib.dto.TabPlayer;
 import net.bteuk.network.lib.dto.UserUpdate;
 import net.bteuk.network.lib.enums.ChatChannels;
 import net.bteuk.network.lib.utils.ChatUtils;
+import net.bteuk.network.socket.MessageSender;
 import net.bteuk.network.sql.PlotSQL;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -21,6 +20,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.LinkedHashSet;
@@ -45,17 +45,12 @@ public final class Roles implements RoleAPI {
 
     private final Network instance;
     private final PlotSQL plotSQL;
-    private CustomChat customChat;
+    private final MessageSender messageSender;
 
-    public Roles(Network instance, PlotSQL plotSQL) {
+    public Roles(Network instance, PlotSQL plotSQL, MessageSender messageSender) {
         this.instance = instance;
         this.plotSQL = plotSQL;
-    }
-
-    public void registerChat(CustomChat customChat) {
-        if (this.customChat == null) {
-            this.customChat = customChat;
-        }
+        this.messageSender = messageSender;
     }
 
     @Override
@@ -66,7 +61,7 @@ public final class Roles implements RoleAPI {
         return ROLES;
     }
 
-    public Role getRoleById(String roleId) {
+    public @Nullable Role getRoleById(String roleId) {
         // Get the configuration if not yet fetches.
         if (ROLES == null) {
             loadRoles();
@@ -186,10 +181,6 @@ public final class Roles implements RoleAPI {
     public CompletableFuture<Component> alterRole(String uuid, String name, String roleId, boolean remove,
                                                          boolean announce) {
 
-        if (customChat == null) {
-            throw new IllegalStateException("CustomChat is not initialized.");
-        }
-
         // Get the configured group.
         Role role = getRoleById(roleId);
         Group group = Permissions.getGroup(roleId);
@@ -226,7 +217,7 @@ public final class Roles implements RoleAPI {
                 UserUpdate userUpdate = new UserUpdate();
                 userUpdate.setUuid(uuid);
                 userUpdate.setTabPlayer(tabPlayer);
-                SocketHandlerImpl.sendSocketMessageIfOnline(userUpdate);
+                messageSender.sendSocketMessage(userUpdate);
 
                 // If the new primary role is architect or reviewer, and they were promoted add them to the reviewers
                 // database table.
@@ -236,7 +227,7 @@ public final class Roles implements RoleAPI {
             }
 
             DiscordRole discordRole = new DiscordRole(uuid, roleId, !remove);
-            SocketHandlerImpl.sendSocketMessageIfOnline(discordRole);
+            messageSender.sendSocketMessage(discordRole);
 
             if (announce && !remove) {
                 sendPromotionChatMessage(name, role);
@@ -259,14 +250,14 @@ public final class Roles implements RoleAPI {
                 .append(PROMOTION_TEMPLATE)
                 .append(role.getColouredRoleName())
                 .decorate(TextDecoration.BOLD);
-        customChat.sendChatMessage(new ChatMessage(GLOBAL.getChannelName(), "server", message));
+        messageSender.sendSocketMessage(new ChatMessage(GLOBAL.getChannelName(), "server", message));
     }
 
     private void sendPromotionDirectMessage(String uuid, Role role) {
         Component message = PROMOTION_SELF
                 .append(role.getColouredRoleName())
                 .decorate(TextDecoration.BOLD);
-        customChat.sendDirectMessage(new DirectMessage(ChatChannels.GLOBAL.getChannelName(), uuid
+        messageSender.sendSocketMessage(new DirectMessage(ChatChannels.GLOBAL.getChannelName(), uuid
                 , "server", message, true));
     }
 }

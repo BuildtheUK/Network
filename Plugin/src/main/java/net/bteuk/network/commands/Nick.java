@@ -2,15 +2,14 @@ package net.bteuk.network.commands;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import lombok.extern.java.Log;
-import net.bteuk.network.CustomChat;
 import net.bteuk.network.Network;
-import net.bteuk.network.SocketHandlerImpl;
 import net.bteuk.network.commands.tabcompleters.ConditionalPlayerSelector;
 import net.bteuk.network.commands.tabcompleters.FixedArgSelector;
 import net.bteuk.network.commands.tabcompleters.MultiArgSelector;
 import net.bteuk.network.lib.dto.OnlineUser;
 import net.bteuk.network.lib.dto.UserUpdate;
 import net.bteuk.network.lib.utils.ChatUtils;
+import net.bteuk.network.socket.MessageSender;
 import net.bteuk.network.utils.NetworkUser;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
@@ -29,9 +28,11 @@ public class Nick extends AbstractCommand {
     private static final LegacyComponentSerializer COLOUR_SERIALIZER = LegacyComponentSerializer.builder().hexColors().character('&').build();
 
     private final Network instance;
+    private final MessageSender messageSender;
 
-    public Nick(Network instance) {
+    public Nick(Network instance, MessageSender messageSender) {
         this.instance = instance;
+        this.messageSender = messageSender;
         setTabCompleter(new MultiArgSelector(List.of(new FixedArgSelector(Collections.singletonList("reset"), 0),
                 new ConditionalPlayerSelector(instance, 1, args -> args != null && args.length > 0 && "reset".equalsIgnoreCase(args[0])))));
     }
@@ -94,7 +95,7 @@ public class Nick extends AbstractCommand {
         UserUpdate userUpdateEvent = new UserUpdate();
         userUpdateEvent.setUuid(uuid);
         userUpdateEvent.setDisplayName(displayName);
-        SocketHandlerImpl.sendSocketMessageIfOnline(userUpdateEvent);
+        messageSender.sendSocketMessage(userUpdateEvent);
     }
 
     @Override

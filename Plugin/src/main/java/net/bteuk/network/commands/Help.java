@@ -397,10 +397,8 @@ public class Help extends AbstractCommand {
         p.sendMessage(Component.text("/nv", NamedTextColor.GRAY)
                 .append(Utils.line(" - Toggle night vision, also removes glitched shadows.")));
 
-        if (!constants.standalone()) {
-            p.sendMessage(Component.text("\n/discord", NamedTextColor.GRAY)
-                    .append(Utils.line(" - Sends you a link to our Discord server.")));
-        }
+        p.sendMessage(Component.text("\n/discord", NamedTextColor.GRAY)
+                .append(Utils.line(" - Sends you a link to our Discord server.")));
     }
 
     private void worldedit(Player p) {

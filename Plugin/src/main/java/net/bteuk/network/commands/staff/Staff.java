@@ -69,8 +69,7 @@ public class Staff extends AbstractCommand {
             return;
         }
 
-        // If more than one args, staff chat is enabled, and it is not in standalone, then go to staff chat logic
-        if ((args.length > 0 && guiProvider.constants().staffChat()) && !guiProvider.constants().standalone()) {
+        if ((args.length > 0 && guiProvider.constants().staffChat())) {
             // If the first arg is chat, switch the player to and from staff chat if enabled.
             if (args[0].equalsIgnoreCase("chat")) {
                 String channel = GLOBAL.getChannelName();

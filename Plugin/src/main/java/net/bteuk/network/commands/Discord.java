@@ -2,9 +2,7 @@ package net.bteuk.network.commands;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import lombok.extern.java.Log;
-import net.bteuk.network.CustomChat;
 import net.bteuk.network.Network;
-import net.bteuk.network.SocketHandlerImpl;
 import net.bteuk.network.api.entity.Role;
 import net.bteuk.network.commands.tabcompleters.FixedArgSelector;
 import net.bteuk.network.core.Constants;
@@ -12,12 +10,14 @@ import net.bteuk.network.core.Time;
 import net.bteuk.network.lib.dto.DiscordLinking;
 import net.bteuk.network.lib.dto.DiscordRole;
 import net.bteuk.network.lib.utils.ChatUtils;
+import net.bteuk.network.socket.MessageSender;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Roles;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -28,16 +28,18 @@ public class Discord extends AbstractCommand {
     private final Network instance;
     private final Roles roles;
     private final Constants constants;
+    private final MessageSender messageSender;
 
-    public Discord(Network instance, Roles roles, Constants constants) {
+    public Discord(Network instance, Roles roles, Constants constants, MessageSender messageSender) {
         this.instance = instance;
         this.roles = roles;
         this.constants = constants;
+        this.messageSender = messageSender;
         setTabCompleter(new FixedArgSelector(Arrays.asList("link", "unlink"), 0));
     }
 
     @Override
-    public void execute(@NotNull CommandSourceStack stack, @NotNull String[] args) {
+    public void execute(@NotNull CommandSourceStack stack, String @NonNull [] args) {
 
         // Check if the sender is a player.
         Player player = getPlayer(stack);
@@ -74,7 +76,7 @@ public class Discord extends AbstractCommand {
                 discordLinking.setUuid(player.getUniqueId().toString());
                 discordLinking.setToken(token);
 
-                SocketHandlerImpl.sendSocketMessageIfOnline(discordLinking);
+                messageSender.sendSocketMessage(discordLinking);
 
                 player.sendMessage(ChatUtils.success("To link your Discord please DM the code %s to the UK Bot within" + " the next 5 minutes.", token));
                 return;
@@ -96,13 +98,13 @@ public class Discord extends AbstractCommand {
                 }
 
                 DiscordRole discordRole = new DiscordRole(user.player.getUniqueId().toString(), role.getId(), false);
-                SocketHandlerImpl.sendSocketMessageIfOnline(discordRole);
+                messageSender.sendSocketMessage(discordRole);
 
                 DiscordLinking discordLinking = new DiscordLinking();
                 discordLinking.setUuid(player.getUniqueId().toString());
                 discordLinking.setDiscordId(user.getDiscordId());
                 discordLinking.setUnlink(true);
-                SocketHandlerImpl.sendSocketMessageIfOnline(discordLinking);
+                messageSender.sendSocketMessage(discordLinking);
 
                 user.isLinked = false;
                 player.sendMessage(ChatUtils.success("Unlinked your Discord."));

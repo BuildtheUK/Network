@@ -2,9 +2,9 @@ package net.bteuk.network.commands;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.bteuk.network.Network;
-import net.bteuk.network.SocketHandlerImpl;
 import net.bteuk.network.commands.tabcompleters.PlayerSelector;
 import net.bteuk.network.lib.dto.MuteEvent;
+import net.bteuk.network.socket.MessageSender;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 
@@ -17,10 +17,12 @@ public abstract class PmuteAction extends AbstractCommand {
     private final Component error;
 
     private final Network instance;
+    private final MessageSender messageSender;
 
-    protected PmuteAction(Network instance, Component error) {
+    protected PmuteAction(Network instance, Component error, MessageSender messageSender) {
         this.instance = instance;
         this.error = error;
+        this.messageSender = messageSender;
         setTabCompleter(new PlayerSelector(instance));
     }
 
@@ -47,6 +49,6 @@ public abstract class PmuteAction extends AbstractCommand {
 
         MuteEvent muteEvent = new MuteEvent(player.getUniqueId().toString(), uuid, mute);
         // Feedback will be sent through a direct message to the player by the proxy.
-        SocketHandlerImpl.sendSocketMessageIfOnline(muteEvent);
+        messageSender.sendSocketMessage(muteEvent);
     }
 }

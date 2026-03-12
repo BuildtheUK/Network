@@ -200,10 +200,15 @@ public class TabManager implements ShutdownHook {
                     List<PlayerInfoData> newInfoList = new ArrayList<>();
 
                     infoList.forEach(info -> {
-                        // Create an exact copy, but set 'listed' to false.
-                        newInfoList.add(new PlayerInfoData(info.getProfileId(), info.getLatency(), false,
-                                info.getGameMode(), info.getProfile(), info.getDisplayName(),
-                                info.getRemoteChatSessionData()));
+                        boolean isServerPlayer = instance.getServer().getPlayer(info.getProfileId()) != null;
+                        // Create an exact copy but set 'listed' to false.
+                        if (isServerPlayer) {
+                            newInfoList.add(new PlayerInfoData(info.getProfileId(), info.getLatency(), false,
+                                    info.getGameMode(), info.getProfile(), info.getDisplayName(),
+                                    info.getRemoteChatSessionData()));
+                        } else {
+                            newInfoList.add(info);
+                        }
                     });
 
                     packet.getPlayerInfoDataLists().write(1, newInfoList);

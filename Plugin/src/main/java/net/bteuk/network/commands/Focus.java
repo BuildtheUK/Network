@@ -3,8 +3,8 @@ package net.bteuk.network.commands;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import lombok.extern.java.Log;
 import net.bteuk.network.Network;
-import net.bteuk.network.core.Constants;
 import net.bteuk.network.lib.utils.ChatUtils;
+import net.bteuk.network.socket.MessageSender;
 import net.bteuk.network.utils.NetworkUser;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -19,8 +19,11 @@ public class Focus extends AbstractCommand {
 
     private final Network instance;
 
-    public Focus(Network instance, Constants constants) {
+    private final MessageSender messageSender;
+
+    public Focus(Network instance, MessageSender messageSender) {
         this.instance = instance;
+        this.messageSender = messageSender;
     }
 
     @Override
@@ -41,7 +44,7 @@ public class Focus extends AbstractCommand {
             return;
         }
 
-        user.toggleFocus();
+        user.toggleFocus(messageSender);
     }
 
     @Override

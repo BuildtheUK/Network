@@ -65,19 +65,45 @@ public class RegionMoveListener extends AbstractMoveListener implements Listener
             // Get x and z of the region as int rounded down with any necessary coordinate transforms.
             int x = ((e.getTo().getX() >= 0 ? (int) e.getTo().getX() : ((int) e.getTo().getX()) - 1) + regionUser.getDeltaX()) >> 9;
             int z = ((e.getTo().getZ() >= 0 ? (int) e.getTo().getZ() : ((int) e.getTo().getZ()) - 1) + regionUser.getDeltaZ()) >> 9;
+            // These are the 'real' terra coords of the new region, regardless of where the user is
 
             // Check if the player has moved to another region.
             if (!regionUser.getTrackedRegion().equals(x, z)) {
 
-                // Get the new region.
-                Region region = regionManager.getRegion(x, z);
+                log.info(e.getPlayer().getName() +" is moving across a region border");
 
-                // Check if the new region is on this server or not.
-                if (!regionManager.getServer(regionUser.getTrackedRegion()).equals(regionManager.getServer(region))) {
-                    switchServer(regionUser, region, e.getTo());
+                // Get the new region.
+                Region newRegion = regionManager.getRegion(x, z);
+
+                // Check if the new region is on this server or not. If it is, check whether it is on the same world.
+                if (!regionManager.getServer(regionUser.getTrackedRegion()).equals(regionManager.getServer(newRegion))) {
+
+                    switchServer(regionUser, newRegion, e.getTo());
                     e.setCancelled(true);
                 } else {
-                    e.setCancelled(switchRegion(regionUser, region));
+
+                    Location newLocation = e.getTo().clone();
+
+                    // Get true coordinates (as on terra world)
+                    double trueNewX = e.getTo().getX() + regionUser.getDeltaX();
+                    double trueNewZ = e.getTo().getZ() + regionUser.getDeltaZ();
+
+                    if (regionManager.isPlot(newRegion)) {
+                        // Apply new region shift
+                        String szLocation = plotAPI.getRegionLocation(newRegion.regionName());
+                        trueNewX = trueNewX + plotAPI.getXTransform(szLocation);
+                        trueNewZ = trueNewZ + plotAPI.getZTransform(szLocation);
+
+                        // Apply new region world
+                        newLocation.setWorld(Bukkit.getWorld(plotAPI.getRegionLocation(newRegion.regionName())));
+                    } else
+                        // Apply earth world
+                        newLocation.setWorld(Bukkit.getWorld(constants.earthWorld()));
+
+                    newLocation.setX(trueNewX);
+                    newLocation.setZ(trueNewZ);
+                    e.setTo(newLocation);
+                    e.setCancelled(switchRegion(regionUser, newRegion));
                 }
             }
         }

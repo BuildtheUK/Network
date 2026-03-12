@@ -6,7 +6,7 @@
     <parent>
         <groupId>net.bteuk</groupId>
         <artifactId>Network</artifactId>
-        <version>1.8.2</version>
+        <version>1.9.0-SNAPSHOT</version>
     </parent>
 
     <groupId>net.bteuk.network</groupId>
@@ -15,8 +15,6 @@
     <description>Minecraft plugin for the BTEUK Network</description>
 
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
         <junit.version>5.11.2</junit.version>
         <maven.compiler.version>3.13.0</maven.compiler.version>
         <maven.shade.version>3.6.0</maven.shade.version>
@@ -37,54 +35,78 @@
                         </goals>
                         <configuration>
                             <finalName>${project.parent.artifactId}-${project.version}</finalName>
+                            <createDependencyReducedPom>true</createDependencyReducedPom>
                             <minimizeJar>true</minimizeJar>
+
                             <filters>
                                 <filter>
                                     <artifact>*:*</artifact>
                                     <excludes>
-                                        <exclude>META-INF/**</exclude>
-                                        <exclude>AUTHORS</exclude>
+                                        <exclude>META-INF/MANIFEST.MF</exclude>
+
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+
+                                        <exclude>META-INF/maven/**</exclude>
+                                        <exclude>META-INF/NOTICE*</exclude>
+                                        <exclude>META-INF/LICENSE*</exclude>
                                         <exclude>LICENSE</exclude>
-                                        <exclude>README.md</exclude>
-                                        <exclude>Log4j-events.dtd</exclude>
-                                        <exclude>Log4j-events.xsd</exclude>
-                                        <exclude>Log4j-config.xsd</exclude>
-                                        <exclude>Log4j-levels.xsd</exclude>
-                                        <exclude>Log4j-charsets.properties</exclude>
-                                        <exclude>mozilla/public-suffix-list.txt</exclude>
+                                        <exclude>META-INF/DEPENDENCIES</exclude>
+
+                                        <exclude>META-INF/io.netty.versions.properties</exclude>
+
+                                        <exclude>module-info.class</exclude>
+                                        <exclude>META-INF/versions/**</exclude>
                                     </excludes>
                                 </filter>
+
                                 <filter>
-                                    <artifact>com.github.BTEUK:*</artifact>
+                                    <artifact>com.github.BTEUK:TeachingTutorials</artifact>
                                     <excludes>
-                                        <exclude>net/kyori/**</exclude>
-                                        <exclude>com/google/**</exclude>
-                                        <exclude>net/daporkchop/lib/binary/**</exclude>
-                                        <exclude>org/**</exclude>
-                                        <exclude>com/fasterxml/jackson/**</exclude>
-                                        <exclude>io/netty/**</exclude>
                                         <exclude>config.yml</exclude>
+
+                                        <exclude>com/google/gson/**</exclude>
+                                        <exclude>org/apache/commons/lang3/**</exclude>
+                                        <exclude>org/apache/commons/io/**</exclude>
+                                        <exclude>io/netty/**</exclude>
+                                        <exclude>org/apache/logging/log4j/**</exclude>
                                         <exclude>javax/annotation/**</exclude>
-                                        <exclude>LZMA/**</exclude>
-                                        <exclude>net/buildtheearth/**</exclude>
+                                        <exclude>com/google/common/**</exclude>
+
+                                        <exclude>com/google/errorprone/annotations/**</exclude>
+                                        <exclude>com/google/j2objc/annotations/**</exclude>
+
                                         <exclude>it/unimi/dsi/fastutil/**</exclude>
+                                        <exclude>org/apache/commons/imaging/**</exclude>
+
                                         <exclude>net/daporkchop/lib/**</exclude>
-                                        <exclude>SCL.lombok/**</exclude>
-                                        <exclude>plugin.yml</exclude>
-                                        <exclude>lombok/**</exclude>
-                                        <exclude>changelog.txt</exclude>
-                                        <exclude>latestchanges.html</exclude>
-                                        <exclude>release-timestamp.txt</exclude>
-                                        <exclude>net/bteuk/teachingtutorials/services/**</exclude>
                                     </excludes>
                                 </filter>
+
                                 <filter>
-                                    <artifact>com.github.BTEUK:ProgressMapper</artifact>
+                                    <artifact>com.github.BTEUK:NetworkLib</artifact>
                                     <excludes>
-                                        <exclude>me/bteuk/progressmapperbackend/**</exclude>
+                                        <exclude>com/google/gson/**</exclude>
+                                        <exclude>net/kyori/**</exclude>
+                                        <exclude>com/fasterxml/jackson/**</exclude>
+
+                                        <exclude>org/jetbrains/annotations/**</exclude>
+                                        <exclude>org/intellij/lang/annotations/**</exclude>
                                     </excludes>
                                 </filter>
                             </filters>
+
+                            <relocations>
+                                <relocation>
+                                    <pattern>org.apache.commons.lang3</pattern>
+                                    <shadedPattern>net.bteuk.network.shaded.commons.lang3</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.apache.commons.io</pattern>
+                                    <shadedPattern>net.bteuk.network.shaded.commons.io</shadedPattern>
+                                </relocation>
+                            </relocations>
                         </configuration>
                     </execution>
                 </executions>
@@ -125,12 +147,16 @@
         </dependency>
 
         <dependency>
-            <groupId>com.github.BTEUK.BTEUKLib</groupId>
+            <groupId>com.github.BuildtheUK.BTUKLib</groupId>
             <artifactId>Minecraft</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>com.github.BTEUK.Proxy</groupId>
+            <groupId>com.github.BuildtheUK.Proxy</groupId>
+            <artifactId>core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.BuildtheUK.Proxy</groupId>
             <artifactId>database</artifactId>
         </dependency>
 
@@ -199,12 +225,6 @@
             <version>33.4.8-jre</version>
         </dependency>
 
-        <!-- Internal libraries -->
-<!--        <dependency>-->
-<!--            <groupId>com.github.BTEUK</groupId>-->
-<!--            <artifactId>ProgressMapper</artifactId>-->
-<!--            <version>231624865f</version>-->
-<!--        </dependency>-->
         <dependency>
             <groupId>com.github.BTEUK</groupId>
             <artifactId>NetworkLib</artifactId>

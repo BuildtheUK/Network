@@ -2,8 +2,6 @@ package net.bteuk.network;
 
 import lombok.Getter;
 import lombok.extern.java.Log;
-import net.bteuk.minecraft.gui.GuiListener;
-import net.bteuk.minecraft.gui.GuiManager;
 import net.bteuk.network.api.CoordinateAPI;
 import net.bteuk.network.api.NetworkAPI;
 import net.bteuk.network.api.PlotAPI;
@@ -72,6 +70,7 @@ import net.bteuk.network.eventing.events.EventManager;
 import net.bteuk.network.eventing.events.InviteEvent;
 import net.bteuk.network.eventing.events.KickEvent;
 import net.bteuk.network.eventing.events.TeleportEvent;
+import net.bteuk.network.eventing.listeners.ChatListener;
 import net.bteuk.network.eventing.listeners.CommandPreProcess;
 import net.bteuk.network.eventing.listeners.Connect;
 import net.bteuk.network.eventing.listeners.NetworkMoveListener;
@@ -86,10 +85,17 @@ import net.bteuk.network.lib.dto.ServerStartup;
 import net.bteuk.network.lobby.Lobby;
 import net.bteuk.network.lobby.LobbyCommand;
 import net.bteuk.network.logging.BukkitForwardingHandler;
+import net.bteuk.network.proxy.NetworkChatHandler;
+import net.bteuk.network.proxy.NetworkCoreServerManager;
+import net.bteuk.network.proxy.NetworkPlayerManager;
+import net.bteuk.network.proxy.NetworkScheduler;
+import net.bteuk.network.proxy.NetworkTabManager;
 import net.bteuk.network.regions.RegionEvent;
 import net.bteuk.network.regions.RegionManager;
 import net.bteuk.network.regions.sql.RegionSQL;
 import net.bteuk.network.services.NetworkPromotionService;
+import net.bteuk.network.socket.MessageSender;
+import net.bteuk.network.socket.NetworkSocketHandler;
 import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.sql.PlotSQL;
 import net.bteuk.network.utils.NetworkConfig;
@@ -100,9 +106,13 @@ import net.bteuk.network.utils.Tips;
 import net.bteuk.network.utils.Utils;
 import net.bteuk.network.utils.staff.Moderation;
 import net.bteuk.network.utils.worldguard.WorldGuard;
-import net.bteuk.proxy.database.DatabaseInit;
 import net.bteuk.teachingtutorials.services.PromotionService;
 import net.buildtheearth.terraminusminus.TerraConfig;
+import org.btuk.minecraft.gui.GuiListener;
+import org.btuk.minecraft.gui.GuiManager;
+import org.btuk.proxy.core.ProxyController;
+import org.btuk.proxy.core.socket.ProxySocketHandler;
+import org.btuk.proxy.database.DatabaseInit;
 import org.bukkit.Material;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
@@ -110,6 +120,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.Nullable;
 import teachingtutorials.utils.DBConnection;
 
 import javax.sql.DataSource;
@@ -118,6 +129,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -154,8 +166,6 @@ public final class Network extends JavaPlugin implements NetworkAPI {
     // Timers
     @Getter
     private TimerAPIImpl timerAPI;
-    // Tab
-    private TabManager tab;
 
     // Tpll Command
     @Getter
@@ -178,7 +188,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
     @Getter
     private CoordinateAPI coordinateAPI;
-    
+
     @Getter
     private Roles roleAPI;
 
@@ -245,11 +255,6 @@ public final class Network extends JavaPlugin implements NetworkAPI {
             if (constants.plotSystemEnabled()) {
                 plotSQL = new PlotSQL(plotDataSource);
             }
-
-            // Init and update the schemas if standalone, since there is no proxy to do it.
-            if (constants.standalone()) {
-                init.initializeSchemas(globalDataSource, plotDataSource, regionDataSource);
-            }
         } catch (SQLException | RuntimeException e) {
             getLogger().severe("Failed to connect to the database, please check that you have set the config values " + "correctly.");
             getLogger().severe("Disabling Network");
@@ -304,9 +309,12 @@ public final class Network extends JavaPlugin implements NetworkAPI {
     // Server enabling procedure when the config has been set up.
     public void enablePlugin() {
 
-        // Create user list.
+        // Create the user lists.
         networkUsers = new ArrayList<>();
         onlineUsers = new HashSet<>();
+
+        // Set up the message sender.
+        MessageSender messageSender = new MessageSender(constants);
 
         // Set up the timer api
         timerAPI = new TimerAPIImpl(this);
@@ -319,38 +327,26 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         this.eventAPI = new EventManager(globalSQL, constants);
         WorldGuardAPI worldGuardAPI = new WorldGuard();
 
-        roleAPI = new Roles(this, plotSQL);
+        roleAPI = new Roles(this, plotSQL, messageSender);
 
-        if (!constants.standalone()) {
-            serverAPI = new SwitchServer(this, constants);
-        }
+        serverAPI = new SwitchServer(this, constants, messageSender);
 
         if (constants.plotSystemEnabled()) {
             plotAPI = new PlotAPIImpl(plotSQL, globalSQL);
         }
 
         // Enable tab.
-        if (!constants.standalone()) {
-            tab = new TabManager(this, constants, roleAPI);
-        }
-
-        Afk afk = new Afk(this);
-        commandManager.registerCommand(afk);
+        TabManager tab = new TabManager(this, constants, roleAPI);
 
         Nightvision nightvision = new Nightvision(this);
 
-        Moderation moderation = new Moderation(this, eventAPI);
-
-        // Set up socket listening - used for sending messages cross-server on multi-server setups
-        SocketHandlerImpl socketHandler = null;
-        if (!constants.standalone()) {
-            socketHandler = new SocketHandlerImpl(this, constants);
-        }
+        Moderation moderation = new Moderation(this, eventAPI, messageSender);
 
         // Enables chat, both global chat and normal chat are handled through it.
-        chat = new CustomChat(this, constants, afk, globalSQL, moderation, roleAPI);
-        afk.registerChat(chat);
-        roleAPI.registerChat(chat);
+        chat = new CustomChat(this, messageSender, constants, roleAPI);
+
+        Afk afk = new Afk(this, messageSender, chat);
+        commandManager.registerCommand(afk);
 
         // Create the region manager if enabled.
         if (constants.regionsEnabled()) {
@@ -360,10 +356,14 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
         // Setup connect, this handles all connections to the server.
         // Listener and manager of server connections.
-        Connect connect = new Connect(this, constants, tab, roleAPI, globalSQL, networkGuiManager, nightvision, eventAPI, regionManager);
+        Connect connect = new Connect(this, constants, tab, roleAPI, networkGuiManager, nightvision, eventAPI, regionManager, messageSender);
 
-        if (!constants.standalone()) {
-            socketHandler.addComponents(chat, tab, connect);
+        // Set up socket listening - used for sending messages cross-server on multi-server setups
+        NetworkSocketHandler socketHandler = new NetworkSocketHandler(this, chat, tab, connect, constants);
+
+        // If running in standalone mode, set up the proxy logic locally.
+        if (constants.standalone()) {
+            initStandaloneMode(socketHandler, messageSender);
         }
 
         // Create the navigator.
@@ -402,7 +402,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         }
 
         if (constants.ll()) {
-            commandManager.registerCommand(new Where(plotSQL, constants));
+            commandManager.registerCommand(new Where(plotSQL, plotAPI, constants));
         }
 
         if (!constants.standalone()) {
@@ -421,11 +421,10 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         /*
          * Utility commands.
          */
+        commandManager.registerCommand(new Buildings(this, constants));
+        commandManager.registerCommand(new Discord(this, roleAPI, constants, messageSender));
+        commandManager.registerCommand(new Focus(this, messageSender));
         commandManager.registerCommand(new Buildings(this, plotSQL, constants));
-        if (!constants.standalone()) {
-            commandManager.registerCommand(new Discord(this, roleAPI, constants));
-            commandManager.registerCommand(new Focus(this, constants));
-        }
 
         commandManager.registerCommand(nightvision);
         commandManager.registerCommand(new Speed());
@@ -452,17 +451,15 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         // commands.register("exp", "Test command for adding exp.", new Exp());
         commandManager.registerCommand(new BuildingCompanionCommand(this, constants, regionManager));
 
-        if (!constants.standalone()) {
-            commandManager.registerCommand(new Pmute(this));
-            commandManager.registerCommand(new Punmute(this));
+        commandManager.registerCommand(new Pmute(this, messageSender));
+        commandManager.registerCommand(new Punmute(this, messageSender));
 
-            commandManager.registerCommand(Msg.of(this, "msg"));
-            commandManager.registerCommand(Msg.of(this, "w"));
-            commandManager.registerCommand(Msg.of(this, "tell"));
+        commandManager.registerCommand(Msg.of(this, "msg", messageSender));
+        commandManager.registerCommand(Msg.of(this, "w", messageSender));
+        commandManager.registerCommand(Msg.of(this, "tell", messageSender));
 
-            commandManager.registerCommand(new Reply());
-            commandManager.registerCommand(new Nick(this));
-        }
+        commandManager.registerCommand(new Reply(messageSender));
+        commandManager.registerCommand(new Nick(this, messageSender));
 
         commandManager.registerCommand(new Promote(this, roleAPI, chat));
         commandManager.registerCommand(new Demote(this, roleAPI, chat));
@@ -488,7 +485,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         commandManager.registerCommand(new Staff(navigator.getProvider()));
 
         // Register the command pre-process to make sure network versions of commands run and not that of another plugin.
-        new CommandPreProcess(this, constants, afk, connect, serverAPI);
+        new CommandPreProcess(this, constants, afk, connect, serverAPI, messageSender);
 
         // Create the rules-book.
         lobby.setGuiProvider(navigator.getProvider());
@@ -546,13 +543,32 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         // Start the Network timers.
         new Timers(this, globalSQL, eventAPI, constants, afk);
 
+        // Register the chat listener.
+        new ChatListener(this, moderation, afk, messageSender);
+
         // Let the Proxy know that the server is enabled.
-        if (!constants.standalone())
-            socketHandler.sendSocketMessage(new ServerStartup(constants.serverName()));
+        messageSender.sendSocketMessage(new ServerStartup(constants.serverName()));
 
         // Register the API as a service.
         getServer().getServicesManager().register(NetworkAPI.class, this, this, ServicePriority.Normal);
 
+    }
+
+    private void initStandaloneMode(NetworkSocketHandler socketHandler, MessageSender messageSender) {
+        log.info("Loading Network in standalone mode.");
+        ProxyController proxyController = new ProxyController(getDataFolder());
+
+        NetworkScheduler scheduler = new NetworkScheduler(this);
+        NetworkPlayerManager playerManager = new NetworkPlayerManager(this);
+        NetworkCoreServerManager serverManager = new NetworkCoreServerManager(this);
+
+        NetworkChatHandler chatHandler = new NetworkChatHandler(socketHandler);
+        NetworkTabManager tabManager = new NetworkTabManager(getServer(), proxyController.getConfig(), proxyController.getCoreUserManager(), chatHandler, scheduler);
+
+        // Set up the local socket handler.
+        Consumer<ProxySocketHandler> socketInitializer = messageSender.setupStandaloneOutputSocket();
+
+        proxyController.start(chatHandler, scheduler, serverManager, playerManager, tabManager, socketInitializer);
     }
 
     @Override
@@ -596,7 +612,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
     }
 
     // Get user from player.
-    public NetworkUser getUser(Player p) {
+    public @Nullable NetworkUser getUser(Player p) {
         return networkUsers.stream().filter((NetworkUser user) -> user.player.equals(p)).findFirst().orElse(null);
     }
 
