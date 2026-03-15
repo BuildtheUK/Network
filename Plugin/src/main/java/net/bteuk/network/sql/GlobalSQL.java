@@ -358,10 +358,10 @@ public class GlobalSQL extends AbstractSQL {
                 Connection conn = conn();
                 PreparedStatement statement = (survey.isExisting()) ?
                         conn.prepareStatement("UPDATE survey SET survey_last_edited=?, found_via_btuk=?, found_via_bte=?, " +
-                        "found_via_btuk_external=?, found_via_bte_external=?, found_via_friend=?," +
-                        "medium_tiktok=?, medium_youtube_shorts=?, medium_youtube_longform=?, medium_instagram=?," +
-                        "medium_search_engine_browsing=?, medium_online_news=?, medium_tvnews=?, medium_physical_newspaper=?," +
-                        "socials_tiktok=?, socials_youtube_shorts=?, socials_youtube_longform=?, socials_instagram=? WHERE player=?;")
+                                "found_via_btuk_external=?, found_via_bte_external=?, found_via_friend=?," +
+                                "medium_tiktok=?, medium_youtube_shorts=?, medium_youtube_longform=?, medium_instagram=?," +
+                                "medium_search_engine_browsing=?, medium_online_news=?, medium_tvnews=?, medium_physical_newspaper=?," +
+                                "socials_tiktok=?, socials_youtube_shorts=?, socials_youtube_longform=?, socials_instagram=? WHERE player=?;")
                         :
                         conn.prepareStatement("INSERT INTO survey (survey_completed_at, survey_last_edited, found_via_btuk, found_via_bte, " +
                         "found_via_btuk_external,  found_via_bte_external, found_via_friend, " +

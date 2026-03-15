@@ -19,7 +19,9 @@ public class SurveyBook {
     @Getter
     private final Survey survey;
     private final Book[] books = new Book[5];
-    /** The current open page of the book, zero indexed*/
+    /**
+     * The current open page of the book, zero indexed
+     */
     private int iCurrentPage;
 
     private static final HashMap<NetworkUser, SurveyBook> openSurveys = new HashMap<>();
@@ -55,10 +57,11 @@ public class SurveyBook {
 
     /**
      * Changes the open page dof the survey.
+     *
      * @param iPage The page to change to, 1 indexed.
      */
     public void changePage(int iPage) {
-        iCurrentPage = iPage-1;
+        iCurrentPage = iPage - 1;
     }
 
     /**
@@ -207,17 +210,16 @@ public class SurveyBook {
 
         if (bIncludeBack) {
             component = component.append(Component.text("[Previous]").color(TextColor.color(NamedTextColor.LIGHT_PURPLE.value()))
-                    .clickEvent(ClickEvent.runCommand("/survey " +AnswerOption.CHANGE_PAGE.name() +" " +(iCurrentPage-1))));
+                    .clickEvent(ClickEvent.runCommand("/survey " + AnswerOption.CHANGE_PAGE.name() + " " + (iCurrentPage - 1))));
             if (bIncludeForwards) {
                 component = component.append(Component.text("        "));
                 component = component.append(Component.text("[Next]").color(TextColor.color(NamedTextColor.LIGHT_PURPLE.value()))
-                        .clickEvent(ClickEvent.runCommand("/survey " +AnswerOption.CHANGE_PAGE.name() +" " +(iCurrentPage+1))));
+                        .clickEvent(ClickEvent.runCommand("/survey " + AnswerOption.CHANGE_PAGE.name() + " " + (iCurrentPage + 1))));
             }
-        }
-        else if (bIncludeForwards){
+        } else if (bIncludeForwards) {
             component = component.append(Component.text("                     "));
             component = component.append(Component.text("[Next]").color(TextColor.color(NamedTextColor.LIGHT_PURPLE.value()))
-                    .clickEvent(ClickEvent.runCommand("/survey " +AnswerOption.CHANGE_PAGE.name() +" " +(iCurrentPage+1))));
+                    .clickEvent(ClickEvent.runCommand("/survey " + AnswerOption.CHANGE_PAGE.name() + " " + (iCurrentPage + 1))));
         }
         return component;
     }
