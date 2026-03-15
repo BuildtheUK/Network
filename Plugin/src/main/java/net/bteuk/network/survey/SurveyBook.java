@@ -13,33 +13,21 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.BookMeta;
 
 import java.util.HashMap;
-import java.util.Objects;
-import java.util.UUID;
 
 public class SurveyBook implements Listener {
-    private final Network network;
     private final NetworkUser user;
     private final GlobalSQL globalSQL;
     @Getter
     private final Survey survey;
-    // private final ItemStack bookItem;
-    // private final UUID bookUuid;
     private Book book;
 
     private static final HashMap<NetworkUser, SurveyBook> openSurveys = new HashMap<>();
 
     public SurveyBook(Network network, NetworkUser user, GlobalSQL globalSQL) {
-        this.network = network;
         this.user = user;
         this.globalSQL = globalSQL;
 
@@ -221,33 +209,4 @@ public class SurveyBook implements Listener {
         Q3_YOUTUBE_LONG,
         Q3_INSTAGRAM
     }
-
-    // @EventHandler
-    // public void interactEvent(PlayerInteractEvent event) {
-    //     if (!event.getPlayer().getUniqueId().equals(user.player.getUniqueId()))
-    //         return;
-    //     if (event.getItem().getItemMeta() == null)
-    //         return;
-    //     if (event.getItem().getItemMeta() instanceof BookMeta bookMeta) {
-    //         if (bookMeta.getAuthor().equals(this.bookUuid.toString())) {
-    //             this.open();
-    //             event.setCancelled(true);
-    //         }
-    //     }
-    // }
-    //
-    // @EventHandler
-    // public void inventoryClickEvent(InventoryClickEvent event) {
-    //     if (!event.getWhoClicked().getUniqueId().equals(user.player.getUniqueId()))
-    //         return;
-    //     if (Objects.requireNonNull(event.getCurrentItem()).getItemMeta() == null)
-    //         return;
-    //     if (event.getCurrentItem().getItemMeta() instanceof BookMeta bookMeta) {
-    //         if (bookMeta.getAuthor().equals(this.bookUuid.toString())) {
-    //             this.open();
-    //             event.setCancelled(true);
-    //         }
-    //     }
-    // }
-
 }
