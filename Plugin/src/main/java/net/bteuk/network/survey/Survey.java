@@ -13,6 +13,9 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Survey {
+    @Getter @Setter
+    boolean isExisting;
+
     @Getter
     @Setter
     Timestamp SurveyCompleted;

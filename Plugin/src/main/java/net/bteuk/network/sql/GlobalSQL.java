@@ -338,7 +338,7 @@ public class GlobalSQL extends AbstractSQL {
             ResultSet results = statement.executeQuery();
 
             if (results.next()) {
-                survey = new Survey(results.getTimestamp(1), results.getTimestamp(2),
+                survey = new Survey(true, results.getTimestamp(1), results.getTimestamp(2),
                         results.getBoolean(3), results.getBoolean(4), results.getBoolean(5), results.getBoolean(6), results.getBoolean(7),
                         results.getBoolean(8), results.getBoolean(9), results.getBoolean(10), results.getBoolean(11),
                         results.getBoolean(12), results.getBoolean(13), results.getBoolean(14), results.getBoolean(15),
@@ -355,13 +355,21 @@ public class GlobalSQL extends AbstractSQL {
 
     public void saveSurveyOfUser(UUID user, Survey survey) {
         try (
-                Connection conn = conn(); PreparedStatement statement = conn.prepareStatement(
-                "UPDATE survey SET survey_completed_at = ifnull(survey_completed_at, NOW()), survey_last_edited=NOW(), found_via_btuk=?, found_via_bte=?, " +
+                Connection conn = conn();
+                PreparedStatement statement = (survey.isExisting()) ?
+                        conn.prepareStatement("UPDATE survey SET survey_completed_at = ifnull(survey_completed_at, NOW()), survey_last_edited=?, found_via_btuk=?, found_via_bte=?, " +
                         "found_via_btuk_external=?, found_via_bte_external=?, found_via_friend=?," +
                         "medium_tiktok=?, medium_youtube_shorts=?, medium_youtube_longform=?, medium_instagram=?," +
                         "medium_search_engine_browsing=?, medium_online_news=?, medium_tvnews=?, medium_physical_newspaper=?," +
                         "socials_tiktok=?, socials_youtube_shorts=?, socials_youtube_longform=?, socials_instagram=? FROM survey WHERE player=?;")
-        ) {
+                        :
+                        conn.prepareStatement("INSERT INTO survey (survey_completed_at, survey_last_edited, found_via_btuk, found_via_bte, " +
+                        "found_via_btuk_external,  found_via_bte_external, found_via_friend, " +
+                        "medium_tiktok, medium_youtube_shorts, medium_youtube_longform, medium_instagram, " +
+                        "medium_search_engine_browsing, medium_online_news, medium_tvnews, medium_physical_newspaper, " +
+                        "socials_tiktok, socials_youtube_shorts, socials_youtube_longform, socials_instagram, player" +
+                        "VALUES (NOW()), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);")
+                ) {
             statement.setTimestamp(1, Timestamp.from(Instant.now()));
             statement.setBoolean(2, survey.isBFoundViaBTUK());
             statement.setBoolean(3, survey.isBFoundViaBTE());
@@ -385,7 +393,9 @@ public class GlobalSQL extends AbstractSQL {
 
             statement.setString(19, user.toString());
 
-            statement.executeUpdate();
+            if (statement.executeUpdate() == 1)
+                survey.setExisting(true);
+
         } catch (SQLException sql) {
             log.log(Level.SEVERE, sql.getMessage(), sql);
         }
