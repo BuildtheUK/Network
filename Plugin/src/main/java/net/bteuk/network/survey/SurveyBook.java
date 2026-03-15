@@ -226,6 +226,7 @@ public class SurveyBook {
 
     public void saveSurvey() {
         globalSQL.saveSurveyOfUser(user.player.getUniqueId(), survey);
+        user.sendMessage(ChatUtils.success("Thank you! Survey has been saved!"));
     }
 
     public enum AnswerOption {
