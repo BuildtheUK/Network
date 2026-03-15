@@ -24,11 +24,13 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <paper.api.version>1.21.8-R0.1-SNAPSHOT</paper.api.version>
+        <paper.api.version>1.21.10-R0.1-SNAPSHOT</paper.api.version>
 
-        <bteuk.proxy.version>9acb823f8d</bteuk.proxy.version>
+        <bteuk.proxy.version>develop-b7f32d54c1-1</bteuk.proxy.version>
         <bteuk.lib.version>main-36b0421e66-1</bteuk.lib.version>
         <bteuk.networklib.version>24c3fc82f5</bteuk.networklib.version>
+
+        <kyori.version>4.26.1</kyori.version>
 
         <lombok.version>1.18.34</lombok.version>
     </properties>
@@ -58,6 +60,10 @@
         <repository>
             <id>codemc-repo</id>
             <url>https://repo.codemc.io/repository/maven-public/</url>
+        </repository>
+        <repository>
+            <id>central-snapshots</id>
+            <url>https://central.sonatype.com/repository/maven-snapshots/</url>
         </repository>
     </repositories>
 
@@ -111,6 +117,12 @@
                 <groupId>io.papermc.paper</groupId>
                 <artifactId>paper-api</artifactId>
                 <version>${paper.api.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>net.kyori</groupId>
+                <artifactId>adventure-api</artifactId>
+                <version>${kyori.version}</version>
                 <scope>provided</scope>
             </dependency>
 

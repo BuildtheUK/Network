@@ -421,7 +421,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         /*
          * Utility commands.
          */
-        commandManager.registerCommand(new Buildings(this, constants));
+        commandManager.registerCommand(new Buildings(this, plotSQL, constants));
         commandManager.registerCommand(new Discord(this, roleAPI, constants, messageSender));
         commandManager.registerCommand(new Focus(this, messageSender));
         commandManager.registerCommand(new Buildings(this, plotSQL, constants));
