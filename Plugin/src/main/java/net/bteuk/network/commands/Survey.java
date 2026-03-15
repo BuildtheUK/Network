@@ -64,21 +64,24 @@ public class Survey extends AbstractCommand {
             switch (answerOption) {
                 case Q1_BTUK -> surveyBook.getSurvey().setBFoundViaBTUK(bYes);
                 case Q1_BTE -> surveyBook.getSurvey().setBFoundViaBTE(bYes);
-                case Q1_BTUKExternal -> surveyBook.getSurvey().setBFoundViaBTUKExternal(bYes);
-                case Q1_BTEExternal -> surveyBook.getSurvey().setBFoundViaBTEExternal(bYes);
-                case Q1_Friend -> surveyBook.getSurvey().setBFoundViaFriend(bYes);
-                case Q2_TikTok -> surveyBook.getSurvey().setBMediumTiktok(bYes);
-                case Q2_YTShort -> surveyBook.getSurvey().setBMediumYoutubeShorts(bYes);
-                case Q2_YTLong -> surveyBook.getSurvey().setBMediumYoutubeLongform(bYes);
-                case Q2_Instagram -> surveyBook.getSurvey().setBMediumInstagram(bYes);
-                case Q2_Search -> surveyBook.getSurvey().setBSearchEngineBrowsing(bYes);
-                case Q2_OnlineNews -> surveyBook.getSurvey().setBOnlineNews(bYes);
-                case Q2_TVNews -> surveyBook.getSurvey().setBTVNews(bYes);
-                case Q2_Newspaper -> surveyBook.getSurvey().setBPhysicalNewspaper(bYes);
-                case Q3_TikTok -> surveyBook.getSurvey().setBSocialsTiktok(bYes);
-                case Q3_YouTube -> surveyBook.getSurvey().setBSocialsYoutubeShorts(bYes);
-                case Q3_Instagram -> surveyBook.getSurvey().setBSocialsInstagram(bYes);
+                case Q1_BTUK_EXTERNAL -> surveyBook.getSurvey().setBFoundViaBTUKExternal(bYes);
+                case Q1_BTE_EXTERNAL -> surveyBook.getSurvey().setBFoundViaBTEExternal(bYes);
+                case Q1_FRIEND -> surveyBook.getSurvey().setBFoundViaFriend(bYes);
+                case Q2_TIKTOK -> surveyBook.getSurvey().setBMediumTiktok(bYes);
+                case Q2_YT_SHORT -> surveyBook.getSurvey().setBMediumYoutubeShorts(bYes);
+                case Q2_YT_LONG -> surveyBook.getSurvey().setBMediumYoutubeLongform(bYes);
+                case Q2_INSTRAGRAM -> surveyBook.getSurvey().setBMediumInstagram(bYes);
+                case Q2_SEARCH -> surveyBook.getSurvey().setBSearchEngineBrowsing(bYes);
+                case Q2_ONLINE_NEWS -> surveyBook.getSurvey().setBOnlineNews(bYes);
+                case Q2_TV_NEWS -> surveyBook.getSurvey().setBTVNews(bYes);
+                case Q2_NEWSPAPER -> surveyBook.getSurvey().setBPhysicalNewspaper(bYes);
+                case Q3_TIKTOK -> surveyBook.getSurvey().setBSocialsTiktok(bYes);
+                case Q3_YOUTUBE_SHORTS -> surveyBook.getSurvey().setBSocialsYoutubeShorts(bYes);
+                case Q3_YOUTUBE_LONG -> surveyBook.getSurvey().setBSocialsYoutubeLongform(bYes);
+                case Q3_INSTAGRAM -> surveyBook.getSurvey().setBSocialsInstagram(bYes);
             }
+            surveyBook.updateSurveyBook();
+            surveyBook.open();
         }
     }
 

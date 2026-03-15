@@ -79,7 +79,7 @@ public class SurveyBook implements Listener {
     /**
      * Open the review book.
      */
-    private void open() {
+    public void open() {
         user.player.openBook(book);
     }
 
@@ -100,7 +100,7 @@ public class SurveyBook implements Listener {
     /**
      * Update book based on survey responses
      */
-    private void updateSurveyBook() {
+    public void updateSurveyBook() {
 
         // Page 1 - Which outlet
         Component page1 = Component.empty();
@@ -119,11 +119,11 @@ public class SurveyBook implements Listener {
         page2 = page2.appendNewline(); // Extra line
         page2 = appendOptionYesNo("Build The Earth", page2, AnswerOption.Q1_BTE, survey.bFoundViaBTE, !survey.bFoundViaBTE);
         page2 = page2.appendNewline(); // Extra line
-        page2 = appendOptionYesNo("External Media Mentioning Build the UK", page2, AnswerOption.Q1_BTUKExternal, survey.bFoundViaBTUKExternal, !survey.bFoundViaBTUKExternal);
+        page2 = appendOptionYesNo("External Media Mentioning Build the UK", page2, AnswerOption.Q1_BTUK_EXTERNAL, survey.bFoundViaBTUKExternal, !survey.bFoundViaBTUKExternal);
         page2 = page2.appendNewline(); // Extra line
-        page2 = appendOptionYesNo("External Media Mentioning Build The Earth", page2, AnswerOption.Q1_BTEExternal, survey.bFoundViaBTEExternal, !survey.bFoundViaBTEExternal);
+        page2 = appendOptionYesNo("External Media Mentioning Build The Earth", page2, AnswerOption.Q1_BTE_EXTERNAL, survey.bFoundViaBTEExternal, !survey.bFoundViaBTEExternal);
         page2 = page2.appendNewline(); // Extra line
-        page2 = appendOptionYesNo("From a Friend", page2, AnswerOption.Q1_Friend, survey.bFoundViaFriend, !survey.bFoundViaFriend);
+        page2 = appendOptionYesNo("From a Friend", page2, AnswerOption.Q1_FRIEND, survey.bFoundViaFriend, !survey.bFoundViaFriend);
         page2 = page2.appendNewline(); // Extra line
 
         // Page 3 Question 2 - Which medium
@@ -139,14 +139,14 @@ public class SurveyBook implements Listener {
 
         // Page 4 Question 2 answers
         Component page4 = Component.empty();
-        page4 = appendOptionYesNo("TikTok", page4, AnswerOption.Q2_TikTok, survey.bMediumTiktok, !survey.bMediumTiktok);
-        page4 = appendOptionYesNo("YouTube Short", page4, AnswerOption.Q2_YTShort, survey.bMediumYoutubeShorts, !survey.bMediumYoutubeShorts);
-        page4 = appendOptionYesNo("YouTube Longform", page4, AnswerOption.Q2_YTLong, survey.bMediumYoutubeLongform, !survey.bMediumYoutubeLongform);
-        page4 = appendOptionYesNo("YouTube Instagram", page4, AnswerOption.Q2_Instagram, survey.bMediumInstagram, !survey.bMediumInstagram);
-        page4 = appendOptionYesNo("YouTube Search Engine - Browsing", page4, AnswerOption.Q2_Search, survey.bSearchEngineBrowsing, !survey.bSearchEngineBrowsing);
-        page4 = appendOptionYesNo("Online News", page4, AnswerOption.Q2_OnlineNews, survey.bOnlineNews, !survey.bOnlineNews);
-        page4 = appendOptionYesNo("TV News", page4, AnswerOption.Q2_TVNews, survey.bTVNews, !survey.bTVNews);
-        page4 = appendOptionYesNo("Physical Newspaper", page4, AnswerOption.Q2_Newspaper, survey.bPhysicalNewspaper, !survey.bPhysicalNewspaper);
+        page4 = appendOptionYesNo("TikTok", page4, AnswerOption.Q2_TIKTOK, survey.bMediumTiktok, !survey.bMediumTiktok);
+        page4 = appendOptionYesNo("YouTube Short", page4, AnswerOption.Q2_YT_SHORT, survey.bMediumYoutubeShorts, !survey.bMediumYoutubeShorts);
+        page4 = appendOptionYesNo("YouTube Longform", page4, AnswerOption.Q2_YT_LONG, survey.bMediumYoutubeLongform, !survey.bMediumYoutubeLongform);
+        page4 = appendOptionYesNo("YouTube Instagram", page4, AnswerOption.Q2_INSTRAGRAM, survey.bMediumInstagram, !survey.bMediumInstagram);
+        page4 = appendOptionYesNo("YouTube Search Engine - Browsing", page4, AnswerOption.Q2_SEARCH, survey.bSearchEngineBrowsing, !survey.bSearchEngineBrowsing);
+        page4 = appendOptionYesNo("Online News", page4, AnswerOption.Q2_ONLINE_NEWS, survey.bOnlineNews, !survey.bOnlineNews);
+        page4 = appendOptionYesNo("TV News", page4, AnswerOption.Q2_TV_NEWS, survey.bTVNews, !survey.bTVNews);
+        page4 = appendOptionYesNo("Physical Newspaper", page4, AnswerOption.Q2_NEWSPAPER, survey.bPhysicalNewspaper, !survey.bPhysicalNewspaper);
 
         // Page 5 Question 3 Which socials
         Component page5 = Component.empty();
@@ -156,9 +156,10 @@ public class SurveyBook implements Listener {
         page5 = page5.append(Component.text("What social media platforms do you use regularly?"));
         page5 = page5.appendNewline();
         page5 = page5.appendNewline();
-        page5 = appendOptionYesNo("TikTok", page5, AnswerOption.Q3_TikTok, survey.bSocialsTiktok, !survey.bSocialsTiktok);
-        page5 = appendOptionYesNo("YouTube", page5, AnswerOption.Q3_YouTube, survey.bSocialsYoutubeShorts, !survey.bSocialsYoutubeShorts);
-        page5 = appendOptionYesNo("Instagram", page5, AnswerOption.Q3_Instagram, survey.bSocialsInstagram, !survey.bSocialsInstagram);
+        page5 = appendOptionYesNo("TikTok", page5, AnswerOption.Q3_TIKTOK, survey.bSocialsTiktok, !survey.bSocialsTiktok);
+        page5 = appendOptionYesNo("YouTube Shorts", page5, AnswerOption.Q3_YOUTUBE_SHORTS, survey.bSocialsYoutubeShorts, !survey.bSocialsYoutubeShorts);
+        page5 = appendOptionYesNo("YouTube Longform", page5, AnswerOption.Q3_YOUTUBE_LONG, survey.bSocialsYoutubeLongform, !survey.bSocialsYoutubeLongform);
+        page5 = appendOptionYesNo("Instagram", page5, AnswerOption.Q3_INSTAGRAM, survey.bSocialsInstagram, !survey.bSocialsInstagram);
         page5 = page5.appendNewline();
         page5 = page5.append(Component.text("Save Survey"));
         page5 = page5.appendSpace();
@@ -169,7 +170,7 @@ public class SurveyBook implements Listener {
         this.book = Book.book(Component.text(""), ChatUtils.line(user.player.getName()), page1, page2, page3, page4, page5);
     }
 
-    private Component appendOptionYesNo(String optionName, Component component, AnswerOption option, boolean bBoldY, boolean bBoldN) {
+    private Component appendOptionYesNo(String optionName, Component component, AnswerOption option, boolean bYSelected, boolean bNSelected) {
         component = component.append(Component.text(optionName));
         component = component.appendSpace();
 
@@ -177,8 +178,8 @@ public class SurveyBook implements Listener {
         component = component.append(Component.text("["));
         Component Y = Component.text("Y").color(TextColor.color(NamedTextColor.GREEN.value()))
                 .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/survey " + option.name() + " Y"));
-        if (bBoldY)
-            component = component.append(Y.decorate(TextDecoration.BOLD));
+        if (bYSelected)
+            component = component.append(Y.decorate(TextDecoration.BOLD).decorate(TextDecoration.UNDERLINED));
         else
             component = component.append(Y);
         component = component.append(Component.text("]"));
@@ -187,8 +188,8 @@ public class SurveyBook implements Listener {
         component = component.append(Component.text("["));
         Component N = Component.text("N").color(TextColor.color(NamedTextColor.RED.value()))
                 .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/survey " + option.name() + " N"));
-        if (bBoldN)
-            component = component.append(N.decorate(TextDecoration.BOLD));
+        if (bNSelected)
+            component = component.append(N.decorate(TextDecoration.BOLD).decorate(TextDecoration.UNDERLINED));
         else
             component = component.append(N);
         component = component.append(Component.text("]"));
@@ -204,20 +205,21 @@ public class SurveyBook implements Listener {
     public enum AnswerOption {
         Q1_BTUK,
         Q1_BTE,
-        Q1_BTUKExternal,
-        Q1_BTEExternal,
-        Q1_Friend,
-        Q2_TikTok,
-        Q2_YTShort,
-        Q2_YTLong,
-        Q2_Instagram,
-        Q2_Search,
-        Q2_OnlineNews,
-        Q2_TVNews,
-        Q2_Newspaper,
-        Q3_TikTok,
-        Q3_YouTube,
-        Q3_Instagram
+        Q1_BTUK_EXTERNAL,
+        Q1_BTE_EXTERNAL,
+        Q1_FRIEND,
+        Q2_TIKTOK,
+        Q2_YT_SHORT,
+        Q2_YT_LONG,
+        Q2_INSTRAGRAM,
+        Q2_SEARCH,
+        Q2_ONLINE_NEWS,
+        Q2_TV_NEWS,
+        Q2_NEWSPAPER,
+        Q3_TIKTOK,
+        Q3_YOUTUBE_SHORTS,
+        Q3_YOUTUBE_LONG,
+        Q3_INSTAGRAM
     }
 
     // @EventHandler
