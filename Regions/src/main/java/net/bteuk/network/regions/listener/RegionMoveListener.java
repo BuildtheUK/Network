@@ -70,7 +70,7 @@ public class RegionMoveListener extends AbstractMoveListener implements Listener
             // Check if the player has moved to another region.
             if (!regionUser.getTrackedRegion().equals(x, z)) {
 
-                log.info(e.getPlayer().getName() +" is moving across a region border");
+                log.info(e.getPlayer().getName() + " is moving across a region border");
 
                 // Get the new region.
                 Region newRegion = regionManager.getRegion(x, z);
@@ -96,9 +96,10 @@ public class RegionMoveListener extends AbstractMoveListener implements Listener
 
                         // Apply new region world
                         newLocation.setWorld(Bukkit.getWorld(plotAPI.getRegionLocation(newRegion.regionName())));
-                    } else
+                    } else {
                         // Apply earth world
                         newLocation.setWorld(Bukkit.getWorld(constants.earthWorld()));
+                    }
 
                     newLocation.setX(trueNewX);
                     newLocation.setZ(trueNewZ);
