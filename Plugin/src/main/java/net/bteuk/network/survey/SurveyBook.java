@@ -1,24 +1,19 @@
 package net.bteuk.network.survey;
 
 import lombok.Getter;
-import net.bteuk.network.Network;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.utils.NetworkUser;
-import net.bteuk.network.utils.Utils;
 import net.kyori.adventure.inventory.Book;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.bukkit.Bukkit;
-import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
 
 import java.util.HashMap;
 
-public class SurveyBook implements Listener {
+public class SurveyBook {
     private final NetworkUser user;
     private final GlobalSQL globalSQL;
     @Getter
@@ -27,7 +22,7 @@ public class SurveyBook implements Listener {
 
     private static final HashMap<NetworkUser, SurveyBook> openSurveys = new HashMap<>();
 
-    public SurveyBook(Network network, NetworkUser user, GlobalSQL globalSQL) {
+    public SurveyBook(NetworkUser user, GlobalSQL globalSQL) {
         this.user = user;
         this.globalSQL = globalSQL;
 
@@ -38,29 +33,19 @@ public class SurveyBook implements Listener {
         // Update survey with answers
         updateSurveyBook();
 
-        // //Create book item
-        // this.bookUuid = UUID.randomUUID();
-        // bookItem = new ItemStack(Material.WRITTEN_BOOK);
-        // BookMeta bookItemMeta = (BookMeta) bookItem;
-        // bookItemMeta.setAuthor(bookUuid.toString());
-        // bookItem.setItemMeta(bookItemMeta);
-        //
-        // Utils.giveItem(network, user.player, bookItem, "UK Survey");
-        Bukkit.getServer().getPluginManager().registerEvents(this, network);
         openSurveys.put(user, this);
     }
 
     /**
      * Opens a survey for a user
      *
-     * @param network
      * @param user
      * @param globalSQL
      */
-    public static void openSurvey(Network network, NetworkUser user, GlobalSQL globalSQL) {
+    public static void openSurvey(NetworkUser user, GlobalSQL globalSQL) {
         SurveyBook openSurvey = SurveyBook.getOpenSurvey(user);
         if (openSurvey == null)
-            openSurvey = new SurveyBook(network, user, globalSQL);
+            openSurvey = new SurveyBook(user, globalSQL);
         openSurvey.open();
     }
 
@@ -73,8 +58,6 @@ public class SurveyBook implements Listener {
 
     public void unregister() {
         openSurveys.remove(user);
-        HandlerList.unregisterAll(this);
-        user.player.teleport(user.player.getLocation().add(0.0001, 0, 0));
     }
 
     /**

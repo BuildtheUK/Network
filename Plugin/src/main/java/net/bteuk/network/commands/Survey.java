@@ -45,13 +45,12 @@ public class Survey extends AbstractCommand {
         }
 
         if (args.length == 0) {
-            SurveyBook.openSurvey(instance, user, globalSQL);
+            SurveyBook.openSurvey(user, globalSQL);
         } else if (args.length == 1) {
             if (args[0].equalsIgnoreCase("save")) {
                 SurveyBook surveyBook = SurveyBook.getOpenSurvey(user);
                 if (surveyBook != null) {
                     surveyBook.saveSurvey();
-                    surveyBook.unregister();
                 }
             }
         } else if (args.length == 2) {

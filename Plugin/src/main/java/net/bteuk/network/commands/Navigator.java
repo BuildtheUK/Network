@@ -51,7 +51,7 @@ public class Navigator extends AbstractCommand {
         this.provider = new GuiProvider(instance, guiManager, constants, globalSQL, regionSQL, regionManager, plotSQL, plotAPI, lobby, back, eventAPI, serverAPI, nightvision, this,
                 roles, tutorialsDBConnection, chatAPI, moderation);
 
-        this.navigator = new NavigatorGui(provider, instance);
+        this.navigator = new NavigatorGui(provider);
     }
 
     public void openNavigator(NetworkUser u) {
