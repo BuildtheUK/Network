@@ -69,7 +69,7 @@ public class Survey extends AbstractCommand {
                 case Q2_TIKTOK -> surveyBook.getSurvey().setBMediumTiktok(bYes);
                 case Q2_YT_SHORT -> surveyBook.getSurvey().setBMediumYoutubeShorts(bYes);
                 case Q2_YT_LONG -> surveyBook.getSurvey().setBMediumYoutubeLongform(bYes);
-                case Q2_INSTRAGRAM -> surveyBook.getSurvey().setBMediumInstagram(bYes);
+                case Q2_INSTAGRAM -> surveyBook.getSurvey().setBMediumInstagram(bYes);
                 case Q2_SEARCH -> surveyBook.getSurvey().setBSearchEngineBrowsing(bYes);
                 case Q2_ONLINE_NEWS -> surveyBook.getSurvey().setBOnlineNews(bYes);
                 case Q2_TV_NEWS -> surveyBook.getSurvey().setBTVNews(bYes);
@@ -78,9 +78,13 @@ public class Survey extends AbstractCommand {
                 case Q3_YOUTUBE_SHORTS -> surveyBook.getSurvey().setBSocialsYoutubeShorts(bYes);
                 case Q3_YOUTUBE_LONG -> surveyBook.getSurvey().setBSocialsYoutubeLongform(bYes);
                 case Q3_INSTAGRAM -> surveyBook.getSurvey().setBSocialsInstagram(bYes);
+                case CHANGE_PAGE -> {
+                    int toPage = Integer.parseInt(args[1]);
+                    surveyBook.changePage(toPage);
+                }
             }
-            surveyBook.updateSurveyBook();
-            surveyBook.open();
+            surveyBook.updateSurveyBooks();
+            surveyBook.openCurrentPage();
         }
     }
 
