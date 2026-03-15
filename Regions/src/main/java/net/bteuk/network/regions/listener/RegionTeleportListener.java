@@ -3,6 +3,7 @@ package net.bteuk.network.regions.listener;
 import lombok.extern.java.Log;
 import net.bteuk.network.api.PlotAPI;
 import net.bteuk.network.core.Constants;
+import net.bteuk.network.core.ServerType;
 import net.bteuk.network.regions.Region;
 import net.bteuk.network.regions.RegionManager;
 import net.bteuk.network.regions.RegionUser;
@@ -13,11 +14,7 @@ import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.Objects;
 import java.util.Optional;
-
-import static net.bteuk.network.core.ServerType.EARTH;
-import static net.bteuk.network.core.ServerType.PLOT;
 
 @Log
 public class RegionTeleportListener extends AbstractMoveListener implements Listener {
@@ -48,14 +45,14 @@ public class RegionTeleportListener extends AbstractMoveListener implements List
 
         log.info("Previous player world: " + e.getFrom().getName());
         RegionUser regionUser = optionalRegionUser.get();
-        log.info("Previous player deltas: ("+regionUser.getDeltaX()+"," +regionUser.getDeltaZ()+")");
+        log.info("Previous player deltas: (" + regionUser.getDeltaX() + "," + regionUser.getDeltaZ() + ")");
 
         // Update player delta if standalone
-        if (constants.standalone()) {
+        if (constants.serverType() == ServerType.PLOT || constants.standalone()) {
 
-            log.info("Updating player deltas because in standalone");
+            log.info("Updating player deltas because in plotsystem or standalone");
             String szWorldName = e.getPlayer().getWorld().getName();
-            log.info("New world: " +szWorldName);
+            log.info("New world: " + szWorldName);
             if (!szWorldName.equals(constants.earthWorld())) {
                 int deltaX = -plotAPI.getXTransform(szWorldName);
                 int deltaZ = -plotAPI.getZTransform(szWorldName);
@@ -66,14 +63,14 @@ public class RegionTeleportListener extends AbstractMoveListener implements List
                 regionUser.setDeltaX(0);
                 regionUser.setDeltaZ(0);
             }
-            log.info("New player deltas: ("+regionUser.getDeltaX()+"," +regionUser.getDeltaZ()+")");
+            log.info("New player deltas: (" + regionUser.getDeltaX() + "," + regionUser.getDeltaZ() + ")");
         }
     }
 
     @EventHandler
     public void onPlayerTeleport(PlayerTeleportEvent e) {
 
-        log.fine("Player Teleport Event detected via " +e.getCause().name()+". Attempting region switch");
+        log.fine("Player Teleport Event detected via " + e.getCause().name() + ". Attempting region switch");
 
         Optional<RegionUser> optionalRegionUser = regionManager.getUserByPlayer(e.getPlayer());
         if (optionalRegionUser.isEmpty()) {
@@ -92,23 +89,23 @@ public class RegionTeleportListener extends AbstractMoveListener implements List
         }
 
         // Get x and z of the region as int rounded down.
-        int terraX = ((e.getTo().getX() >= 0 ? (int) e.getTo().getX() : ((int) e.getTo().getX()) - 1) +addX) >> 9;
-        int terraZ = ((e.getTo().getZ() >= 0 ? (int) e.getTo().getZ() : ((int) e.getTo().getZ()) - 1) +addZ)>> 9;
+        int terraX = ((e.getTo().getX() >= 0 ? (int) e.getTo().getX() : ((int) e.getTo().getX()) - 1) + addX) >> 9;
+        int terraZ = ((e.getTo().getZ() >= 0 ? (int) e.getTo().getZ() : ((int) e.getTo().getZ()) - 1) + addZ) >> 9;
 
         if (!regionUser.hasTrackedRegion()) {
             log.fine(e.getPlayer().getName() + " does not have a current tracked region, attempting a fix");
-        }
-        else if (!regionUser.getTrackedRegion().equals(terraX, terraZ)) {
+        } else if (!regionUser.getTrackedRegion().equals(terraX, terraZ)) {
             log.fine(e.getPlayer().getName() + " is teleporting across a region border");
         }
 
         // Get the new region.
         Region newRegion = regionManager.getRegion(terraX, terraZ);
 
-        if (newRegion == null)
-            log.info("New region of " +regionUser.getPlayer().getName() +" is null");
-        else
-            log.info("New region is of " +regionUser.getPlayer().getName() +" is " +newRegion.regionName());
+        if (newRegion == null) {
+            log.info("New region of " + regionUser.getPlayer().getName() + " is null");
+        } else {
+            log.info("New region of " + regionUser.getPlayer().getName() + " is " + newRegion.regionName());
+        }
 
         e.setCancelled(switchRegion(regionUser, newRegion));
     }

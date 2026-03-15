@@ -70,7 +70,7 @@ public class RegionMoveListener extends AbstractMoveListener implements Listener
             // Check if the player has moved to another region.
             if (!regionUser.getTrackedRegion().equals(x, z)) {
 
-                log.info(e.getPlayer().getName() +" is moving across a region border");
+                log.info(e.getPlayer().getName() + " is moving across a region border");
 
                 // Get the new region.
                 Region newRegion = regionManager.getRegion(x, z);
@@ -88,21 +88,23 @@ public class RegionMoveListener extends AbstractMoveListener implements Listener
                     double trueNewX = e.getTo().getX() + regionUser.getDeltaX();
                     double trueNewZ = e.getTo().getZ() + regionUser.getDeltaZ();
 
-                    if (regionManager.isPlot(newRegion)) {
-                        // Apply new region shift
-                        String szLocation = plotAPI.getRegionLocation(newRegion.regionName());
-                        trueNewX = trueNewX + plotAPI.getXTransform(szLocation);
-                        trueNewZ = trueNewZ + plotAPI.getZTransform(szLocation);
+                    // Get the world that the region is in.
+                    boolean isPlot = regionManager.isPlot(newRegion);
+                    String world = isPlot ? plotAPI.getRegionLocation(newRegion.regionName()) : constants.earthWorld();
 
-                        // Apply new region world
-                        newLocation.setWorld(Bukkit.getWorld(plotAPI.getRegionLocation(newRegion.regionName())));
-                    } else
-                        // Apply earth world
-                        newLocation.setWorld(Bukkit.getWorld(constants.earthWorld()));
+                    if (!newLocation.getWorld().getName().equals(world)) {
+                        if (isPlot) {
+                            // Apply new region shift
+                            String szLocation = plotAPI.getRegionLocation(newRegion.regionName());
+                            trueNewX = trueNewX + plotAPI.getXTransform(szLocation);
+                            trueNewZ = trueNewZ + plotAPI.getZTransform(szLocation);
+                        }
+                        newLocation.setWorld(Bukkit.getWorld(world));
+                        newLocation.setX(trueNewX);
+                        newLocation.setZ(trueNewZ);
+                        e.setTo(newLocation);
+                    }
 
-                    newLocation.setX(trueNewX);
-                    newLocation.setZ(trueNewZ);
-                    e.setTo(newLocation);
                     e.setCancelled(switchRegion(regionUser, newRegion));
                 }
             }

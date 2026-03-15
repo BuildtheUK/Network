@@ -70,8 +70,13 @@ public class RegionManager {
 
         new ServerJoinListener(plugin, player -> users.add(new RegionUser(player, constants, this, plotAPI)));
         new ServerQuitListener(plugin, player -> getUserByPlayer(player).ifPresent(users::remove));
-        new RegionMoveListener(plugin, this, plotAPI, constants, globalSQL, eventAPI, serverAPI);
-        new RegionTeleportListener(plugin, this, constants, plotAPI);
+
+        if (constants.serverType() != ServerType.LOBBY && constants.serverType() != ServerType.TUTORIAL) {
+            new RegionMoveListener(plugin, this, plotAPI, constants, globalSQL, eventAPI, serverAPI);
+            new RegionTeleportListener(plugin, this, constants, plotAPI);
+        } else {
+            log.info("Not enabling the region listeners for lobby or tutorial servers.");
+        }
 
         registerInactivityTimer(networkAPI.getTimerAPI());
     }

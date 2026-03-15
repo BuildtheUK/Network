@@ -20,28 +20,28 @@ public class LocationNameListener implements Listener {
 
     private final Network instance;
     private final AddLocation gui;
-    private final Player p;
+    private final Player player;
 
     private final BukkitTask task;
 
-    public LocationNameListener(Network instance, Player p, AddLocation gui) {
+    public LocationNameListener(Network instance, Player player, AddLocation gui) {
         this.instance = instance;
 
         Bukkit.getServer().getPluginManager().registerEvents(this, instance);
 
-        this.p = p;
+        this.player = player;
         this.gui = gui;
 
         // Start the timer to automatically close the listener.
         task = Bukkit.getScheduler().runTaskLater(instance, () -> {
             // Send a message to player telling them it's been timer out.
-            if (p != null) {
-                p.sendMessage(ChatUtils.error("'Set Location Name' cancelled."));
+            if (player != null) {
+                player.sendMessage(ChatUtils.error("'Set Location Name' cancelled."));
 
                 // If AddLocation gui still exists, reopen it.
                 // Also check if the player is actually still online.
-                if (p.isOnline()) {
-                    NetworkUser u = instance.getUser(p);
+                if (player.isOnline()) {
+                    NetworkUser u = instance.getUser(player);
                     // Open staff gui if it's update or review.
                     if (gui.getType() == AddLocationType.ADD) {
                         if (Objects.requireNonNull(u).mainGui != null) {
@@ -66,7 +66,7 @@ public class LocationNameListener implements Listener {
     public void ChatEvent(AsyncChatEvent e) {
 
         // Check if this is the correct player.
-        if (e.getPlayer().equals(p)) {
+        if (e.getPlayer().equals(player)) {
 
             e.setCancelled(true);
 
@@ -79,7 +79,7 @@ public class LocationNameListener implements Listener {
                 gui.setName(PlainTextComponentSerializer.plainText().serialize(e.message()));
 
                 // Send message to player.
-                p.sendMessage(ChatUtils.success("Set location name to ")
+                player.sendMessage(ChatUtils.success("Set location name to ")
                         .append(e.message().color(NamedTextColor.DARK_AQUA)));
 
                 // Unregister listener and task.
@@ -87,7 +87,7 @@ public class LocationNameListener implements Listener {
                 unregister();
 
                 // If AddLocation gui still exists, reopen it.
-                NetworkUser u = instance.getUser(p);
+                NetworkUser u = instance.getUser(player);
                 if (gui.getType() == AddLocationType.ADD) {
                     if (Objects.requireNonNull(u).mainGui != null) {
                         if (u.mainGui instanceof AddLocation) {
