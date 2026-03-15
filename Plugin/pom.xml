@@ -81,6 +81,9 @@
                                         <exclude>org/apache/commons/imaging/**</exclude>
 
                                         <exclude>net/daporkchop/lib/**</exclude>
+
+                                        <!-- This exclude is necessary for the tutorials promotion service to register. -->
+                                        <exclude>net/bteuk/teachingtutorials/services/**</exclude>
                                     </excludes>
                                 </filter>
 
