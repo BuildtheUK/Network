@@ -112,8 +112,8 @@ public class Utils {
      * @param tip the tip to add a prefix to
      * @return Component of the tip with the prefix
      */
-    public static Component tip(String tip) {
-        return Component.text("[TIP] ", TextColor.color(0x346beb)).append(Utils.line(tip));
+    public static Component tip(Component tip) {
+        return Component.text("[TIP] ", TextColor.color(0x346beb)).append(tip);
     }
 
     public static ItemStack createItem(Material material, int amount, Component displayName, Component... loreString) {

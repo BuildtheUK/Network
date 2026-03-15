@@ -3,6 +3,8 @@ package net.bteuk.network.utils;
 import lombok.extern.java.Log;
 import net.bteuk.network.Network;
 import net.bteuk.network.core.Constants;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -145,8 +147,9 @@ public class Tips {
          *
          * @return tip at the index counter
          */
-        public String getTip() {
-            return tips[counter];
+        public Component getTip() {
+            MiniMessage miniMessage = MiniMessage.miniMessage();
+            return miniMessage.deserialize(tips[counter]);
         }
     }
 }
