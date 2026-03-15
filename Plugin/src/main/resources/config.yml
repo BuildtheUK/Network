@@ -1,0 +1,179 @@
+# Config version; do not update this manually as it could break the config.
+version: 1.8.1
+
+# MySQL is mandatory for this plugin.
+# Login information
+host: localhost
+port: 3306
+username: root
+password: password
+
+# Database names (doesn't require adjusting)
+database:
+  global: uknet_global
+  plot: uknet_plots
+  region: uknet_regions
+
+# Server configuration
+# Server types: PLOT, EARTH, LOBBY, TUTORIAL
+# If you are running this server standalone, then keep this as 'EARTH'.
+# Standalone implies that this is the only server in your network.
+enabled: false
+server_name: server_name
+server_type: EARTH
+standalone: false
+
+# Lobby info, only necessary if the server type is LOBBY.
+spawn:
+  world: Lobby
+  x: 1000.5
+  y: 69.0
+  z: -129.5
+  yaw: -90
+  pitch: 0
+
+# Map info. Must be set to enabled to be available.
+map:
+  enabled: false
+  server: lobby
+  location:
+    world: Lobby
+    x: 100.5
+    y: 69.0
+    z: 100.5
+    yaw: 90
+    pitch: 0
+
+# Staff features
+staff:
+  chat:
+    enabled: true
+  moderation:
+    enabled: true
+
+# Tutorials
+# Enable if your network contains a server with TeachingTutorials setup.
+tutorials:
+  enabled: false
+  compulsory_tutorial: true
+  database:
+    host: localhost
+    port: 3306
+    username: root
+    password: password
+    name: TeachingTutorials
+
+# Progress Map
+# Enable if you have a MapHub progress map
+ProgressMap:
+  enabled: false
+  MapHubAPIKey: insert_api_key_here
+  ProgressMapID: insert_map_id_here
+  #A web link to the progress map
+  Link: insert_link_to_map_here
+
+# Chat Settings
+chat:
+  # The socket configuration is only necessary if running the server as part of a network
+  # Else, it will be ignored (if standalone=true)
+  socket:
+    input:
+      port: 30590
+    output:
+      IP: localhost
+      port: 30589
+
+  # Whether to announce role promotions in chat.
+  announce_promotions: true
+
+  # Tips in chat
+  # Whether to enable tips in chat and at what frequency they should display.
+  # Adding messages can be done in files in the 'tips' folder. One file for each builder role you want to display it to.
+  # Frequency is in minutes.
+  tips:
+    enabled: true
+    frequency: 5
+
+# Tpll config.
+# The min and max y are for searching altitude for teleport, set it to the same value as the world height.
+tpll:
+  enabled: true
+  requires_permission: false
+  min_y: -128
+  max_y: 1360
+
+# Enable regions and cross-server teleport.
+# Regions must be enabled for cross-server teleport to function (if standalone=false).
+# Earth world must be specified on all servers as it is used to determine cross-server tpll to the earth server.
+# To make sure the player is teleported to the correct world.
+regions:
+  enabled: true
+  earth_world: earth
+
+  # Number of days a region owner can be inactive before they are demoted to member.
+  # If the region has no other members, then the owner does not get demoted by the region becomes 'inactive'.
+  inactivity_days: 30
+
+  # When staff approval is needed for Jr.Builder region requests.
+  # These values are only relevant if regions are enabled.
+  # Always means that staff approval is always required.
+  # Radius is the square radius around the region that is checked when determining whether staff approval is necessary.
+  # If someone else owns a region in this radius, staff approval will be needed.
+  # If you want to disable this entirely, set the radius to 0.
+  staff_request:
+    always: false
+    radius: 5
+
+# Whether the server network has a plot system server.
+plot_system_enabled: true
+
+# Should /ll be enabled.
+ll_enabled: true
+
+# Time before the player is set to AFK (minutes).
+afk: 5
+
+# Discord link
+discord: 'https://discord.gg/5m56EgEVW6'
+
+# Enables warps and the explore-menu.
+warps_enabled: true
+
+# Radius to search in the nearby locations tab of the exploration menu, distance in kilometres.
+navigation_radius: 200
+
+# Homes (personal warps)
+homes_enabled: true
+
+# Progression (currently disabled
+progression:
+  enabled: false
+  announce_level-ups:
+    overall: false
+    seasonal: true
+
+# Scoreboard to display in the sidebar.
+sidebar:
+  enabled: false
+  title: "BTE Games"
+  text:
+    - "BTE UK currently competing in the BTE Games!"
+    - "Please join event.buildtheearth.net"
+    - "Select BTE UK to choose our team."
+    - "You can not change your selection!"
+    - "Check our /discord for more information."
+    -
+
+# Sends a message to the player on joining
+motd:
+  enabled: false
+  # Use MiniMessage format to define the text. (https://webui.advntr.dev/). Use %player% as the player name placeholder
+  text: ""
+
+# Whether the skulls plugin is used as the head database.
+skulls_plugin_enabled: true
+
+minrank_generation: Jr.Builder
+minrank_regionclaim: Jr.Builder
+minrank_zonejoin: Jr.Builder
+minrank_publicjoin: Jr.Builder

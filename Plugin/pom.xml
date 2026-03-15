@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>net.bteuk</groupId>
+        <artifactId>Network</artifactId>
+        <version>1.9.0</version>
+    </parent>
+
+    <groupId>net.bteuk.network</groupId>
+    <artifactId>plugin</artifactId>
+    <name>Network Plugin</name>
+    <description>Minecraft plugin for the BTEUK Network</description>
+
+    <properties>
+        <junit.version>5.11.2</junit.version>
+        <maven.compiler.version>3.13.0</maven.compiler.version>
+        <maven.shade.version>3.6.0</maven.shade.version>
+        <maven.surefire.version>3.5.1</maven.surefire.version>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>${maven.shade.version}</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>${project.parent.artifactId}-${project.version}</finalName>
+                            <createDependencyReducedPom>true</createDependencyReducedPom>
+                            <minimizeJar>true</minimizeJar>
+
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/MANIFEST.MF</exclude>
+
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+
+                                        <exclude>META-INF/maven/**</exclude>
+                                        <exclude>META-INF/NOTICE*</exclude>
+                                        <exclude>META-INF/LICENSE*</exclude>
+                                        <exclude>LICENSE</exclude>
+                                        <exclude>META-INF/DEPENDENCIES</exclude>
+
+                                        <exclude>META-INF/io.netty.versions.properties</exclude>
+
+                                        <exclude>module-info.class</exclude>
+                                        <exclude>META-INF/versions/**</exclude>
+                                    </excludes>
+                                </filter>
+
+                                <filter>
+                                    <artifact>com.github.BTEUK:TeachingTutorials</artifact>
+                                    <excludes>
+                                        <exclude>config.yml</exclude>
+
+                                        <exclude>com/google/gson/**</exclude>
+                                        <exclude>org/apache/commons/lang3/**</exclude>
+                                        <exclude>org/apache/commons/io/**</exclude>
+                                        <exclude>io/netty/**</exclude>
+                                        <exclude>org/apache/logging/log4j/**</exclude>
+                                        <exclude>javax/annotation/**</exclude>
+                                        <exclude>com/google/common/**</exclude>
+
+                                        <exclude>com/google/errorprone/annotations/**</exclude>
+                                        <exclude>com/google/j2objc/annotations/**</exclude>
+
+                                        <exclude>it/unimi/dsi/fastutil/**</exclude>
+                                        <exclude>org/apache/commons/imaging/**</exclude>
+
+                                        <exclude>net/daporkchop/lib/**</exclude>
+                                    </excludes>
+                                </filter>
+
+                                <filter>
+                                    <artifact>com.github.BTEUK:NetworkLib</artifact>
+                                    <excludes>
+                                        <exclude>com/google/gson/**</exclude>
+                                        <exclude>net/kyori/**</exclude>
+                                        <exclude>com/fasterxml/jackson/**</exclude>
+
+                                        <exclude>org/jetbrains/annotations/**</exclude>
+                                        <exclude>org/intellij/lang/annotations/**</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+
+                            <relocations>
+                                <relocation>
+                                    <pattern>org.apache.commons.lang3</pattern>
+                                    <shadedPattern>net.bteuk.network.shaded.commons.lang3</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.apache.commons.io</pattern>
+                                    <shadedPattern>net.bteuk.network.shaded.commons.io</shadedPattern>
+                                </relocation>
+                            </relocations>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven.surefire.version}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.junit.jupiter</groupId>
+                        <artifactId>junit-jupiter-engine</artifactId>
+                        <version>${junit.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+        </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>net.bteuk.network</groupId>
+            <artifactId>api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>net.bteuk.network</groupId>
+            <artifactId>core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>net.bteuk.network</groupId>
+            <artifactId>regions</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.BuildtheUK.BTUKLib</groupId>
+            <artifactId>Minecraft</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.BuildtheUK.Proxy</groupId>
+            <artifactId>core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.BuildtheUK.Proxy</groupId>
+            <artifactId>database</artifactId>
+        </dependency>
+
+        <!-- Server api | scope provided -->
+        <dependency>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Plugin api | scope provided -->
+        <dependency>
+            <groupId>com.sk89q.worldguard</groupId>
+            <artifactId>worldguard-bukkit</artifactId>
+            <version>7.0.14</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.dmulloy2</groupId>
+            <artifactId>ProtocolLib</artifactId>
+            <version>5.4.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.decentsoftware-eu</groupId>
+            <artifactId>decentholograms</artifactId>
+            <version>2.9.7</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.luckperms</groupId>
+            <artifactId>api</artifactId>
+            <version>5.4</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Utils -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.papermc</groupId>
+            <artifactId>paperlib</artifactId>
+            <version>1.0.7</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.18.0</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.17.0</version>
+        </dependency>
+        <dependency>
+            <groupId>net.buildtheearth.terraminusminus</groupId>
+            <artifactId>terraminusminus-core</artifactId>
+            <version>2.0.0-1.21.4</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>33.4.8-jre</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.BTEUK</groupId>
+            <artifactId>NetworkLib</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.BTEUK</groupId>
+            <artifactId>TeachingTutorials</artifactId>
+            <version>1.13.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.BTEUK</groupId>
+            <artifactId>TeachingTutorialsAPI</artifactId>
+            <version>970d3dc3f7</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Test dependencies -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

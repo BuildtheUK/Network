@@ -1,0 +1,115 @@
+package net.bteuk.network.commands;
+
+import io.papermc.paper.command.brigadier.CommandSourceStack;
+import lombok.extern.java.Log;
+import net.bteuk.network.Network;
+import net.bteuk.network.commands.tabcompleters.ConditionalPlayerSelector;
+import net.bteuk.network.commands.tabcompleters.FixedArgSelector;
+import net.bteuk.network.commands.tabcompleters.MultiArgSelector;
+import net.bteuk.network.lib.dto.OnlineUser;
+import net.bteuk.network.lib.dto.UserUpdate;
+import net.bteuk.network.lib.utils.ChatUtils;
+import net.bteuk.network.socket.MessageSender;
+import net.bteuk.network.utils.NetworkUser;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
+@Log
+public class Nick extends AbstractCommand {
+
+    private static final PlainTextComponentSerializer PLAIN_SERIALIZER = PlainTextComponentSerializer.plainText();
+    private static final LegacyComponentSerializer COLOUR_SERIALIZER = LegacyComponentSerializer.builder().hexColors().character('&').build();
+
+    private final Network instance;
+    private final MessageSender messageSender;
+
+    public Nick(Network instance, MessageSender messageSender) {
+        this.instance = instance;
+        this.messageSender = messageSender;
+        setTabCompleter(new MultiArgSelector(List.of(new FixedArgSelector(Collections.singletonList("reset"), 0),
+                new ConditionalPlayerSelector(instance, 1, args -> args != null && args.length > 0 && "reset".equalsIgnoreCase(args[0])))));
+    }
+
+    @Override
+    public void execute(@NotNull CommandSourceStack stack, String @NotNull [] args) {
+        // Check if the sender is a player.
+        Player player = getPlayer(stack);
+        if (player == null) {
+            return;
+        }
+
+        if (!hasPermission(player, "uknet.nick")) {
+            return;
+        }
+
+        NetworkUser user = instance.getUser(player);
+
+        // If the user is null, cancel.
+        if (user == null) {
+            log.severe("User " + player.getName() + " can not be found!");
+            player.sendMessage(ChatUtils.error("User can not be found, please relog!"));
+            return;
+        }
+
+        if (args.length == 0) {
+            player.sendMessage(ChatUtils.error("Usage: %s (Supports &colours or &#RRGGBB)", "/nick <name>"));
+            player.sendMessage(ChatUtils.error("Example: %s", "/nick &6My &#FF00FFName"));
+            return;
+        } else if ("reset".equalsIgnoreCase(args[0]) && args.length == 1) {
+            Component defaultName = ChatUtils.line(player.getName());
+            updateDisplayName(player.getUniqueId().toString(), defaultName);
+            return;
+        } else if ("reset".equalsIgnoreCase(args[0]) && args.length > 1 && player.hasPermission("uknet.nick.reset.others")) {
+            // Get the player.
+            Optional<OnlineUser> onlineUser = instance.getOnlineUserByNameIgnoreCase(args[1]);
+            if (onlineUser.isPresent()) {
+                updateDisplayName(onlineUser.get().getUuid(), ChatUtils.line(onlineUser.get().getName()));
+                player.sendMessage(ChatUtils.success("Reset %s nickname.", args[1] + "'s"));
+            } else {
+                player.sendMessage(ChatUtils.error("Player %s is not online!", args[1]));
+            }
+            return;
+        }
+
+        String rawName = String.join(" ", args);
+        Component displayName = COLOUR_SERIALIZER.deserialize(rawName);
+
+        // Optional: Check visible length (strip colors)
+        String stripped = PLAIN_SERIALIZER.serialize(displayName);
+        if (stripped.length() > 16) {
+            player.sendMessage(ChatUtils.error("Your nickname must be not exceed 16 characters."));
+            return;
+        }
+
+        updateDisplayName(player.getUniqueId().toString(), displayName);
+    }
+
+    private void updateDisplayName(String uuid, Component displayName) {
+        UserUpdate userUpdateEvent = new UserUpdate();
+        userUpdateEvent.setUuid(uuid);
+        userUpdateEvent.setDisplayName(displayName);
+        messageSender.sendSocketMessage(userUpdateEvent);
+    }
+
+    @Override
+    public String getLabel() {
+        return "nick";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Updates your display name. Supports & colors and &#RRGGBB hex colors.";
+    }
+
+    @Override
+    public List<String> getAliases() {
+        return List.of("nickname");
+    }
+}
