@@ -3,6 +3,7 @@ package net.bteuk.network.regions.listener;
 import lombok.extern.java.Log;
 import net.bteuk.network.api.PlotAPI;
 import net.bteuk.network.core.Constants;
+import net.bteuk.network.core.ServerType;
 import net.bteuk.network.regions.Region;
 import net.bteuk.network.regions.RegionManager;
 import net.bteuk.network.regions.RegionUser;
@@ -47,9 +48,9 @@ public class RegionTeleportListener extends AbstractMoveListener implements List
         log.info("Previous player deltas: (" + regionUser.getDeltaX() + "," + regionUser.getDeltaZ() + ")");
 
         // Update player delta if standalone
-        if (constants.standalone()) {
+        if (constants.serverType() == ServerType.PLOT || constants.standalone()) {
 
-            log.info("Updating player deltas because in standalone");
+            log.info("Updating player deltas because in plotsystem or standalone");
             String szWorldName = e.getPlayer().getWorld().getName();
             log.info("New world: " + szWorldName);
             if (!szWorldName.equals(constants.earthWorld())) {
