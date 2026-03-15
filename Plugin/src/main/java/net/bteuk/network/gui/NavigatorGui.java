@@ -108,7 +108,7 @@ public class NavigatorGui extends NetworkGui {
 
         // Survey
         if (constants.UKSurvey())
-            setItem(18, Utils.createItem(Material.REDSTONE_LAMP, 1, Utils.title("UK Survey"), Utils.line("Assist us with our PR analysis.")), (NetworkUser u) -> {
+            setItem(18, Utils.createItem(Material.PAPER, 1, Utils.title("UK Survey"), Utils.line("Assist us with our PR strategy.")), (NetworkUser u) -> {
                 SurveyBook.openSurvey(u, globalSQL);
             });
 
