@@ -113,7 +113,8 @@ public class Utils {
      * @return Component of the tip with the prefix
      */
     public static Component tip(Component tip) {
-        return Component.text("[TIP] ", TextColor.color(0x346beb)).append(tip);
+        return Component.text("[TIP] ", TextColor.color(0x346beb))
+                .append(tip.colorIfAbsent(TextColor.color(0xffffff)));
     }
 
     public static ItemStack createItem(Material material, int amount, Component displayName, Component... loreString) {
