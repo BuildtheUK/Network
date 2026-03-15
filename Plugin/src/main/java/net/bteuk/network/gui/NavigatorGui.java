@@ -27,7 +27,7 @@ import org.bukkit.potion.PotionEffectType;
 
 public class NavigatorGui extends NetworkGui {
 
-    public NavigatorGui(GuiProvider provider, Network network) {
+    public NavigatorGui(GuiProvider provider) {
         super(provider, 27, Component.text("Navigator", NamedTextColor.AQUA, TextDecoration.BOLD));
 
         Constants constants = provider.constants();
@@ -109,7 +109,7 @@ public class NavigatorGui extends NetworkGui {
         // Survey
         if (constants.UKSurvey())
             setItem(18, Utils.createItem(Material.REDSTONE_LAMP, 1, Utils.title("UK Survey"), Utils.line("Assist us with our PR analysis.")), (NetworkUser u) -> {
-                SurveyBook.openSurvey(network, u, globalSQL);
+                SurveyBook.openSurvey(u, globalSQL);
             });
 
         setItem(19, Utils.createItem(Material.REDSTONE_LAMP, 1, Utils.title("Lights Out"), Utils.line("Play a game of Lights Out.")), (NetworkUser u) -> {
