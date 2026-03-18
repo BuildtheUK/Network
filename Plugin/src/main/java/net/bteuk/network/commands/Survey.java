@@ -15,6 +15,8 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
+import java.util.logging.Level;
+
 @Log
 public class Survey extends AbstractCommand {
 
@@ -46,19 +48,26 @@ public class Survey extends AbstractCommand {
 
         if (args.length == 0) {
             SurveyBook.openSurvey(user, globalSQL);
-        } else if (args.length == 1) {
-            if (args[0].equalsIgnoreCase("save")) {
+        } else if (args.length == 1 && args[0].equalsIgnoreCase("save")) {
                 SurveyBook surveyBook = SurveyBook.getOpenSurvey(user);
                 if (surveyBook != null) {
                     surveyBook.saveSurvey();
                 }
-            }
         } else if (args.length == 2) {
             SurveyBook surveyBook = SurveyBook.getOpenSurvey(user);
             if (surveyBook == null)
                 return;
 
-            SurveyBook.AnswerOption answerOption = SurveyBook.AnswerOption.valueOf(args[0].toUpperCase());
+            SurveyBook.AnswerOption answerOption;
+
+            try {
+                 answerOption = SurveyBook.AnswerOption.valueOf(args[0].toUpperCase());
+            }
+            catch (IllegalArgumentException e) {
+                log.log(Level.WARNING, "Invalid answer option at command survey: " + args[0], e);
+                return;
+            }
+
             boolean bYes = args[1].equals("Y");
             switch (answerOption) {
                 case Q1_BTUK -> surveyBook.getSurvey().setBFoundViaBTUK(bYes);
@@ -79,8 +88,13 @@ public class Survey extends AbstractCommand {
                 case Q3_YOUTUBE_LONG -> surveyBook.getSurvey().setBSocialsYoutubeLongform(bYes);
                 case Q3_INSTAGRAM -> surveyBook.getSurvey().setBSocialsInstagram(bYes);
                 case CHANGE_PAGE -> {
-                    int toPage = Integer.parseInt(args[1]);
-                    surveyBook.changePage(toPage);
+                    try {
+                        int toPage = Integer.parseInt(args[1]);
+                        surveyBook.changePage(toPage);
+                    }
+                    catch (NumberFormatException e) {
+                        log.log(Level.WARNING, "Invalid page number: " + args[1], e);
+                    }
                 }
             }
             surveyBook.updateSurveyBooks();

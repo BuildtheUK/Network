@@ -44,14 +44,12 @@ public class SurveyBook {
 
     /**
      * Opens a survey for a user
-     *
-     * @param user
-     * @param globalSQL
      */
     public static void openSurvey(NetworkUser user, GlobalSQL globalSQL) {
         SurveyBook openSurvey = SurveyBook.getOpenSurvey(user);
-        if (openSurvey == null)
+        if (openSurvey == null) {
             openSurvey = new SurveyBook(user, globalSQL);
+        }
         openSurvey.openCurrentPage();
     }
 
@@ -71,7 +69,9 @@ public class SurveyBook {
         user.player.openBook(books[iCurrentPage]);
     }
 
-    public void unregister() {
+    public void saveSurvey() {
+        globalSQL.saveSurveyOfUser(user.player.getUniqueId(), survey);
+        user.sendMessage(ChatUtils.success("Thank you! Survey has been saved!"));
         openSurveys.remove(user);
     }
 
@@ -171,7 +171,7 @@ public class SurveyBook {
         page5 = page5.appendSpace();
         page5 = page5.append(Component.text("[Save]")
                 .color(TextColor.color(NamedTextColor.GREEN.value()))
-                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/survey save")));
+                .clickEvent(ClickEvent.runCommand("/survey save")));
         page5 = page5.appendNewline();
         page5 = appendPageChangeOption(page5, true, false, 5);
 
@@ -185,21 +185,25 @@ public class SurveyBook {
         //[Y]
         component = component.append(Component.text("["));
         Component Y = Component.text("Y").color(TextColor.color(NamedTextColor.GREEN.value()))
-                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/survey " + option.name() + " Y"));
-        if (bYSelected)
+                .clickEvent(ClickEvent.runCommand("/survey " + option.name() + " Y"));
+        if (bYSelected) {
             component = component.append(Y.decorate(TextDecoration.BOLD).decorate(TextDecoration.UNDERLINED));
-        else
+        }
+        else {
             component = component.append(Y);
+        }
         component = component.append(Component.text("]"));
         component = component.appendSpace();
         //[N]
         component = component.append(Component.text("["));
         Component N = Component.text("N").color(TextColor.color(NamedTextColor.RED.value()))
-                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/survey " + option.name() + " N"));
-        if (bNSelected)
+                .clickEvent(ClickEvent.runCommand("/survey " + option.name() + " N"));
+        if (bNSelected) {
             component = component.append(N.decorate(TextDecoration.BOLD).decorate(TextDecoration.UNDERLINED));
-        else
+        }
+        else {
             component = component.append(N);
+        }
         component = component.append(Component.text("]"));
 
         component = component.appendNewline();
@@ -222,11 +226,6 @@ public class SurveyBook {
                     .clickEvent(ClickEvent.runCommand("/survey " + AnswerOption.CHANGE_PAGE.name() + " " + (iCurrentPage + 1))));
         }
         return component;
-    }
-
-    public void saveSurvey() {
-        globalSQL.saveSurveyOfUser(user.player.getUniqueId(), survey);
-        user.sendMessage(ChatUtils.success("Thank you! Survey has been saved!"));
     }
 
     public enum AnswerOption {
