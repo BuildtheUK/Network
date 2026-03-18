@@ -109,15 +109,15 @@ public class SurveyBook {
 
         // Page 2 Question 1 answers
         Component page2 = Component.empty();
-        page2 = appendOptionYesNo("Build the UK", page2, AnswerOption.Q1_BTUK, survey.bFoundViaBTUK, !survey.bFoundViaBTUK);
+        page2 = appendOptionYesNo("Build the UK", page2, SurveyAnswerOption.Q1_BTUK, survey.bFoundViaBTUK, !survey.bFoundViaBTUK);
         page2 = page2.appendNewline(); // Extra line
-        page2 = appendOptionYesNo("Build The Earth", page2, AnswerOption.Q1_BTE, survey.bFoundViaBTE, !survey.bFoundViaBTE);
+        page2 = appendOptionYesNo("Build The Earth", page2, SurveyAnswerOption.Q1_BTE, survey.bFoundViaBTE, !survey.bFoundViaBTE);
         page2 = page2.appendNewline(); // Extra line
-        page2 = appendOptionYesNo("External Media Mentioning Build the UK", page2, AnswerOption.Q1_BTUK_EXTERNAL, survey.bFoundViaBTUKExternal, !survey.bFoundViaBTUKExternal);
+        page2 = appendOptionYesNo("External Media Mentioning Build the UK", page2, SurveyAnswerOption.Q1_BTUK_EXTERNAL, survey.bFoundViaBTUKExternal, !survey.bFoundViaBTUKExternal);
         page2 = page2.appendNewline(); // Extra line
-        page2 = appendOptionYesNo("External Media Mentioning Build The Earth", page2, AnswerOption.Q1_BTE_EXTERNAL, survey.bFoundViaBTEExternal, !survey.bFoundViaBTEExternal);
+        page2 = appendOptionYesNo("External Media Mentioning Build The Earth", page2, SurveyAnswerOption.Q1_BTE_EXTERNAL, survey.bFoundViaBTEExternal, !survey.bFoundViaBTEExternal);
         page2 = page2.appendNewline(); // Extra line
-        page2 = appendOptionYesNo("From a Friend", page2, AnswerOption.Q1_FRIEND, survey.bFoundViaFriend, !survey.bFoundViaFriend);
+        page2 = appendOptionYesNo("From a Friend", page2, SurveyAnswerOption.Q1_FRIEND, survey.bFoundViaFriend, !survey.bFoundViaFriend);
         page2 = appendPageChangeOption(page2, true, true, 2);
 
         this.books[1] = Book.book(Component.text(""), ChatUtils.line(user.player.getName()), page2);
@@ -143,14 +143,14 @@ public class SurveyBook {
 
         // Page 4 Question 2 answers
         Component page4 = Component.empty();
-        page4 = appendOptionYesNo("TikTok", page4, AnswerOption.Q2_TIKTOK, survey.bMediumTiktok, !survey.bMediumTiktok);
-        page4 = appendOptionYesNo("YouTube Short", page4, AnswerOption.Q2_YT_SHORT, survey.bMediumYoutubeShorts, !survey.bMediumYoutubeShorts);
-        page4 = appendOptionYesNo("YouTube Longform", page4, AnswerOption.Q2_YT_LONG, survey.bMediumYoutubeLongform, !survey.bMediumYoutubeLongform);
-        page4 = appendOptionYesNo("YouTube Instagram", page4, AnswerOption.Q2_INSTAGRAM, survey.bMediumInstagram, !survey.bMediumInstagram);
-        page4 = appendOptionYesNo("YouTube Search Engine - Browsing", page4, AnswerOption.Q2_SEARCH, survey.bSearchEngineBrowsing, !survey.bSearchEngineBrowsing);
-        page4 = appendOptionYesNo("Online News", page4, AnswerOption.Q2_ONLINE_NEWS, survey.bOnlineNews, !survey.bOnlineNews);
-        page4 = appendOptionYesNo("TV News", page4, AnswerOption.Q2_TV_NEWS, survey.bTVNews, !survey.bTVNews);
-        page4 = appendOptionYesNo("Physical Newspaper", page4, AnswerOption.Q2_NEWSPAPER, survey.bPhysicalNewspaper, !survey.bPhysicalNewspaper);
+        page4 = appendOptionYesNo("TikTok", page4, SurveyAnswerOption.Q2_TIKTOK, survey.bMediumTiktok, !survey.bMediumTiktok);
+        page4 = appendOptionYesNo("YouTube Short", page4, SurveyAnswerOption.Q2_YT_SHORT, survey.bMediumYoutubeShorts, !survey.bMediumYoutubeShorts);
+        page4 = appendOptionYesNo("YouTube Longform", page4, SurveyAnswerOption.Q2_YT_LONG, survey.bMediumYoutubeLongform, !survey.bMediumYoutubeLongform);
+        page4 = appendOptionYesNo("YouTube Instagram", page4, SurveyAnswerOption.Q2_INSTAGRAM, survey.bMediumInstagram, !survey.bMediumInstagram);
+        page4 = appendOptionYesNo("YouTube Search Engine - Browsing", page4, SurveyAnswerOption.Q2_SEARCH, survey.bSearchEngineBrowsing, !survey.bSearchEngineBrowsing);
+        page4 = appendOptionYesNo("Online News", page4, SurveyAnswerOption.Q2_ONLINE_NEWS, survey.bOnlineNews, !survey.bOnlineNews);
+        page4 = appendOptionYesNo("TV News", page4, SurveyAnswerOption.Q2_TV_NEWS, survey.bTVNews, !survey.bTVNews);
+        page4 = appendOptionYesNo("Physical Newspaper", page4, SurveyAnswerOption.Q2_NEWSPAPER, survey.bPhysicalNewspaper, !survey.bPhysicalNewspaper);
         page4 = appendPageChangeOption(page4, true, true, 4);
 
         this.books[3] = Book.book(Component.text(""), ChatUtils.line(user.player.getName()), page4);
@@ -162,10 +162,10 @@ public class SurveyBook {
         page5 = page5.append(Component.text("What social media platforms do you use regularly?"));
         page5 = page5.appendNewline();
         page5 = page5.appendNewline();
-        page5 = appendOptionYesNo("TikTok", page5, AnswerOption.Q3_TIKTOK, survey.bSocialsTiktok, !survey.bSocialsTiktok);
-        page5 = appendOptionYesNo("YouTube Shorts", page5, AnswerOption.Q3_YOUTUBE_SHORTS, survey.bSocialsYoutubeShorts, !survey.bSocialsYoutubeShorts);
-        page5 = appendOptionYesNo("YouTube Longform", page5, AnswerOption.Q3_YOUTUBE_LONG, survey.bSocialsYoutubeLongform, !survey.bSocialsYoutubeLongform);
-        page5 = appendOptionYesNo("Instagram", page5, AnswerOption.Q3_INSTAGRAM, survey.bSocialsInstagram, !survey.bSocialsInstagram);
+        page5 = appendOptionYesNo("TikTok", page5, SurveyAnswerOption.Q3_TIKTOK, survey.bSocialsTiktok, !survey.bSocialsTiktok);
+        page5 = appendOptionYesNo("YouTube Shorts", page5, SurveyAnswerOption.Q3_YOUTUBE_SHORTS, survey.bSocialsYoutubeShorts, !survey.bSocialsYoutubeShorts);
+        page5 = appendOptionYesNo("YouTube Longform", page5, SurveyAnswerOption.Q3_YOUTUBE_LONG, survey.bSocialsYoutubeLongform, !survey.bSocialsYoutubeLongform);
+        page5 = appendOptionYesNo("Instagram", page5, SurveyAnswerOption.Q3_INSTAGRAM, survey.bSocialsInstagram, !survey.bSocialsInstagram);
         page5 = page5.appendNewline();
         page5 = page5.append(Component.text("Save Survey"));
         page5 = page5.appendSpace();
@@ -178,7 +178,7 @@ public class SurveyBook {
         this.books[4] = Book.book(Component.text(""), ChatUtils.line(user.player.getName()), page5);
     }
 
-    private Component appendOptionYesNo(String optionName, Component component, AnswerOption option, boolean bYSelected, boolean bNSelected) {
+    private Component appendOptionYesNo(String optionName, Component component, SurveyAnswerOption option, boolean bYSelected, boolean bNSelected) {
         component = component.append(Component.text(optionName));
         component = component.appendSpace();
 
@@ -214,38 +214,17 @@ public class SurveyBook {
 
         if (bIncludeBack) {
             component = component.append(Component.text("[Previous]").color(TextColor.color(NamedTextColor.LIGHT_PURPLE.value()))
-                    .clickEvent(ClickEvent.runCommand("/survey " + AnswerOption.CHANGE_PAGE.name() + " " + (iCurrentPage - 1))));
+                    .clickEvent(ClickEvent.runCommand("/survey " + SurveyAnswerOption.CHANGE_PAGE.name() + " " + (iCurrentPage - 1))));
             if (bIncludeForwards) {
                 component = component.append(Component.text("        "));
                 component = component.append(Component.text("[Next]").color(TextColor.color(NamedTextColor.LIGHT_PURPLE.value()))
-                        .clickEvent(ClickEvent.runCommand("/survey " + AnswerOption.CHANGE_PAGE.name() + " " + (iCurrentPage + 1))));
+                        .clickEvent(ClickEvent.runCommand("/survey " + SurveyAnswerOption.CHANGE_PAGE.name() + " " + (iCurrentPage + 1))));
             }
         } else if (bIncludeForwards) {
             component = component.append(Component.text("                     "));
             component = component.append(Component.text("[Next]").color(TextColor.color(NamedTextColor.LIGHT_PURPLE.value()))
-                    .clickEvent(ClickEvent.runCommand("/survey " + AnswerOption.CHANGE_PAGE.name() + " " + (iCurrentPage + 1))));
+                    .clickEvent(ClickEvent.runCommand("/survey " + SurveyAnswerOption.CHANGE_PAGE.name() + " " + (iCurrentPage + 1))));
         }
         return component;
-    }
-
-    public enum AnswerOption {
-        Q1_BTUK,
-        Q1_BTE,
-        Q1_BTUK_EXTERNAL,
-        Q1_BTE_EXTERNAL,
-        Q1_FRIEND,
-        Q2_TIKTOK,
-        Q2_YT_SHORT,
-        Q2_YT_LONG,
-        Q2_INSTAGRAM,
-        Q2_SEARCH,
-        Q2_ONLINE_NEWS,
-        Q2_TV_NEWS,
-        Q2_NEWSPAPER,
-        Q3_TIKTOK,
-        Q3_YOUTUBE_SHORTS,
-        Q3_YOUTUBE_LONG,
-        Q3_INSTAGRAM,
-        CHANGE_PAGE
     }
 }

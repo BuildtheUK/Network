@@ -9,6 +9,7 @@ import net.bteuk.network.lib.dto.UserUpdate;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.socket.MessageSender;
 import net.bteuk.network.sql.GlobalSQL;
+import net.bteuk.network.survey.SurveyAnswerOption;
 import net.bteuk.network.survey.SurveyBook;
 import net.bteuk.network.utils.NetworkUser;
 import org.bukkit.entity.Player;
@@ -58,10 +59,10 @@ public class Survey extends AbstractCommand {
             if (surveyBook == null)
                 return;
 
-            SurveyBook.AnswerOption answerOption;
+            SurveyAnswerOption answerOption;
 
             try {
-                 answerOption = SurveyBook.AnswerOption.valueOf(args[0].toUpperCase());
+                 answerOption = SurveyAnswerOption.valueOf(args[0].toUpperCase());
             }
             catch (IllegalArgumentException e) {
                 log.log(Level.WARNING, "Invalid answer option at command survey: " + args[0], e);
