@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 @Log
 public abstract class AbstractSQL implements SQLAPI {
@@ -274,7 +275,7 @@ public abstract class AbstractSQL implements SQLAPI {
         return list;
     }
 
-    public HashMap<Integer, String> getIntStringMap(String sql, Object... args) {
+    public Map<Integer, String> getIntStringMap(String sql, Object... args) {
 
         try (
                 Connection conn = conn(); PreparedStatement statement = conn.prepareStatement(sql)
@@ -285,7 +286,7 @@ public abstract class AbstractSQL implements SQLAPI {
             }
 
             try (ResultSet results = statement.executeQuery()) {
-                HashMap<Integer, String> map = new LinkedHashMap<>();
+                Map<Integer, String> map = new LinkedHashMap<>();
                 while (results.next()) {
                     map.put(results.getInt(1), results.getString(2));
                 }
@@ -297,9 +298,9 @@ public abstract class AbstractSQL implements SQLAPI {
         }
     }
 
-    public HashMap<Integer, String> getIntStringMap(String sql) {
+    public Map<Integer, String> getIntStringMap(String sql) {
 
-        HashMap<Integer, String> map = new HashMap<>();
+        Map<Integer, String> map = new HashMap<>();
 
         try (
                 Connection conn = conn(); PreparedStatement statement = conn.prepareStatement(sql); ResultSet results = statement.executeQuery()
@@ -313,7 +314,7 @@ public abstract class AbstractSQL implements SQLAPI {
         return map;
     }
 
-    public HashMap<String, Integer> getStringIntMap(String sql, Object... args) {
+    public Map<String, Integer> getStringIntMap(String sql, Object... args) {
 
         try (
                 Connection conn = conn(); PreparedStatement statement = conn.prepareStatement(sql)
@@ -324,7 +325,7 @@ public abstract class AbstractSQL implements SQLAPI {
             }
 
             try (ResultSet results = statement.executeQuery()) {
-                HashMap<String, Integer> map = new LinkedHashMap<>();
+                Map<String, Integer> map = new LinkedHashMap<>();
                 while (results.next()) {
                     map.put(results.getString(1), results.getInt(2));
                 }
@@ -336,9 +337,9 @@ public abstract class AbstractSQL implements SQLAPI {
         }
     }
 
-    public HashMap<String, Integer> getStringIntMap(String sql) {
+    public Map<String, Integer> getStringIntMap(String sql) {
 
-        HashMap<String, Integer> map = new LinkedHashMap<>();
+        Map<String, Integer> map = new LinkedHashMap<>();
 
         try (
                 Connection conn = conn(); PreparedStatement statement = conn.prepareStatement(sql); ResultSet results = statement.executeQuery()

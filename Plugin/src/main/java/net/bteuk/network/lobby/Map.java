@@ -63,7 +63,7 @@ public class Map extends AbstractReloadableComponent {
      * Key: Hologram
      * Value: Click action for the hologram
      */
-    private HashMap<Hologram, HologramClickAction> holograms;
+    private Map<Hologram, HologramClickAction> holograms;
 
     private HologramClickEvent hologramClickEvent;
 

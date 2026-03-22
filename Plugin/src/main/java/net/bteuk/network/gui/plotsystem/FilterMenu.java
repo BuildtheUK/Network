@@ -14,8 +14,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.codehaus.plexus.util.StringUtils;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -53,9 +53,9 @@ public class FilterMenu extends NetworkRefreshableGui {
     protected void createGui() {
 
         // Get a list of all users that have completed plots.
-        HashMap<String, Integer> map = plotSQL.getStringIntMap(
+        Map<String, Integer> map = plotSQL.getStringIntMap(
                 "SELECT uuid,COUNT(id) FROM plot_review WHERE " + "accepted=1 AND completed=1 GROUP BY uuid ORDER BY COUNT(id) DESC;");
-        HashMap<String, Integer> newMap = new LinkedHashMap<>();
+        Map<String, Integer> newMap = new LinkedHashMap<>();
 
         // The first item is for all plots.
         newMap.put("", plotSQL.getInt("SELECT COUNT(1) FROM plot_review WHERE accepted=1 AND completed=1;"));

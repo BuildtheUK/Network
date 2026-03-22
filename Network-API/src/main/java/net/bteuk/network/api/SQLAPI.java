@@ -1,7 +1,7 @@
 package net.bteuk.network.api;
 
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public interface SQLAPI {
 
@@ -17,13 +17,13 @@ public interface SQLAPI {
 
     String getString(String sql);
 
-    HashMap<String, Integer> getStringIntMap(String sql, Object... args);
+    Map<String, Integer> getStringIntMap(String sql, Object... args);
 
-    HashMap<String, Integer> getStringIntMap(String sql);
+    Map<String, Integer> getStringIntMap(String sql);
 
-    HashMap<Integer, String> getIntStringMap(String sql, Object... args);
+    Map<Integer, String> getIntStringMap(String sql, Object... args);
 
-    HashMap<Integer, String> getIntStringMap(String sql);
+    Map<Integer, String> getIntStringMap(String sql);
 
     List<String> getStringList(String sql);
 
