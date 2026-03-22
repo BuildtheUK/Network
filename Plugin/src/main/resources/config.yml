@@ -1,5 +1,5 @@
 # Config version; do not update this manually as it could break the config.
-version: 1.8.1
+version: 1.10.0
 
 # MySQL is mandatory for this plugin.
 # Login information
@@ -177,3 +177,6 @@ minrank_generation: Jr.Builder
 minrank_regionclaim: Jr.Builder
 minrank_zonejoin: Jr.Builder
 minrank_publicjoin: Jr.Builder
+
+# Whether the UK Survey is enabled
+UKSurvey_enabled: false

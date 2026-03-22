@@ -38,6 +38,7 @@ import net.bteuk.network.commands.RegionCommand;
 import net.bteuk.network.commands.Reply;
 import net.bteuk.network.commands.Rules;
 import net.bteuk.network.commands.Speed;
+import net.bteuk.network.commands.Survey;
 import net.bteuk.network.commands.TipsToggle;
 import net.bteuk.network.commands.Where;
 import net.bteuk.network.commands.Zone;
@@ -418,13 +419,16 @@ public final class Network extends JavaPlugin implements NetworkAPI {
             commandManager.registerCommand(new Homes(this));
         }
 
+        if (constants.UKSurvey()) {
+            commandManager.registerCommand(new Survey(this, globalSQL));
+        }
+
         /*
          * Utility commands.
          */
         commandManager.registerCommand(new Buildings(this, plotSQL, constants));
         commandManager.registerCommand(new Discord(this, roleAPI, constants, messageSender));
         commandManager.registerCommand(new Focus(this, messageSender));
-        commandManager.registerCommand(new Buildings(this, plotSQL, constants));
 
         commandManager.registerCommand(nightvision);
         commandManager.registerCommand(new Speed());

@@ -7,6 +7,7 @@ import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.Time;
 import net.bteuk.network.core.sql.AbstractSQL;
 import net.bteuk.network.lib.dto.DirectMessage;
+import net.bteuk.network.survey.Survey;
 import net.bteuk.network.utils.Coordinate;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.bukkit.Bukkit;
@@ -19,8 +20,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDateTime;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+import java.util.logging.Level;
 
 @Log
 public class GlobalSQL extends AbstractSQL {
@@ -319,5 +324,83 @@ public class GlobalSQL extends AbstractSQL {
             }
         } else
             return true;
+    }
+
+    public Survey getSurveyOfUser(UUID uuid) {
+        Survey survey;
+        try (
+                Connection conn = conn();
+                PreparedStatement statement = conn.prepareStatement(
+                        "SELECT survey_completed_at, survey_last_edited, found_via_btuk, found_via_bte, found_via_btuk_external, found_via_bte_external,found_via_friend," +
+                                "medium_tiktok, medium_youtube_shorts, medium_youtube_longform, medium_instagram," +
+                                "medium_search_engine_browsing, medium_online_news, medium_tvnews, medium_physical_newspaper," +
+                                "socials_tiktok, socials_youtube_shorts, socials_youtube_longform, socials_instagram FROM survey WHERE player=?;"
+                )
+        ) {
+            statement.setString(1, uuid.toString());
+            ResultSet results = statement.executeQuery();
+
+            if (results.next()) {
+                survey = new Survey(true, results.getTimestamp(1), results.getTimestamp(2),
+                        results.getBoolean(3), results.getBoolean(4), results.getBoolean(5), results.getBoolean(6), results.getBoolean(7),
+                        results.getBoolean(8), results.getBoolean(9), results.getBoolean(10), results.getBoolean(11),
+                        results.getBoolean(12), results.getBoolean(13), results.getBoolean(14), results.getBoolean(15),
+                        results.getBoolean(16), results.getBoolean(17), results.getBoolean(18), results.getBoolean(19));
+                return survey;
+            } else
+                return null;
+
+        } catch (SQLException e) {
+            log.log(Level.SEVERE, e.getMessage(), e);
+            return null;
+        }
+    }
+
+    public void saveSurveyOfUser(UUID user, Survey survey) {
+        try (
+                Connection conn = conn();
+                PreparedStatement statement = (survey.isExisting()) ?
+                        conn.prepareStatement("UPDATE survey SET survey_last_edited=?, found_via_btuk=?, found_via_bte=?, " +
+                                "found_via_btuk_external=?, found_via_bte_external=?, found_via_friend=?," +
+                                "medium_tiktok=?, medium_youtube_shorts=?, medium_youtube_longform=?, medium_instagram=?," +
+                                "medium_search_engine_browsing=?, medium_online_news=?, medium_tvnews=?, medium_physical_newspaper=?," +
+                                "socials_tiktok=?, socials_youtube_shorts=?, socials_youtube_longform=?, socials_instagram=? WHERE player=?;")
+                        :
+                        conn.prepareStatement("INSERT INTO survey (survey_completed_at, survey_last_edited, found_via_btuk, found_via_bte, " +
+                        "found_via_btuk_external,  found_via_bte_external, found_via_friend, " +
+                        "medium_tiktok, medium_youtube_shorts, medium_youtube_longform, medium_instagram, " +
+                        "medium_search_engine_browsing, medium_online_news, medium_tvnews, medium_physical_newspaper, " +
+                        "socials_tiktok, socials_youtube_shorts, socials_youtube_longform, socials_instagram, player)" +
+                        "VALUES (NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);")
+                ) {
+            statement.setTimestamp(1, Timestamp.from(Instant.now()));
+            statement.setBoolean(2, survey.isBFoundViaBTUK());
+            statement.setBoolean(3, survey.isBFoundViaBTE());
+            statement.setBoolean(4, survey.isBFoundViaBTUKExternal());
+            statement.setBoolean(5, survey.isBFoundViaBTEExternal());
+            statement.setBoolean(6, survey.isBFoundViaFriend());
+
+            statement.setBoolean(7, survey.isBMediumTiktok());
+            statement.setBoolean(8, survey.isBMediumYoutubeShorts());
+            statement.setBoolean(9, survey.isBMediumYoutubeLongform());
+            statement.setBoolean(10, survey.isBMediumInstagram());
+            statement.setBoolean(11, survey.isBSearchEngineBrowsing());
+            statement.setBoolean(12, survey.isBOnlineNews());
+            statement.setBoolean(13, survey.isBTVNews());
+            statement.setBoolean(14, survey.isBPhysicalNewspaper());
+
+            statement.setBoolean(15, survey.isBSocialsTiktok());
+            statement.setBoolean(16, survey.isBSocialsYoutubeShorts());
+            statement.setBoolean(17, survey.isBSocialsYoutubeLongform());
+            statement.setBoolean(18, survey.isBSocialsInstagram());
+
+            statement.setString(19, user.toString());
+
+            if (statement.executeUpdate() == 1)
+                survey.setExisting(true);
+
+        } catch (SQLException sql) {
+            log.log(Level.SEVERE, sql.getMessage(), sql);
+        }
     }
 }
