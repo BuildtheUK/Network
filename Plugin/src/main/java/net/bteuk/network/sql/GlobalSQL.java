@@ -19,9 +19,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.time.LocalDateTime;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -300,28 +300,11 @@ public class GlobalSQL extends AbstractSQL {
 
     public boolean createUser(String uuid, String name, String playerSkin) {
 
-        int iPlayerThere = getInt("SELECT count(1) FROM player_data WHERE uuid='" + uuid + "'");
+        int iPlayerThere = getInt("SELECT count(1) FROM player_data WHERE uuid=?", uuid);
 
         if (iPlayerThere == 0) {
-            try (
-                    Connection conn = conn();
-                    PreparedStatement statement = conn.prepareStatement(
-                            "INSERT INTO player_data(uuid,name,last_online,last_submit,player_skin) VALUES('" +
-                                    uuid + "','" +
-                                    name + "'," +
-                                    Time.currentTime() + "," +
-                                    0 + ",'" +
-                                    playerSkin + "');"
-                    )
-            ) {
-
-                statement.executeUpdate();
-                return true;
-
-            } catch (SQLException e) {
-                e.printStackTrace();
-                return false;
-            }
+            return update("INSERT INTO player_data(uuid,name,last_online,last_submit,player_skin) VALUES(?,?,?,?,?);",
+                    uuid, name, Time.currentTime(), 0, playerSkin);
         } else
             return true;
     }

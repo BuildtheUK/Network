@@ -39,6 +39,26 @@ public abstract class AbstractSQL implements SQLAPI {
     }
 
     // Generic update statement, return true if successful.
+    public boolean update(String sql, Object... args) {
+
+        try (
+                Connection conn = conn(); PreparedStatement statement = conn.prepareStatement(sql)
+        ) {
+
+            for (int i = 0; i < args.length; i++) {
+                statement.setObject(i + 1, args[i]);
+            }
+
+            statement.executeUpdate();
+
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // Generic update statement, return true if successful.
     public boolean update(String sql) {
 
         try (
@@ -70,6 +90,29 @@ public abstract class AbstractSQL implements SQLAPI {
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
+        }
+    }
+
+    public int getInt(String sql, Object... args) {
+
+        try (
+                Connection conn = conn(); PreparedStatement statement = conn.prepareStatement(sql)
+        ) {
+
+            for (int i = 0; i < args.length; i++) {
+                statement.setObject(i + 1, args[i]);
+            }
+
+            try (ResultSet results = statement.executeQuery()) {
+                if (results.next()) {
+                    return results.getInt(1);
+                } else {
+                    return 0;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return 0;
         }
     }
 
@@ -149,6 +192,29 @@ public abstract class AbstractSQL implements SQLAPI {
         }
     }
 
+    public String getString(String sql, Object... args) {
+
+        try (
+                Connection conn = conn(); PreparedStatement statement = conn.prepareStatement(sql)
+        ) {
+
+            for (int i = 0; i < args.length; i++) {
+                statement.setObject(i + 1, args[i]);
+            }
+
+            try (ResultSet results = statement.executeQuery()) {
+                if (results.next()) {
+                    return results.getString(1);
+                } else {
+                    return null;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     public String getString(String sql) {
 
         try (
@@ -208,6 +274,29 @@ public abstract class AbstractSQL implements SQLAPI {
         return list;
     }
 
+    public HashMap<Integer, String> getIntStringMap(String sql, Object... args) {
+
+        try (
+                Connection conn = conn(); PreparedStatement statement = conn.prepareStatement(sql)
+        ) {
+
+            for (int i = 0; i < args.length; i++) {
+                statement.setObject(i + 1, args[i]);
+            }
+
+            try (ResultSet results = statement.executeQuery()) {
+                HashMap<Integer, String> map = new LinkedHashMap<>();
+                while (results.next()) {
+                    map.put(results.getInt(1), results.getString(2));
+                }
+                return map;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     public HashMap<Integer, String> getIntStringMap(String sql) {
 
         HashMap<Integer, String> map = new HashMap<>();
@@ -222,6 +311,29 @@ public abstract class AbstractSQL implements SQLAPI {
             log.severe("An invalid sql query was attempted, " + sql);
         }
         return map;
+    }
+
+    public HashMap<String, Integer> getStringIntMap(String sql, Object... args) {
+
+        try (
+                Connection conn = conn(); PreparedStatement statement = conn.prepareStatement(sql)
+        ) {
+
+            for (int i = 0; i < args.length; i++) {
+                statement.setObject(i + 1, args[i]);
+            }
+
+            try (ResultSet results = statement.executeQuery()) {
+                HashMap<String, Integer> map = new LinkedHashMap<>();
+                while (results.next()) {
+                    map.put(results.getString(1), results.getInt(2));
+                }
+                return map;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public HashMap<String, Integer> getStringIntMap(String sql) {
