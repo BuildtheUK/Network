@@ -19,6 +19,7 @@ import org.codehaus.plexus.util.StringUtils;
 
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
@@ -28,6 +29,8 @@ import java.util.concurrent.Executors;
  * or those by a specific user, granted they have completed at least one plot.
  */
 public class AcceptedPlotMenu extends NetworkRefreshableGui {
+
+    private static final ExecutorService EXECUTOR = Executors.newVirtualThreadPerTaskExecutor();
 
     private final PlotSQL plotSQL;
     private final GlobalSQL globalSQL;
@@ -126,7 +129,7 @@ public class AcceptedPlotMenu extends NetworkRefreshableGui {
                 createPlayerHeadGuiItem(profile, plotID, plots.get(plotID), slot);
             } else {
                 int finalSlot = slot;
-                Executors.newSingleThreadExecutor().submit(() -> {
+                EXECUTOR.submit(() -> {
                     profile.complete();
                     createPlayerHeadGuiItem(profile, plotID, plots.get(plotID), finalSlot);
                 });
