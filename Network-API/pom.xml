@@ -6,7 +6,7 @@
     <parent>
         <groupId>net.bteuk</groupId>
         <artifactId>Network</artifactId>
-        <version>1.9.1-SNAPSHOT</version>
+        <version>1.9.1</version>
     </parent>
 
     <groupId>net.bteuk.network</groupId>
