@@ -18,6 +18,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * This menu is an extension on the {@link AcceptedPlotMenu}
@@ -25,6 +27,8 @@ import java.util.UUID;
  * The filter is per player, or all plots.
  */
 public class FilterMenu extends NetworkRefreshableGui {
+
+    private static final ExecutorService EXECUTOR = Executors.newVirtualThreadPerTaskExecutor();
 
     private final PlotSQL plotSQL;
     private final GlobalSQL globalSQL;
@@ -127,8 +131,11 @@ public class FilterMenu extends NetworkRefreshableGui {
                     if (profile.hasTextures()) {
                         createPlayerHeadGuiItem(profile, newMap.get(uuid), uuid, slot);
                     } else {
-                        profile.complete();
-                        createPlayerHeadGuiItem(profile, newMap.get(uuid), uuid, slot);
+                        int finalSlot = slot;
+                        EXECUTOR.submit(() -> {
+                            profile.complete();
+                            createPlayerHeadGuiItem(profile, newMap.get(uuid), uuid, finalSlot);
+                        });
                     }
                 }
             }
