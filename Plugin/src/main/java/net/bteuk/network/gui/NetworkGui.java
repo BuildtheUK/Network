@@ -1,5 +1,6 @@
 package net.bteuk.network.gui;
 
+import lombok.Getter;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
 import net.kyori.adventure.text.Component;
@@ -14,6 +15,7 @@ public abstract class NetworkGui extends Gui {
 
     protected final GuiProvider provider;
 
+    @Getter
     private final int inventorySize;
 
     public NetworkGui(GuiProvider provider, int inventorySize, Component inventoryName) {

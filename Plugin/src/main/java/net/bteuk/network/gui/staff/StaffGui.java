@@ -162,42 +162,22 @@ public class StaffGui extends NetworkRefreshableGui {
                 plotReviewMessage = Utils.line("There are currently ").append(Component.text(reviewCount, NamedTextColor.GRAY)).append(Utils.line(" submitted plots."));
             }
 
-            setItem(21, Utils.createItem(Material.WRITABLE_BOOK, 1, Utils.title("Review Plot"), Utils.line("Click to review a submitted plot."), plotReviewMessage),
-                    (NetworkUser u) -> {
+            setItem(21, Utils.createItem(Material.WRITABLE_BOOK, 1, Utils.title("Review Plot"), Utils.line("Click to review a submitted plot,"),
+                    Utils.line("if multiple select a plot."), plotReviewMessage), (NetworkUser user) -> {
+                // Get an arraylist of submitted plots.
+                // Order them by submitted time, so the oldest submissions are reviewed first.
+                List<SubmittedPlot> submittedPlots = provider.plotSQL().getReviewablePlots(user.player.getUniqueId().toString(), isArchitect, isReviewer);
+                submittedPlots.sort(Comparator.comparingLong(SubmittedPlot::submitTime));
 
-                        // Get an arraylist of submitted plots.
-                        // Order them by submitted time, so the oldest submissions are reviewed first.
-                        List<SubmittedPlot> nPlots = provider.plotSQL().getReviewablePlots(u.player.getUniqueId().toString(), isArchitect, isReviewer);
-                        nPlots.sort(Comparator.comparingLong(SubmittedPlot::submitTime));
-
-                        // Check if there is a plot available to review
-                        // that you are not already the owner or member of.
-                        if (!nPlots.isEmpty()) {
-
-                            int plotID = nPlots.getFirst().id();
-
-                            // Get the server of the plot.
-                            String server = provider.plotSQL().getString("SELECT server FROM " + "location_data WHERE name='" + provider.plotSQL()
-                                    .getString("SELECT location FROM plot_data WHERE " + "id=" + plotID + ";") + "';");
-
-                            // If they are not in the same server as the plot, teleport them to that server and start the
-                            // reviewing process.
-                            if (server.equals(constants.serverName())) {
-                                u.player.closeInventory();
-                                provider.eventAPI().createEvent(u.getUuid(), constants.serverName(), "review plot " + plotID);
-                            } else {
-                                // Player is not on the current server.
-                                // Set the server join event.
-                                provider.eventAPI().createJoinEvent(u.getUuid(), "review plot " + plotID);
-
-                                // Teleport them to the server.
-                                u.player.closeInventory();
-                                provider.serverAPI().switchServer(PlayerAdapter.adapt(u.player), server);
-                            }
-                        } else {
-                            u.player.sendMessage(ChatUtils.error("There are currently no submitted plots that you can " + "review.."));
-                        }
-                    });
+                if (submittedPlots.isEmpty()) {
+                    user.player.sendMessage(ChatUtils.error("There are currently no submitted plots that you can review.."));
+                } else if (submittedPlots.size() == 1) {
+                    PlotReviewGui.reviewPlot(provider, submittedPlots.getFirst(), user);
+                } else {
+                    this.delete();
+                    user.staffGui = new PlotReviewGui(provider, submittedPlots);
+                }
+            });
 
             int verifyCount = provider.plotSQL().getVerifiablePlotCount(user.player.getUniqueId().toString(), isReviewer);
             Component plotVerifyMessage;
