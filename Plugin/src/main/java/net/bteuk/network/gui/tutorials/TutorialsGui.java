@@ -121,7 +121,7 @@ public class TutorialsGui extends AbstractTutorialsGui {
      */
     private void compulsoryNeverStarted() {
         ItemStack beginCompulsory = teachingtutorials.utils.Utils.createItem(Material.BOOK, 1, Utils.title("Begin the Starter Tutorial"),
-                Utils.line("Gain the ").append(applicant == null ? Utils.line("Applicant") : applicant.getColouredRoleName()).append(Utils.line("rank!")));
+                Utils.line("Gain the ").append(applicant == null ? Utils.line("Applicant") : applicant.getColouredRoleName()).append(Utils.line(" rank!")));
 
         super.setItem(14 - 1, beginCompulsory, (NetworkUser u) -> startTutorial(currentLessons, u, this, compulsoryTutorial, null, log));
 
@@ -135,7 +135,7 @@ public class TutorialsGui extends AbstractTutorialsGui {
     private void compulsoryNotFinished(LessonObject compulsoryLesson) {
         // Restart compulsory
         ItemStack restartCompulsory = teachingtutorials.utils.Utils.createItem(Material.BOOK, 1, Utils.title("Restart the Starter Tutorial"),
-                Utils.line("Gain the ").append(applicant == null ? Utils.line("Applicant") : applicant.getColouredRoleName()).append(Utils.line("rank!")));
+                Utils.line("Gain the ").append(applicant == null ? Utils.line("Applicant") : applicant.getColouredRoleName()).append(Utils.line(" rank!")));
 
         super.setItem(12 - 1, restartCompulsory, (NetworkUser u) -> {
             // Switch to the tutorial.
@@ -145,7 +145,7 @@ public class TutorialsGui extends AbstractTutorialsGui {
 
         // Resume compulsory
         ItemStack resumeCompulsory = teachingtutorials.utils.Utils.createItem(Material.WRITABLE_BOOK, 1, Utils.title("Resume the Starter Tutorial"),
-                Utils.line("Gain the ").append(applicant == null ? Utils.line("Applicant") : applicant.getColouredRoleName()).append(Utils.line("rank!")));
+                Utils.line("Gain the ").append(applicant == null ? Utils.line("Applicant") : applicant.getColouredRoleName()).append(Utils.line(" rank!")));
 
         super.setItem(16 - 1, resumeCompulsory, (NetworkUser u) -> {
             // Switch to the tutorial.
