@@ -61,6 +61,12 @@ public class Teleport extends AbstractCommand {
             return;
         }
 
+        // Prevent teleporting to yourself as it could have weird behaviour when tptoggle is enabled.
+        if (player.getName().equalsIgnoreCase(args[0])) {
+            player.sendMessage(ChatUtils.error("You cannot teleport to yourself."));
+            return;
+        }
+
         // Try and find the player by name.
         Optional<OnlineUser> optionalOnlineUser = instance.getOnlineUserByNameIgnoreCase(args[0]);
         if (optionalOnlineUser.isPresent()) {
