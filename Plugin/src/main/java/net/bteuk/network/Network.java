@@ -50,10 +50,13 @@ import net.bteuk.network.commands.navigation.Delhome;
 import net.bteuk.network.commands.navigation.Home;
 import net.bteuk.network.commands.navigation.Homes;
 import net.bteuk.network.commands.navigation.Navigation;
+import net.bteuk.network.commands.navigation.PreviousLocationTracker;
 import net.bteuk.network.commands.navigation.Server;
 import net.bteuk.network.commands.navigation.Sethome;
 import net.bteuk.network.commands.navigation.Spawn;
 import net.bteuk.network.commands.navigation.Teleport;
+import net.bteuk.network.commands.navigation.TpAccept;
+import net.bteuk.network.commands.navigation.TpDeny;
 import net.bteuk.network.commands.navigation.TpToggle;
 import net.bteuk.network.commands.navigation.Tpll;
 import net.bteuk.network.commands.navigation.Warp;
@@ -324,8 +327,10 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
         CommandManager commandManager = new CommandManager(this);
 
+        PreviousLocationTracker previousLocationTracker = new PreviousLocationTracker(globalSQL);
+
         this.coordinateAPI = new CoordinateAPIImpl(globalSQL);
-        this.eventAPI = new EventManager(globalSQL, constants);
+        this.eventAPI = new EventManager(globalSQL, constants, previousLocationTracker);
         WorldGuardAPI worldGuardAPI = new WorldGuard();
 
         roleAPI = new Roles(this, plotSQL, messageSender);
@@ -359,8 +364,14 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         // Listener and manager of server connections.
         Connect connect = new Connect(this, constants, tab, roleAPI, networkGuiManager, nightvision, eventAPI, regionManager, messageSender);
 
+        Teleport teleport = new Teleport(this, previousLocationTracker, eventAPI, serverAPI, constants, messageSender);
+        commandManager.registerCommand(teleport);
+        commandManager.registerCommand(new TpToggle(this));
+        commandManager.registerCommand(new TpAccept(this, messageSender));
+        commandManager.registerCommand(new TpDeny(this, messageSender));
+
         // Set up socket listening - used for sending messages cross-server on multi-server setups
-        NetworkSocketHandler socketHandler = new NetworkSocketHandler(this, chat, tab, connect, constants);
+        NetworkSocketHandler socketHandler = new NetworkSocketHandler(this, chat, tab, connect, constants, teleport);
 
         // If running in standalone mode, set up the proxy logic locally.
         if (constants.standalone()) {
@@ -391,10 +402,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         }
 
         Back back = new Back(this, constants, eventAPI, serverAPI);
-        eventAPI.registerBack(back);
         commandManager.registerCommand(back);
-        commandManager.registerCommand(new Teleport(this, back, eventAPI, serverAPI, constants));
-        commandManager.registerCommand(new TpToggle(this));
 
         if (constants.tpllEnabled()) {
             TerraConfig.reducedConsoleMessages = true;

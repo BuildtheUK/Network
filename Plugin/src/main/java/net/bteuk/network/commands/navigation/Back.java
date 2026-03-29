@@ -4,7 +4,6 @@ import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.bteuk.network.Network;
 import net.bteuk.network.api.EventAPI;
 import net.bteuk.network.api.ServerAPI;
-import net.bteuk.network.api.entity.NetworkLocation;
 import net.bteuk.network.commands.AbstractCommand;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.lib.utils.ChatUtils;
@@ -79,26 +78,7 @@ public class Back extends AbstractCommand {
         }
     }
 
-    // Sets the location as the previous location in the database.
-    public void setPreviousCoordinate(String uuid, NetworkLocation location) {
 
-        // Set previous location for /back.
-        if (globalSQL.getInt("SELECT previous_coordinate FROM player_data WHERE uuid='" + uuid + "';") == 0) {
-
-            // No coordinate exists, create new.
-            int coordinateID = globalSQL.addCoordinate(location);
-
-            // Set coordinate id in player data.
-            globalSQL.update("UPDATE player_data SET previous_coordinate=" + coordinateID + " WHERE uuid='" + uuid + "';");
-        } else {
-
-            // Get coordinate id.
-            int coordinateID = globalSQL.getInt("SELECT previous_coordinate FROM " + "player_data WHERE uuid='" + uuid + "';");
-
-            // Update existing coordinate.
-            globalSQL.updateCoordinate(coordinateID, location);
-        }
-    }
 
     @Override
     public String getLabel() {
