@@ -401,12 +401,12 @@ public final class Network extends JavaPlugin implements NetworkAPI {
             commandManager.registerCommand(new Unban(this, moderation));
         }
 
-        Back back = new Back(this, constants, eventAPI, serverAPI);
+        Back back = new Back(this, constants, eventAPI, serverAPI, previousLocationTracker);
         commandManager.registerCommand(back);
 
         if (constants.tpllEnabled()) {
             TerraConfig.reducedConsoleMessages = true;
-            tpll = new Tpll(this, constants.tpllRequiresPermission(), regionManager, constants, plotSQL, eventAPI, serverAPI, back, globalSQL);
+            tpll = new Tpll(this, constants.tpllRequiresPermission(), regionManager, constants, plotSQL, eventAPI, serverAPI, back, globalSQL, previousLocationTracker);
             commandManager.registerCommand(tpll);
         }
 
@@ -416,7 +416,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
         if (!constants.standalone()) {
             commandManager.registerCommand(new LobbyCommand(lobby, constants));
-            commandManager.registerCommand(new Spawn(constants, back, lobby, eventAPI, serverAPI, globalSQL));
+            commandManager.registerCommand(new Spawn(constants, back, lobby, eventAPI, serverAPI, globalSQL, previousLocationTracker));
             commandManager.registerCommand(new Server(globalSQL, constants, serverAPI));
         }
 
@@ -479,12 +479,12 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         commandManager.registerCommand(new Me());
 
         Navigator navigator = new Navigator(this, networkGuiManager, constants, globalSQL, regionSQL, regionManager, plotSQL, plotAPI, lobby, back, eventAPI, serverAPI,
-                nightvision, roleAPI, tutorialsDBConnection, chat, moderation);
+                nightvision, roleAPI, tutorialsDBConnection, chat, moderation, previousLocationTracker);
         commandManager.registerCommand(navigator);
         new PlayerInteract(this, navigator);
 
         if (constants.warpsEnabled()) {
-            commandManager.registerCommand(new Warp(this, constants, plotAPI, back, eventAPI, serverAPI));
+            commandManager.registerCommand(new Warp(this, constants, plotAPI, back, eventAPI, serverAPI, previousLocationTracker));
             commandManager.registerCommand(new Warps(this));
             commandManager.registerCommand(new Navigation(this, navigator.getProvider()));
         }

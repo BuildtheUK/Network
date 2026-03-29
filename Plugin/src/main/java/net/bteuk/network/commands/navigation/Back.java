@@ -21,12 +21,14 @@ public class Back extends AbstractCommand {
     private final EventAPI eventAPI;
     private final ServerAPI serverAPI;
     private final GlobalSQL globalSQL;
+    private final PreviousLocationTracker previousLocationTracker;
 
-    public Back(Network instance, Constants constants, EventAPI eventAPI, ServerAPI serverAPI) {
+    public Back(Network instance, Constants constants, EventAPI eventAPI, ServerAPI serverAPI, PreviousLocationTracker previousLocationTracker) {
         this.constants = constants;
         this.eventAPI = eventAPI;
         this.serverAPI = serverAPI;
         this.globalSQL = instance.getGlobalSQL();
+        this.previousLocationTracker = previousLocationTracker;
     }
 
     @Override
@@ -56,7 +58,7 @@ public class Back extends AbstractCommand {
             Location l = globalSQL.getLocation(coordinateID);
 
             // Set current location to previous location.
-            setPreviousCoordinate(player.getUniqueId().toString(), LocationAdapter.adapt(player.getLocation()));
+            previousLocationTracker.setPreviousCoordinate(player.getUniqueId().toString(), LocationAdapter.adapt(player.getLocation()));
 
             // Teleport player to the coordinate.
             player.teleport(l);

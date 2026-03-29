@@ -118,7 +118,7 @@ public class RegionInfo extends NetworkRefreshableGui {
                         u.player.closeInventory();
 
                         // Set current location for /back
-                        provider.back().setPreviousCoordinate(u.player.getUniqueId().toString(), LocationAdapter.adapt(u.player.getLocation()));
+                        provider.previousLocationTracker().setPreviousCoordinate(u.player.getUniqueId().toString(), LocationAdapter.adapt(u.player.getLocation()));
 
                         Location l = globalSQL.getLocation(regionManager.getCoordinateID(region, uuid));
                         u.player.teleport(l);
