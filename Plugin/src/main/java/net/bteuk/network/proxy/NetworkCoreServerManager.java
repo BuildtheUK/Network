@@ -6,6 +6,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public class NetworkCoreServerManager implements CoreServerManager {
 
@@ -26,8 +27,8 @@ public class NetworkCoreServerManager implements CoreServerManager {
     }
 
     @Override
-    public List<Server> getServers() {
-        return List.of(server);
+    public Set<Server> getServers() {
+        return Set.of(server);
     }
 
     @Override
