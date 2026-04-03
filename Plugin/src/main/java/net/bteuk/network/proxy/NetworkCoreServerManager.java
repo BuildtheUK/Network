@@ -4,7 +4,6 @@ import org.btuk.proxy.core.server.CoreServerManager;
 import org.btuk.proxy.core.server.Server;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -32,8 +31,8 @@ public class NetworkCoreServerManager implements CoreServerManager {
     }
 
     @Override
-    public List<Server> getOnlineServers() {
-        return List.of(server);
+    public Set<Server> getOnlineServers() {
+        return Set.of(server);
     }
 
     @Override
