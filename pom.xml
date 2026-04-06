@@ -26,13 +26,15 @@
 
         <paper.api.version>1.21.10-R0.1-SNAPSHOT</paper.api.version>
 
-        <bteuk.proxy.version>develop-b7f32d54c1-1</bteuk.proxy.version>
+        <bteuk.proxy.version>develop-1727b4fcf7-1</bteuk.proxy.version>
         <bteuk.lib.version>main-36b0421e66-1</bteuk.lib.version>
-        <bteuk.networklib.version>14d0e052e4</bteuk.networklib.version>
+        <bteuk.networklib.version>955372d721</bteuk.networklib.version>
 
         <kyori.version>4.26.1</kyori.version>
 
         <lombok.version>1.18.34</lombok.version>
+
+        <caffeine.version>3.2.3</caffeine.version>
     </properties>
 
     <repositories>
@@ -131,6 +133,12 @@
                 <artifactId>lombok</artifactId>
                 <version>${lombok.version}</version>
                 <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.ben-manes.caffeine</groupId>
+                <artifactId>caffeine</artifactId>
+                <version>${caffeine.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
