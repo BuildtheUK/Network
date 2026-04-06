@@ -13,6 +13,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 @Log
 public class RegionSQL extends AbstractSQL {
@@ -34,8 +35,7 @@ public class RegionSQL extends AbstractSQL {
                 list.add(new Request(results.getString(1), results.getString(2)));
             }
         } catch (SQLException e) {
-            log.severe("An error occurred while fetching request list: " + sql);
-            log.severe(e.getMessage());
+            log.log(Level.SEVERE, "An error occurred while fetching request list: " + sql, e);
             return null;
         }
 
@@ -54,8 +54,7 @@ public class RegionSQL extends AbstractSQL {
                 list.add(new Inactivity(results.getString(1), results.getString(2)));
             }
         } catch (SQLException e) {
-            log.severe("An error occurred while fetching inactives: " + sql);
-            log.severe(e.getMessage());
+            log.log(Level.SEVERE, "An error occurred while fetching inactives: " + sql, e);
             return null;
         }
 
@@ -79,8 +78,7 @@ public class RegionSQL extends AbstractSQL {
                         results.getBoolean(7)));
             }
         } catch (SQLException e) {
-            log.severe(String.format("An error occurred while fetching the region_members entries for %s", uuid));
-            log.severe(e.getMessage());
+            log.log(Level.SEVERE, String.format("An error occurred while fetching the region_members entries for %s", uuid), e);
         }
         return list;
     }

@@ -18,6 +18,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 @Log
 public class PlotSQL extends AbstractSQL {
@@ -41,8 +42,7 @@ public class PlotSQL extends AbstractSQL {
 
             return corners;
         } catch (SQLException e) {
-            log.severe("Failed to fetch plot corners for plot " + plotID);
-            log.severe(e.getMessage());
+            log.log(Level.SEVERE, "Failed to fetch plot corners for plot " + plotID, e);
             return null;
         }
     }
@@ -63,8 +63,7 @@ public class PlotSQL extends AbstractSQL {
 
             return corners;
         } catch (SQLException e) {
-            log.severe("Failed to fetch plot corners for plot " + plotID);
-            log.severe(e.getMessage());
+            log.log(Level.SEVERE, "Failed to fetch plot corners for plot " + plotID, e);
             return corners;
         }
     }
@@ -96,9 +95,7 @@ public class PlotSQL extends AbstractSQL {
                 }
             }
         } catch (SQLException sql) {
-
-            log.severe("Failed to create plot");
-            log.severe(sql.getMessage());
+            log.log(Level.SEVERE, "Failed to create plot", sql);
             return 0;
         }
     }
@@ -127,9 +124,7 @@ public class PlotSQL extends AbstractSQL {
                 }
             }
         } catch (SQLException sql) {
-
-            log.severe("Failed to create zone");
-            log.severe(sql.getMessage());
+            log.log(Level.SEVERE, "Failed to create zone", sql);
             return 0;
         }
     }
@@ -145,8 +140,7 @@ public class PlotSQL extends AbstractSQL {
                 return results.getDouble(1);
             }
         } catch (SQLException e) {
-            log.severe("Failed to fetch reviewer reputation for " + uuid);
-            log.severe(e.getMessage());
+            log.log(Level.SEVERE, "Failed to fetch reviewer reputation for " + uuid, e);
         }
         return 0;
     }
@@ -188,8 +182,7 @@ public class PlotSQL extends AbstractSQL {
                 list.add(new SubmittedPlot(results.getInt(1), results.getLong(2)));
             }
         } catch (SQLException e) {
-            log.severe("Failed to fetch submitted plots");
-            log.severe(e.getMessage());
+            log.log(Level.SEVERE, "Failed to fetch submitted plots", e);
         }
         return list;
     }
@@ -310,8 +303,7 @@ public class PlotSQL extends AbstractSQL {
                 }
             }
         } catch (SQLException sql) {
-            log.severe("Failed to create plot review for plot " + plotId + " and reviewer " + reviewer);
-            log.severe(sql.getMessage());
+            log.log(Level.SEVERE, "Failed to create plot review for plot " + plotId + " and reviewer " + reviewer, sql);
             return 0;
         }
     }
@@ -345,8 +337,7 @@ public class PlotSQL extends AbstractSQL {
             statement.setInt(4, bookId);
             statement.executeUpdate();
         } catch (SQLException sql) {
-            log.severe("Failed to save plot review category feedback for review " + reviewId);
-            log.severe(sql.getMessage());
+            log.log(Level.SEVERE, "Failed to save plot review category feedback for review " + reviewId, sql);
             return false;
         }
         return true;
@@ -382,8 +373,7 @@ public class PlotSQL extends AbstractSQL {
                 }
             }
         } catch (SQLException sql) {
-            log.severe("Failed to create plot verification for review " + reviewId);
-            log.severe(sql.getMessage());
+            log.log(Level.SEVERE, "Failed to create plot verification for review " + reviewId, sql);
             return 0;
         }
     }
@@ -411,8 +401,7 @@ public class PlotSQL extends AbstractSQL {
             statement.setInt(6, bookNew);
             statement.executeUpdate();
         } catch (SQLException sql) {
-            log.severe("Failed to save plot verification category for verification " + verificationId);
-            log.severe(sql.getMessage());
+            log.log(Level.SEVERE, "Failed to save plot verification category for verification " + verificationId, sql);
             return false;
         }
         return true;
@@ -428,8 +417,7 @@ public class PlotSQL extends AbstractSQL {
             statement.setString(3, contents);
             statement.executeUpdate();
         } catch (SQLException sql) {
-            log.severe("Failed to save book " + id);
-            log.severe(sql.getMessage());
+            log.log(Level.SEVERE, "Failed to save book " + id, sql);
             return false;
         }
         return true;
@@ -466,8 +454,7 @@ public class PlotSQL extends AbstractSQL {
                 recommendations[i] = new TutorialRecommendation(tutorialsDBConnection, resultSet.getInt("recommendation_id"), iPlotID);
             }
         } catch (SQLException e) {
-            log.severe("Error fetching tutorial recommendations for plot " + iPlotID);
-            log.severe(e.getLocalizedMessage());
+            log.log(Level.SEVERE, "Error fetching tutorial recommendations for plot " + iPlotID, e);
             return new TutorialRecommendation[0];
         }
 
@@ -492,7 +479,7 @@ public class PlotSQL extends AbstractSQL {
             return true;
 
         } catch (SQLException sql) {
-            log.severe("An error occurred while creating a location: " + sql);
+            log.log(Level.SEVERE, "An error occurred while creating a location", sql);
             return false;
         }
     }
@@ -510,7 +497,7 @@ public class PlotSQL extends AbstractSQL {
             return true;
 
         } catch (SQLException sql) {
-            log.severe("An error occurred while creating a region: " + sql);
+            log.log(Level.SEVERE, "An error occurred while creating a region", sql);
             return false;
         }
     }
@@ -527,7 +514,7 @@ public class PlotSQL extends AbstractSQL {
             return true;
 
         } catch (SQLException sql) {
-            log.severe("An error occurred while updating a location alias: " + sql);
+            log.log(Level.SEVERE, "An error occurred while updating a location alias", sql);
             return false;
         }
     }
@@ -546,7 +533,7 @@ public class PlotSQL extends AbstractSQL {
             return true;
 
         } catch (SQLException sql) {
-            log.severe("An error occurred while creating a location: " + sql);
+            log.log(Level.SEVERE, "An error occurred while creating a plot submission", sql);
             return false;
         }
     }

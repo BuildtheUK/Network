@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.logging.Level;
 
 @Log
 public abstract class AbstractSQL implements SQLAPI {
@@ -34,8 +35,7 @@ public abstract class AbstractSQL implements SQLAPI {
 
             return results.next();
         } catch (SQLException e) {
-            log.severe("SQL query failed in hasRow: " + sql);
-            log.severe(e.getMessage());
+            log.log(Level.SEVERE, "SQL query failed in hasRow: " + sql, e);
             return false;
         }
     }
@@ -55,8 +55,7 @@ public abstract class AbstractSQL implements SQLAPI {
 
             return true;
         } catch (SQLException e) {
-            log.severe("SQL update failed: " + sql);
-            log.severe(e.getMessage());
+            log.log(Level.SEVERE, "SQL update failed: " + sql, e);
             return false;
         }
     }
@@ -72,8 +71,7 @@ public abstract class AbstractSQL implements SQLAPI {
 
             return true;
         } catch (SQLException e) {
-            log.severe("SQL update failed: " + sql);
-            log.severe(e.getMessage());
+            log.log(Level.SEVERE, "SQL update failed: " + sql, e);
             return false;
         }
     }
@@ -92,8 +90,7 @@ public abstract class AbstractSQL implements SQLAPI {
                 return false;
             }
         } catch (SQLException e) {
-            log.severe("SQL query failed in getBoolean: " + sql);
-            log.severe(e.getMessage());
+            log.log(Level.SEVERE, "SQL query failed in getBoolean: " + sql, e);
             return false;
         }
     }
@@ -116,8 +113,7 @@ public abstract class AbstractSQL implements SQLAPI {
                 }
             }
         } catch (SQLException e) {
-            log.severe("SQL query failed in getInt: " + sql);
-            log.severe(e.getMessage());
+            log.log(Level.SEVERE, "SQL query failed in getInt: " + sql, e);
             return 0;
         }
     }
@@ -136,8 +132,7 @@ public abstract class AbstractSQL implements SQLAPI {
                 return 0;
             }
         } catch (SQLException e) {
-            log.severe("SQL query failed in getInt: " + sql);
-            log.severe(e.getMessage());
+            log.log(Level.SEVERE, "SQL query failed in getInt: " + sql, e);
             return 0;
         }
     }
@@ -156,8 +151,7 @@ public abstract class AbstractSQL implements SQLAPI {
                 return 0;
             }
         } catch (SQLException e) {
-            log.severe("SQL query failed in getDouble: " + sql);
-            log.severe(e.getMessage());
+            log.log(Level.SEVERE, "SQL query failed in getDouble: " + sql, e);
             return 0;
         }
     }
@@ -176,8 +170,7 @@ public abstract class AbstractSQL implements SQLAPI {
                 return 0;
             }
         } catch (SQLException e) {
-            log.severe("SQL query failed in getFloat: " + sql);
-            log.severe(e.getMessage());
+            log.log(Level.SEVERE, "SQL query failed in getFloat: " + sql, e);
             return 0;
         }
     }
@@ -196,8 +189,7 @@ public abstract class AbstractSQL implements SQLAPI {
                 return 0;
             }
         } catch (SQLException e) {
-            log.severe("SQL query failed in getLong: " + sql);
-            log.severe(e.getMessage());
+            log.log(Level.SEVERE, "SQL query failed in getLong: " + sql, e);
             return 0;
         }
     }
@@ -220,8 +212,7 @@ public abstract class AbstractSQL implements SQLAPI {
                 }
             }
         } catch (SQLException e) {
-            log.severe("SQL query failed in getString: " + sql);
-            log.severe(e.getMessage());
+            log.log(Level.SEVERE, "SQL query failed in getString: " + sql, e);
             return null;
         }
     }
@@ -240,8 +231,7 @@ public abstract class AbstractSQL implements SQLAPI {
                 return null;
             }
         } catch (SQLException e) {
-            log.severe("SQL query failed in getString: " + sql);
-            log.severe(e.getMessage());
+            log.log(Level.SEVERE, "SQL query failed in getString: " + sql, e);
             return null;
         }
     }
@@ -259,8 +249,7 @@ public abstract class AbstractSQL implements SQLAPI {
                 list.add(results.getString(1));
             }
         } catch (SQLException e) {
-            log.severe("SQL query failed in getStringList: " + sql);
-            log.severe(e.getMessage());
+            log.log(Level.SEVERE, "SQL query failed in getStringList: " + sql, e);
             return null;
         }
 
@@ -280,8 +269,7 @@ public abstract class AbstractSQL implements SQLAPI {
                 list.add(results.getInt(1));
             }
         } catch (SQLException e) {
-            log.severe("SQL query failed in getIntList: " + sql);
-            log.severe(e.getMessage());
+            log.log(Level.SEVERE, "SQL query failed in getIntList: " + sql, e);
             return null;
         }
 
@@ -306,8 +294,7 @@ public abstract class AbstractSQL implements SQLAPI {
                 return map;
             }
         } catch (SQLException e) {
-            log.severe("SQL query failed in getIntStringMap: " + sql);
-            log.severe(e.getMessage());
+            log.log(Level.SEVERE, "SQL query failed in getIntStringMap: " + sql, e);
             return null;
         }
     }
@@ -323,8 +310,7 @@ public abstract class AbstractSQL implements SQLAPI {
                 map.put(results.getInt(1), results.getString(2));
             }
         } catch (SQLException e) {
-            log.severe("An invalid sql query was attempted, " + sql);
-            log.severe(e.getMessage());
+            log.log(Level.SEVERE, "An invalid sql query was attempted, " + sql, e);
         }
         return map;
     }
@@ -347,8 +333,7 @@ public abstract class AbstractSQL implements SQLAPI {
                 return map;
             }
         } catch (SQLException e) {
-            log.severe("SQL query failed in getStringIntMap: " + sql);
-            log.severe(e.getMessage());
+            log.log(Level.SEVERE, "SQL query failed in getStringIntMap: " + sql, e);
             return null;
         }
     }
@@ -364,8 +349,7 @@ public abstract class AbstractSQL implements SQLAPI {
                 map.put(results.getString(1), results.getInt(2));
             }
         } catch (SQLException e) {
-            log.severe("An invalid sql query was attempted, " + sql);
-            log.severe(e.getMessage());
+            log.log(Level.SEVERE, "An invalid sql query was attempted, " + sql, e);
         }
         return map;
     }

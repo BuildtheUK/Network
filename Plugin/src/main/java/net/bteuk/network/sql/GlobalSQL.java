@@ -52,8 +52,7 @@ public class GlobalSQL extends AbstractSQL {
                 list.add(new String[]{results.getString(1), results.getString(2), results.getString(3)});
             }
         } catch (SQLException e) {
-            log.severe("Failed to fetch server events for " + serverName);
-            log.severe(e.getMessage());
+            log.log(Level.SEVERE, "Failed to fetch server events for " + serverName, e);
             return list;
         }
 
@@ -65,8 +64,7 @@ public class GlobalSQL extends AbstractSQL {
 
             statement.executeUpdate();
         } catch (SQLException e) {
-            log.severe("Failed to delete server events for " + serverName);
-            log.severe(e.getMessage());
+            log.log(Level.SEVERE, "Failed to delete server events for " + serverName, e);
             return list;
         }
 
@@ -121,8 +119,7 @@ public class GlobalSQL extends AbstractSQL {
                 return 0;
             }
         } catch (SQLException sql) {
-            log.severe("Failed to add coordinate");
-            log.severe(sql.getMessage());
+            log.log(Level.SEVERE, "Failed to add coordinate", sql);
             return 0;
         }
     }
@@ -143,8 +140,7 @@ public class GlobalSQL extends AbstractSQL {
             statement.setInt(8, coordinateID);
             statement.executeUpdate();
         } catch (SQLException sql) {
-            log.severe("Failed to update coordinate " + coordinateID);
-            log.severe(sql.getMessage());
+            log.log(Level.SEVERE, "Failed to update coordinate " + coordinateID, sql);
         }
     }
 
@@ -164,8 +160,7 @@ public class GlobalSQL extends AbstractSQL {
             statement.setInt(8, coordinateID);
             statement.executeUpdate();
         } catch (SQLException sql) {
-            log.severe("Failed to update coordinate " + coordinateID);
-            log.severe(sql.getMessage());
+            log.log(Level.SEVERE, "Failed to update coordinate " + coordinateID, sql);
         }
     }
 
@@ -195,8 +190,7 @@ public class GlobalSQL extends AbstractSQL {
             }
             return buildings;
         } catch (SQLException sql) {
-            log.severe("Failed to fetch buildings with condition: " + condition);
-            log.severe(sql.getMessage());
+            log.log(Level.SEVERE, "Failed to fetch buildings with condition: " + condition, sql);
             return null;
         }
     }
@@ -214,8 +208,7 @@ public class GlobalSQL extends AbstractSQL {
             return (new Location(Bukkit.getWorld(results.getString("world")), results.getDouble("x"), results.getDouble("y"), results.getDouble("z"), results.getFloat("yaw"),
                     results.getFloat("pitch")));
         } catch (SQLException sql) {
-            log.severe("Failed to fetch location for coordinate " + coordinateID);
-            log.severe(sql.getMessage());
+            log.log(Level.SEVERE, "Failed to fetch location for coordinate " + coordinateID, sql);
             return null;
         }
     }
@@ -233,8 +226,7 @@ public class GlobalSQL extends AbstractSQL {
             return (new Coordinate(coordinateID, results.getString("server"), results.getString("world"), results.getDouble("x"), results.getDouble("y"), results.getDouble("z"),
                     results.getFloat("yaw"), results.getFloat("pitch")));
         } catch (SQLException sql) {
-            log.severe("Failed to fetch coordinate " + coordinateID);
-            log.severe(sql.getMessage());
+            log.log(Level.SEVERE, "Failed to fetch coordinate " + coordinateID, sql);
             return null;
         }
     }
@@ -258,8 +250,7 @@ public class GlobalSQL extends AbstractSQL {
             conn.commit(); // Commit if both deletions succeed
 
         } catch (SQLException sql) {
-            log.severe("Failed to delete building " + b.buildingId());
-            log.severe(sql.getMessage());
+            log.log(Level.SEVERE, "Failed to delete building " + b.buildingId(), sql);
         }
     }
 
@@ -277,8 +268,7 @@ public class GlobalSQL extends AbstractSQL {
             return true;
 
         } catch (SQLException e) {
-            log.severe("Failed to insert direct message for recipient " + directMessage.getRecipient());
-            log.severe(e.getMessage());
+            log.log(Level.SEVERE, "Failed to insert direct message for recipient " + directMessage.getRecipient(), e);
             return false;
         }
     }
@@ -298,8 +288,7 @@ public class GlobalSQL extends AbstractSQL {
                 messages.add(results.getString(1));
             }
         } catch (SQLException e) {
-            log.severe("Failed to fetch offline messages for recipient " + uuid);
-            log.severe(e.getMessage());
+            log.log(Level.SEVERE, "Failed to fetch offline messages for recipient " + uuid, e);
         }
         return messages;
     }
