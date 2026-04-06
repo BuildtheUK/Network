@@ -34,7 +34,8 @@ public class RegionSQL extends AbstractSQL {
                 list.add(new Request(results.getString(1), results.getString(2)));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.severe("An error occurred while fetching request list: " + sql);
+            log.severe(e.getMessage());
             return null;
         }
 
@@ -53,7 +54,8 @@ public class RegionSQL extends AbstractSQL {
                 list.add(new Inactivity(results.getString(1), results.getString(2)));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.severe("An error occurred while fetching inactives: " + sql);
+            log.severe(e.getMessage());
             return null;
         }
 
@@ -77,7 +79,8 @@ public class RegionSQL extends AbstractSQL {
                         results.getBoolean(7)));
             }
         } catch (SQLException e) {
-            log.severe(String.format("An error occurred while fetching the region_members entries for " + "%s", uuid));
+            log.severe(String.format("An error occurred while fetching the region_members entries for %s", uuid));
+            log.severe(e.getMessage());
         }
         return list;
     }

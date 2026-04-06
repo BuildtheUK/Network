@@ -19,8 +19,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import static net.buildtheearth.terraminusminus.TerraMinusMinus.LOGGER;
-
 @Log
 public class PlotSQL extends AbstractSQL {
 
@@ -43,7 +41,8 @@ public class PlotSQL extends AbstractSQL {
 
             return corners;
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.severe("Failed to fetch plot corners for plot " + plotID);
+            log.severe(e.getMessage());
             return null;
         }
     }
@@ -64,7 +63,8 @@ public class PlotSQL extends AbstractSQL {
 
             return corners;
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.severe("Failed to fetch plot corners for plot " + plotID);
+            log.severe(e.getMessage());
             return corners;
         }
     }
@@ -97,7 +97,8 @@ public class PlotSQL extends AbstractSQL {
             }
         } catch (SQLException sql) {
 
-            sql.printStackTrace();
+            log.severe("Failed to create plot");
+            log.severe(sql.getMessage());
             return 0;
         }
     }
@@ -127,7 +128,8 @@ public class PlotSQL extends AbstractSQL {
             }
         } catch (SQLException sql) {
 
-            sql.printStackTrace();
+            log.severe("Failed to create zone");
+            log.severe(sql.getMessage());
             return 0;
         }
     }
@@ -143,7 +145,8 @@ public class PlotSQL extends AbstractSQL {
                 return results.getDouble(1);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.severe("Failed to fetch reviewer reputation for " + uuid);
+            log.severe(e.getMessage());
         }
         return 0;
     }
@@ -185,7 +188,8 @@ public class PlotSQL extends AbstractSQL {
                 list.add(new SubmittedPlot(results.getInt(1), results.getLong(2)));
             }
         } catch (SQLException e) {
-            LOGGER.error("An error occurred while getting a list of submitted plots: ", e);
+            log.severe("Failed to fetch submitted plots");
+            log.severe(e.getMessage());
         }
         return list;
     }
@@ -197,7 +201,8 @@ public class PlotSQL extends AbstractSQL {
 
         for (PlotDifficulties difficulty : difficulties) {
             plots_awaiting_verification.addAll(getIntList(
-                    "SELECT pd.id FROM plot_data AS pd INNER JOIN " + "plot_submission AS ps ON pd.id=ps.plot_id WHERE ps.status='awaiting verification' AND pd" + ".difficulty=" + difficulty.getValue() + " ORDER BY ps.submit_time ASC;"));
+                    "SELECT pd.id FROM plot_data AS pd INNER JOIN " + "plot_submission AS ps ON pd.id=ps.plot_id WHERE ps.status='awaiting verification' AND pd" +
+                            ".difficulty=" + difficulty.getValue() + " ORDER BY ps.submit_time ASC;"));
         }
 
         // Get all plots that the user is the owner or a member of, don't use those in the count.
@@ -305,7 +310,8 @@ public class PlotSQL extends AbstractSQL {
                 }
             }
         } catch (SQLException sql) {
-            sql.printStackTrace();
+            log.severe("Failed to create plot review for plot " + plotId + " and reviewer " + reviewer);
+            log.severe(sql.getMessage());
             return 0;
         }
     }
@@ -339,7 +345,8 @@ public class PlotSQL extends AbstractSQL {
             statement.setInt(4, bookId);
             statement.executeUpdate();
         } catch (SQLException sql) {
-            sql.printStackTrace();
+            log.severe("Failed to save plot review category feedback for review " + reviewId);
+            log.severe(sql.getMessage());
             return false;
         }
         return true;
@@ -375,7 +382,8 @@ public class PlotSQL extends AbstractSQL {
                 }
             }
         } catch (SQLException sql) {
-            sql.printStackTrace();
+            log.severe("Failed to create plot verification for review " + reviewId);
+            log.severe(sql.getMessage());
             return 0;
         }
     }
@@ -403,7 +411,8 @@ public class PlotSQL extends AbstractSQL {
             statement.setInt(6, bookNew);
             statement.executeUpdate();
         } catch (SQLException sql) {
-            sql.printStackTrace();
+            log.severe("Failed to save plot verification category for verification " + verificationId);
+            log.severe(sql.getMessage());
             return false;
         }
         return true;
@@ -419,7 +428,8 @@ public class PlotSQL extends AbstractSQL {
             statement.setString(3, contents);
             statement.executeUpdate();
         } catch (SQLException sql) {
-            LOGGER.error("An error occurred when executing insert statement: ", sql);
+            log.severe("Failed to save book " + id);
+            log.severe(sql.getMessage());
             return false;
         }
         return true;
@@ -456,7 +466,8 @@ public class PlotSQL extends AbstractSQL {
                 recommendations[i] = new TutorialRecommendation(tutorialsDBConnection, resultSet.getInt("recommendation_id"), iPlotID);
             }
         } catch (SQLException e) {
-            log.warning("Error fetching tutorial recommendations for plot " + iPlotID + ": " + e.getLocalizedMessage());
+            log.severe("Error fetching tutorial recommendations for plot " + iPlotID);
+            log.severe(e.getLocalizedMessage());
             return new TutorialRecommendation[0];
         }
 
