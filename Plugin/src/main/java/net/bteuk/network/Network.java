@@ -125,6 +125,7 @@ import org.jetbrains.annotations.Nullable;
 import teachingtutorials.utils.DBConnection;
 
 import javax.sql.DataSource;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -364,7 +365,12 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
         // If running in standalone mode, set up the proxy logic locally.
         if (constants.standalone()) {
-            initStandaloneMode(socketHandler, messageSender);
+            try {
+                initStandaloneMode(socketHandler, messageSender);
+            } catch (IOException e) {
+                log.severe("Failed to initialise standalone mode, disabling plugin!");
+                return;
+            }
         }
 
         // Create the navigator.
@@ -558,7 +564,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
     }
 
-    private void initStandaloneMode(NetworkSocketHandler socketHandler, MessageSender messageSender) {
+    private void initStandaloneMode(NetworkSocketHandler socketHandler, MessageSender messageSender) throws IOException {
         log.info("Loading Network in standalone mode.");
         ProxyController proxyController = new ProxyController(getDataFolder());
 
