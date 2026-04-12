@@ -34,7 +34,7 @@ public class NetworkSocketHandler implements SocketHandler {
 
     private InputSocket inputSocket;
 
-    private Teleport teleport;
+    private final Teleport teleport;
 
     public NetworkSocketHandler(Network instance, CustomChat chat, TabManager tabManager, Connect connect, Constants constants, Teleport teleport) {
         this.instance = instance;

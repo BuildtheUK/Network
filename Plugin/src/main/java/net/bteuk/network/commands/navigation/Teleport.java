@@ -18,6 +18,7 @@ import net.bteuk.network.papercore.LocationAdapter;
 import net.bteuk.network.papercore.PlayerAdapter;
 import net.bteuk.network.socket.MessageSender;
 import net.bteuk.network.utils.NetworkUser;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -103,6 +104,10 @@ public class Teleport extends AbstractCommand {
     }
 
     public void handleTeleportEvent(TeleportEvent teleportEvent) {
+        Bukkit.getScheduler().runTask(instance, () -> handleTeleportEventSync(teleportEvent));
+    }
+
+    private void handleTeleportEventSync(TeleportEvent teleportEvent) {
         if (teleportEvent.getType() == TeleportRequestType.ACCEPT) {
             Optional<NetworkUser> optionalUser = instance.getNetworkUserByUuid(teleportEvent.getRequester());
             Optional<OnlineUser> target = instance.getOnlineUserByUuid(teleportEvent.getTarget());
