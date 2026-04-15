@@ -50,7 +50,7 @@ public class PlotSQL extends AbstractSQL {
     private int[][] getPlotCorners(int[][] corners, int plotID) {
 
         try (
-                Connection conn = conn(); PreparedStatement statement = conn.prepareStatement("SELECT x,z FROM " + "plot_corners WHERE id=" + plotID + ";");
+                Connection conn = conn(); PreparedStatement statement = conn.prepareStatement("SELECT x,z FROM plot_corners WHERE id=" + plotID + ";");
                 ResultSet results = statement.executeQuery()
         ) {
 
@@ -73,7 +73,7 @@ public class PlotSQL extends AbstractSQL {
 
         try (
                 Connection conn = conn();
-                PreparedStatement statement = conn.prepareStatement("INSERT INTO plot_data" + "(status, size, difficulty, location, coordinate_id) VALUES(?, ?, ?, ?, ?);",
+                PreparedStatement statement = conn.prepareStatement("INSERT INTO plot_data(status, size, difficulty, location, coordinate_id) VALUES(?, ?, ?, ?, ?);",
                         Statement.RETURN_GENERATED_KEYS)
         ) {
 
@@ -105,7 +105,7 @@ public class PlotSQL extends AbstractSQL {
 
         try (
                 Connection conn = conn();
-                PreparedStatement statement = conn.prepareStatement("INSERT INTO zones" + "(location,expiration,is_public) VALUES(?, ?, ?);", Statement.RETURN_GENERATED_KEYS)
+                PreparedStatement statement = conn.prepareStatement("INSERT INTO zones(location,expiration,is_public) VALUES(?, ?, ?);", Statement.RETURN_GENERATED_KEYS)
         ) {
 
             statement.setString(1, location);
@@ -174,7 +174,7 @@ public class PlotSQL extends AbstractSQL {
         try (
                 Connection conn = conn();
                 PreparedStatement statement = conn.prepareStatement(
-                        "SELECT pd.id,ps.submit_time FROM plot_data AS pd INNER JOIN plot_submission AS ps ON " + "pd.id=ps.plot_id WHERE ps.status='submitted' AND pd" +
+                        "SELECT pd.id,ps.submit_time FROM plot_data AS pd INNER JOIN plot_submission AS ps ON pd.id=ps.plot_id WHERE ps.status='submitted' AND pd" +
                                 ".difficulty='" + plotDifficulty.getValue() + "';");
                 ResultSet results = statement.executeQuery()
         ) {
@@ -194,7 +194,7 @@ public class PlotSQL extends AbstractSQL {
 
         for (PlotDifficulties difficulty : difficulties) {
             plots_awaiting_verification.addAll(getIntList(
-                    "SELECT pd.id FROM plot_data AS pd INNER JOIN " + "plot_submission AS ps ON pd.id=ps.plot_id WHERE ps.status='awaiting verification' AND pd" +
+                    "SELECT pd.id FROM plot_data AS pd INNER JOIN plot_submission AS ps ON pd.id=ps.plot_id WHERE ps.status='awaiting verification' AND pd" +
                             ".difficulty=" + difficulty.getValue() + " ORDER BY ps.submit_time ASC;"));
         }
 
