@@ -40,8 +40,11 @@ public class PlotReviewGui extends NetworkMultiPageGui {
     }
 
     public static void reviewPlot(GuiProvider provider, SubmittedPlot submittedPlot, NetworkUser user) {
-        String server = provider.plotSQL().getString("SELECT server FROM " + "location_data WHERE name='" + provider.plotSQL()
-                .getString("SELECT location FROM plot_data WHERE " + "id=" + submittedPlot.id() + ";") + "';");
+        String server = provider.plotSQL().getString(
+                "SELECT server FROM location_data WHERE name = (" +
+                        "SELECT location FROM plot_data WHERE id = " + submittedPlot.id() +
+                        ");"
+        );
         // If they are not in the same server as the plot, teleport them to that server and start the reviewing process.
         user.player.closeInventory();
         if (server.equals(provider.constants().serverName())) {
