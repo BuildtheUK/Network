@@ -25,7 +25,7 @@ public class PreviousLocationTracker {
         } else {
 
             // Get coordinate id.
-            int coordinateID = globalSQL.getInt("SELECT previous_coordinate FROM " + "player_data WHERE uuid='" + uuid + "';");
+            int coordinateID = globalSQL.getInt("SELECT previous_coordinate FROM player_data WHERE uuid='" + uuid + "';");
 
             // Update existing coordinate.
             globalSQL.updateCoordinate(coordinateID, location);
