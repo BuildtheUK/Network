@@ -21,6 +21,7 @@ import net.kyori.adventure.text.format.TextColor;
 import org.apache.maven.model.Build;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -329,7 +330,7 @@ public class Buildings extends AbstractCommand {
 
     private Building getClosestBuilding(Player player) {
         List<Building> nearbyBuildings = getNearbyBuildings(player, 5);
-        double minDist = 100;
+        double minDist = Double.MAX_VALUE;
         Building minbuilding = null;
         for (Building i : nearbyBuildings) {
             double currentDist = getXZDistance(i.coordinate(), player.getLocation());
@@ -392,9 +393,7 @@ public class Buildings extends AbstractCommand {
         }
     }
 
-    public void addBuildingToDataBase(Player player, Location l, String[] flags) {
-
-        int coordinateId = instance.getGlobalSQL().addCoordinate(l);
+    private double[] getPlayerIRLCoords(Player player) {
         try {
             int deltaX = 0;
             int deltaZ = 0;
@@ -405,6 +404,19 @@ public class Buildings extends AbstractCommand {
             }
             double[] coords = bteGeneratorSettings.projection().toGeo(player.getLocation().getX() + deltaX,
                     player.getLocation().getZ() + deltaZ);
+            return coords;
+        } catch (
+                OutOfProjectionBoundsException e) {
+            throw new RuntimeException("You are not standing in a location where coordinates can be retrieved.");
+        }
+    }
+
+    public void addBuildingToDataBase(Player player, Location l, String[] flags) {
+
+        int coordinateId = instance.getGlobalSQL().addCoordinate(l);
+
+        try {
+            double[] coords = getPlayerIRLCoords(player);
 
             boolean isPublic = true;
             boolean playerBuilt = true;
@@ -442,10 +454,8 @@ public class Buildings extends AbstractCommand {
                     .update(String.format("INSERT INTO buildings (coordinate_id, player_id, is_public, player_built, lat, lon) VALUES (%d, '%s' ,%b, %b, %f ,%f);", coordinateId,
                             player.getUniqueId(), isPublic, playerBuilt, coords[1], coords[0]));
             player.sendMessage(ChatUtils.success("Building added at %s,%s", String.valueOf(coords[0]), String.valueOf(coords[1])));
-        } catch (
-                OutOfProjectionBoundsException e) {
-            player.sendMessage(ChatUtils.error("You are not standing in a location where coordinates can be retrieved" +
-                    "."));
+        } catch (RuntimeException e) {
+            player.sendMessage(ChatUtils.error(e.getMessage()));
         }
     }
 
@@ -470,14 +480,45 @@ public class Buildings extends AbstractCommand {
 
     }
 
+    private Location geoToWorld(double lat, double lon, World world, int deltaX, int deltaZ) throws OutOfProjectionBoundsException {
+
+        double[] xz = bteGeneratorSettings.projection().fromGeo(lon, lat);
+
+        double x = xz[0];
+        double z = xz[1];
+
+        x -= deltaX;
+        z -= deltaZ;
+
+        return new Location(world, x, 0, z);
+    }
+
     private void showBuildings(Player player) {
         List<Building> nearbyBuildings = getNearbyBuildings(player, 100);
         // StringBuilder locs = new StringBuilder("buildings nearby:");
         List<Location> heightBuildingsAdded = new ArrayList<Location>();
-        for (Building j : nearbyBuildings) {
-            Location i = j.coordinate();
-            // locs.append(" (").append(Math.round(i.getX())).append(",").append(Math.round(i.getZ())).append("),");
-            Location finalHeight = new Location(i.getWorld(), i.getX(), i.getWorld().getHighestBlockYAt(i) - 1, i.getZ());
+        int deltaX = 0;
+        int deltaZ = 0;
+        if (constants.serverType() == PLOT && plotSQL.hasRow("SELECT name FROM location_data WHERE name='" + player.getWorld().getName() + "';")) {
+            deltaX = -plotSQL.getInt("SELECT xTransform FROM location_data WHERE name='" + player.getWorld().getName() + "';");
+            deltaZ = -plotSQL.getInt("SELECT zTransform FROM location_data WHERE name='" + player.getWorld().getName() + "';");
+        }
+        for (Building building : nearbyBuildings) {
+            Location loc;
+            if (building.coordinate().getWorld() != null && building.coordinate().getWorld().equals(player.getWorld())) {
+
+                loc = building.coordinate();
+            } else {
+
+                try {
+                    loc = geoToWorld(building.lat(), building.lon(), player.getWorld(), deltaX, deltaZ);
+                } catch (Exception e) {
+                    continue;
+                }
+
+            }
+            // locs.append(" (").append(Math.round(loc.getX())).append(",").append(Math.round(loc.getZ())).append("),");
+            Location finalHeight = new Location(player.getWorld(), loc.getX(), player.getWorld().getHighestBlockYAt(loc) - 1, loc.getZ());
             heightBuildingsAdded.add(finalHeight);
             player.sendBlockChange(finalHeight, Material.BEACON.createBlockData());
             for (int x = -1; x <= 1; x++) {
@@ -488,9 +529,9 @@ public class Buildings extends AbstractCommand {
             }
 
             Location glassLoc = finalHeight.clone().add(0, 1, 0);
-            if (!j.playerBuilt()) {
+            if (!building.playerBuilt()) {
                 player.sendBlockChange(glassLoc, Material.ORANGE_STAINED_GLASS.createBlockData());
-            } else if (j.playerId().equals(player.getUniqueId().toString())) {
+            } else if (building.playerId().equals(player.getUniqueId().toString())) {
                 player.sendBlockChange(glassLoc, Material.GREEN_STAINED_GLASS.createBlockData());
             } else {
                 player.sendBlockChange(glassLoc, Material.RED_STAINED_GLASS.createBlockData());
@@ -501,12 +542,22 @@ public class Buildings extends AbstractCommand {
     }
 
     private List<Building> getNearbyBuildings(Player player, int radius) {
-        Location Pl = player.getLocation();
-        double xmax = Pl.getX() + radius;
-        double xmin = Pl.getX() - radius;
-        double zmax = Pl.getZ() + radius;
-        double zmin = Pl.getZ() - radius;
-        String condition = String.format("WHERE coordinates.x > %f AND coordinates.x < %f AND coordinates.z > %f AND coordinates.z < %f", xmin, xmax, zmin, zmax);
+        double[] pl = new double[2];
+        try {
+            pl = getPlayerIRLCoords(player);
+        } catch (RuntimeException e) {
+            player.sendMessage(ChatUtils.error(e.getMessage()));
+            return new ArrayList<Building>();
+        }
+        double M_PER_DEGREE = 111320.0;
+        double latDelta = radius / M_PER_DEGREE;
+        double lonDelta = radius / (M_PER_DEGREE * Math.cos(Math.toRadians(pl[1])));
+
+        double lonmax = pl[0] + lonDelta;
+        double lonmin = pl[0] - lonDelta;
+        double latmax = pl[1] + latDelta;
+        double latmin = pl[1] - latDelta;
+        String condition = String.format("WHERE buildings.lat > %f AND buildings.lat < %f AND buildings.lon > %f AND buildings.lon < %f", latmin, latmax, lonmin, lonmax);
         return instance.getGlobalSQL().getBuildings(condition);
     }
 
