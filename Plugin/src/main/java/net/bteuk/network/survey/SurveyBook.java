@@ -12,6 +12,7 @@ import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class SurveyBook {
     private final NetworkUser user;
@@ -24,7 +25,7 @@ public class SurveyBook {
      */
     private int iCurrentPage;
 
-    private static final HashMap<NetworkUser, SurveyBook> openSurveys = new HashMap<>();
+    private static final Map<NetworkUser, SurveyBook> openSurveys = new HashMap<>();
 
     public SurveyBook(NetworkUser user, GlobalSQL globalSQL) {
         this.user = user;

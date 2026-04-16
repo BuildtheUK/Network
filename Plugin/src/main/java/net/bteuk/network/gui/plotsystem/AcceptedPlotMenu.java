@@ -17,7 +17,7 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.codehaus.plexus.util.StringUtils;
 
-import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -64,7 +64,7 @@ public class AcceptedPlotMenu extends NetworkRefreshableGui {
     protected void createGui() {
 
         // Fetch accepted plots.
-        HashMap<Integer, String> plots;
+        Map<Integer, String> plots;
         if (StringUtils.isEmpty(filter)) {
             plots = plotSQL.getIntStringMap("SELECT plot_id,uuid FROM plot_review WHERE accepted=1 AND completed=1 " + "ORDER BY review_time DESC;");
         } else {

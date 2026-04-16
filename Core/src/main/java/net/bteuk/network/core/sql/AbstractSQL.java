@@ -11,6 +11,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.logging.Level;
 
 @Log
 public abstract class AbstractSQL implements SQLAPI {
@@ -33,7 +35,27 @@ public abstract class AbstractSQL implements SQLAPI {
 
             return results.next();
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.log(Level.SEVERE, "SQL query failed in hasRow: " + sql, e);
+            return false;
+        }
+    }
+
+    // Generic update statement, return true if successful.
+    public boolean update(String sql, Object... args) {
+
+        try (
+                Connection conn = conn(); PreparedStatement statement = conn.prepareStatement(sql)
+        ) {
+
+            for (int i = 0; i < args.length; i++) {
+                statement.setObject(i + 1, args[i]);
+            }
+
+            statement.executeUpdate();
+
+            return true;
+        } catch (SQLException e) {
+            log.log(Level.SEVERE, "SQL update failed: " + sql, e);
             return false;
         }
     }
@@ -49,7 +71,7 @@ public abstract class AbstractSQL implements SQLAPI {
 
             return true;
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.log(Level.SEVERE, "SQL update failed: " + sql, e);
             return false;
         }
     }
@@ -68,8 +90,31 @@ public abstract class AbstractSQL implements SQLAPI {
                 return false;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.log(Level.SEVERE, "SQL query failed in getBoolean: " + sql, e);
             return false;
+        }
+    }
+
+    public int getInt(String sql, Object... args) {
+
+        try (
+                Connection conn = conn(); PreparedStatement statement = conn.prepareStatement(sql)
+        ) {
+
+            for (int i = 0; i < args.length; i++) {
+                statement.setObject(i + 1, args[i]);
+            }
+
+            try (ResultSet results = statement.executeQuery()) {
+                if (results.next()) {
+                    return results.getInt(1);
+                } else {
+                    return 0;
+                }
+            }
+        } catch (SQLException e) {
+            log.log(Level.SEVERE, "SQL query failed in getInt: " + sql, e);
+            return 0;
         }
     }
 
@@ -87,7 +132,7 @@ public abstract class AbstractSQL implements SQLAPI {
                 return 0;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.log(Level.SEVERE, "SQL query failed in getInt: " + sql, e);
             return 0;
         }
     }
@@ -106,7 +151,7 @@ public abstract class AbstractSQL implements SQLAPI {
                 return 0;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.log(Level.SEVERE, "SQL query failed in getDouble: " + sql, e);
             return 0;
         }
     }
@@ -125,7 +170,7 @@ public abstract class AbstractSQL implements SQLAPI {
                 return 0;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.log(Level.SEVERE, "SQL query failed in getFloat: " + sql, e);
             return 0;
         }
     }
@@ -144,8 +189,31 @@ public abstract class AbstractSQL implements SQLAPI {
                 return 0;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.log(Level.SEVERE, "SQL query failed in getLong: " + sql, e);
             return 0;
+        }
+    }
+
+    public String getString(String sql, Object... args) {
+
+        try (
+                Connection conn = conn(); PreparedStatement statement = conn.prepareStatement(sql)
+        ) {
+
+            for (int i = 0; i < args.length; i++) {
+                statement.setObject(i + 1, args[i]);
+            }
+
+            try (ResultSet results = statement.executeQuery()) {
+                if (results.next()) {
+                    return results.getString(1);
+                } else {
+                    return null;
+                }
+            }
+        } catch (SQLException e) {
+            log.log(Level.SEVERE, "SQL query failed in getString: " + sql, e);
+            return null;
         }
     }
 
@@ -163,7 +231,7 @@ public abstract class AbstractSQL implements SQLAPI {
                 return null;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.log(Level.SEVERE, "SQL query failed in getString: " + sql, e);
             return null;
         }
     }
@@ -181,7 +249,7 @@ public abstract class AbstractSQL implements SQLAPI {
                 list.add(results.getString(1));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.log(Level.SEVERE, "SQL query failed in getStringList: " + sql, e);
             return null;
         }
 
@@ -201,16 +269,39 @@ public abstract class AbstractSQL implements SQLAPI {
                 list.add(results.getInt(1));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.log(Level.SEVERE, "SQL query failed in getIntList: " + sql, e);
             return null;
         }
 
         return list;
     }
 
-    public HashMap<Integer, String> getIntStringMap(String sql) {
+    public Map<Integer, String> getIntStringMap(String sql, Object... args) {
 
-        HashMap<Integer, String> map = new HashMap<>();
+        try (
+                Connection conn = conn(); PreparedStatement statement = conn.prepareStatement(sql)
+        ) {
+
+            for (int i = 0; i < args.length; i++) {
+                statement.setObject(i + 1, args[i]);
+            }
+
+            try (ResultSet results = statement.executeQuery()) {
+                Map<Integer, String> map = new LinkedHashMap<>();
+                while (results.next()) {
+                    map.put(results.getInt(1), results.getString(2));
+                }
+                return map;
+            }
+        } catch (SQLException e) {
+            log.log(Level.SEVERE, "SQL query failed in getIntStringMap: " + sql, e);
+            return null;
+        }
+    }
+
+    public Map<Integer, String> getIntStringMap(String sql) {
+
+        Map<Integer, String> map = new HashMap<>();
 
         try (
                 Connection conn = conn(); PreparedStatement statement = conn.prepareStatement(sql); ResultSet results = statement.executeQuery()
@@ -219,14 +310,37 @@ public abstract class AbstractSQL implements SQLAPI {
                 map.put(results.getInt(1), results.getString(2));
             }
         } catch (SQLException e) {
-            log.severe("An invalid sql query was attempted, " + sql);
+            log.log(Level.SEVERE, "An invalid sql query was attempted, " + sql, e);
         }
         return map;
     }
 
-    public HashMap<String, Integer> getStringIntMap(String sql) {
+    public Map<String, Integer> getStringIntMap(String sql, Object... args) {
 
-        HashMap<String, Integer> map = new LinkedHashMap<>();
+        try (
+                Connection conn = conn(); PreparedStatement statement = conn.prepareStatement(sql)
+        ) {
+
+            for (int i = 0; i < args.length; i++) {
+                statement.setObject(i + 1, args[i]);
+            }
+
+            try (ResultSet results = statement.executeQuery()) {
+                Map<String, Integer> map = new LinkedHashMap<>();
+                while (results.next()) {
+                    map.put(results.getString(1), results.getInt(2));
+                }
+                return map;
+            }
+        } catch (SQLException e) {
+            log.log(Level.SEVERE, "SQL query failed in getStringIntMap: " + sql, e);
+            return null;
+        }
+    }
+
+    public Map<String, Integer> getStringIntMap(String sql) {
+
+        Map<String, Integer> map = new LinkedHashMap<>();
 
         try (
                 Connection conn = conn(); PreparedStatement statement = conn.prepareStatement(sql); ResultSet results = statement.executeQuery()
@@ -235,7 +349,7 @@ public abstract class AbstractSQL implements SQLAPI {
                 map.put(results.getString(1), results.getInt(2));
             }
         } catch (SQLException e) {
-            log.severe("An invalid sql query was attempted, " + sql);
+            log.log(Level.SEVERE, "An invalid sql query was attempted, " + sql, e);
         }
         return map;
     }
