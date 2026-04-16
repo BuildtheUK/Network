@@ -150,7 +150,7 @@ public class LocationMenu extends NetworkRefreshableGui {
                                 }
 
                                 // Set the current location for /back
-                                provider.back().setPreviousCoordinate(u.player.getUniqueId().toString(), LocationAdapter.adapt(u.player.getLocation()));
+                                provider.previousLocationTracker().setPreviousCoordinate(u.player.getUniqueId().toString(), LocationAdapter.adapt(u.player.getLocation()));
 
                                 u.player.teleport(l);
                                 u.player.sendMessage(ChatUtils.success("Teleported to ").append(Component.text(location.getKey(), NamedTextColor.DARK_AQUA)));

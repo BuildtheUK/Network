@@ -30,14 +30,16 @@ public class Warp extends AbstractCommand {
     private final EventAPI eventAPI;
     private final ServerAPI serverAPI;
     private final GlobalSQL globalSQL;
+    private final PreviousLocationTracker previousLocationTracker;
 
-    public Warp(Network instance, Constants constants, PlotAPI plotAPI, Back back, EventAPI eventAPI, ServerAPI serverAPI) {
+    public Warp(Network instance, Constants constants, PlotAPI plotAPI, Back back, EventAPI eventAPI, ServerAPI serverAPI, PreviousLocationTracker previousLocationTracker) {
         this.constants = constants;
         this.plotAPI = plotAPI;
         this.back = back;
         this.eventAPI = eventAPI;
         this.serverAPI = serverAPI;
         this.globalSQL = instance.getGlobalSQL();
+        this.previousLocationTracker = previousLocationTracker;
         setTabCompleter(new LocationSelector(globalSQL));
     }
 
@@ -90,7 +92,7 @@ public class Warp extends AbstractCommand {
                 }
 
                 // Set current location for /back
-                back.setPreviousCoordinate(player.getUniqueId().toString(), currentLocation);
+                previousLocationTracker.setPreviousCoordinate(player.getUniqueId().toString(), currentLocation);
 
                 // Teleport to location.
                 player.teleport(l);

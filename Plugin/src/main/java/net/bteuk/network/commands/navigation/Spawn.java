@@ -23,14 +23,16 @@ public class Spawn extends AbstractCommand {
     private final EventAPI eventAPI;
     private final ServerAPI serverAPI;
     private final SQLAPI globalSQL;
+    private final PreviousLocationTracker previousLocationTracker;
 
-    public Spawn(Constants constants, Back back, Lobby lobby, EventAPI eventAPI, ServerAPI serverAPI, SQLAPI globalSQL) {
+    public Spawn(Constants constants, Back back, Lobby lobby, EventAPI eventAPI, ServerAPI serverAPI, SQLAPI globalSQL, PreviousLocationTracker previousLocationTracker) {
         this.constants = constants;
         this.back = back;
         this.lobby = lobby;
         this.eventAPI = eventAPI;
         this.serverAPI = serverAPI;
         this.globalSQL = globalSQL;
+        this.previousLocationTracker = previousLocationTracker;
     }
 
     @Override
@@ -51,7 +53,7 @@ public class Spawn extends AbstractCommand {
         NetworkLocation location = LocationAdapter.adapt(player.getLocation());
         if (constants.serverType() == ServerType.LOBBY) {
 
-            back.setPreviousCoordinate(player.getUniqueId().toString(), location);
+            previousLocationTracker.setPreviousCoordinate(player.getUniqueId().toString(), location);
             player.teleport(lobby.getSpawn());
             player.sendMessage(ChatUtils.success("Teleported to spawn."));
         } else {

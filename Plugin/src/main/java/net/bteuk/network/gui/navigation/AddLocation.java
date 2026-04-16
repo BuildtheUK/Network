@@ -178,7 +178,7 @@ public class AddLocation extends NetworkRefreshableGui {
                     Location l = globalSQL.getLocation(coordinate_id);
 
                     // Set current location for /back
-                    back.setPreviousCoordinate(u.player.getUniqueId().toString(), LocationAdapter.adapt(u.player.getLocation()));
+                    provider.previousLocationTracker().setPreviousCoordinate(u.player.getUniqueId().toString(), LocationAdapter.adapt(u.player.getLocation()));
 
                     u.player.teleport(l);
                 } else {

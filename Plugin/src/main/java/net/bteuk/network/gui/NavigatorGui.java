@@ -1,6 +1,5 @@
 package net.bteuk.network.gui;
 
-import net.bteuk.network.Network;
 import net.bteuk.network.api.EventAPI;
 import net.bteuk.network.api.ServerAPI;
 import net.bteuk.network.api.entity.NetworkLocation;
@@ -138,7 +137,7 @@ public class NavigatorGui extends NetworkGui {
                 NetworkLocation location = LocationAdapter.adapt(u.player.getLocation());
                 if (constants.serverType() == ServerType.LOBBY) {
 
-                    back.setPreviousCoordinate(u.player.getUniqueId().toString(), location);
+                    provider.previousLocationTracker().setPreviousCoordinate(u.player.getUniqueId().toString(), location);
                     u.player.teleport(lobby.getSpawn());
                     u.player.sendMessage(ChatUtils.success("Teleported to spawn."));
                 } else {

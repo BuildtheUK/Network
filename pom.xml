@@ -26,7 +26,7 @@
 
         <paper.api.version>1.21.10-R0.1-SNAPSHOT</paper.api.version>
 
-        <bteuk.proxy.version>develop-1727b4fcf7-1</bteuk.proxy.version>
+        <bteuk.proxy.version>develop-2c95cc659b-1</bteuk.proxy.version>
         <bteuk.lib.version>main-36b0421e66-1</bteuk.lib.version>
         <bteuk.networklib.version>955372d721</bteuk.networklib.version>
 
