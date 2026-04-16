@@ -503,22 +503,22 @@ public class Buildings extends AbstractCommand {
             deltaX = -plotSQL.getInt("SELECT xTransform FROM location_data WHERE name='" + player.getWorld().getName() + "';");
             deltaZ = -plotSQL.getInt("SELECT zTransform FROM location_data WHERE name='" + player.getWorld().getName() + "';");
         }
-        for (Building j : nearbyBuildings) {
-            Location i;
-            if (j.coordinate().getWorld() != null && j.coordinate().getWorld().equals(player.getWorld())) {
+        for (Building building : nearbyBuildings) {
+            Location loc;
+            if (building.coordinate().getWorld() != null && building.coordinate().getWorld().equals(player.getWorld())) {
 
-                i = j.coordinate();
+                loc = building.coordinate();
             } else {
 
                 try {
-                    i = geoToWorld(j.lat(), j.lon(), player.getWorld(), deltaX, deltaZ);
+                    loc = geoToWorld(building.lat(), building.lon(), player.getWorld(), deltaX, deltaZ);
                 } catch (Exception e) {
                     continue;
                 }
 
             }
-            // locs.append(" (").append(Math.round(i.getX())).append(",").append(Math.round(i.getZ())).append("),");
-            Location finalHeight = new Location(player.getWorld(), i.getX(), player.getWorld().getHighestBlockYAt(i) - 1, i.getZ());
+            // locs.append(" (").append(Math.round(loc.getX())).append(",").append(Math.round(loc.getZ())).append("),");
+            Location finalHeight = new Location(player.getWorld(), loc.getX(), player.getWorld().getHighestBlockYAt(loc) - 1, loc.getZ());
             heightBuildingsAdded.add(finalHeight);
             player.sendBlockChange(finalHeight, Material.BEACON.createBlockData());
             for (int x = -1; x <= 1; x++) {
@@ -529,9 +529,9 @@ public class Buildings extends AbstractCommand {
             }
 
             Location glassLoc = finalHeight.clone().add(0, 1, 0);
-            if (!j.playerBuilt()) {
+            if (!building.playerBuilt()) {
                 player.sendBlockChange(glassLoc, Material.ORANGE_STAINED_GLASS.createBlockData());
-            } else if (j.playerId().equals(player.getUniqueId().toString())) {
+            } else if (building.playerId().equals(player.getUniqueId().toString())) {
                 player.sendBlockChange(glassLoc, Material.GREEN_STAINED_GLASS.createBlockData());
             } else {
                 player.sendBlockChange(glassLoc, Material.RED_STAINED_GLASS.createBlockData());
