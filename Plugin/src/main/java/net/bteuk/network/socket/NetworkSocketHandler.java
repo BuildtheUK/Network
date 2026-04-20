@@ -4,6 +4,7 @@ import lombok.extern.java.Log;
 import net.bteuk.network.CustomChat;
 import net.bteuk.network.Network;
 import net.bteuk.network.TabManager;
+import net.bteuk.network.commands.navigation.Teleport;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.eventing.listeners.Connect;
 import net.bteuk.network.lib.dto.AbstractTransferObject;
@@ -13,6 +14,7 @@ import net.bteuk.network.lib.dto.DiscordLinking;
 import net.bteuk.network.lib.dto.OnlineUserAdd;
 import net.bteuk.network.lib.dto.OnlineUserRemove;
 import net.bteuk.network.lib.dto.OnlineUsersReply;
+import net.bteuk.network.lib.dto.TeleportEvent;
 import net.bteuk.network.lib.dto.UserConnectReply;
 import net.bteuk.network.lib.dto.UserRemove;
 import net.bteuk.network.lib.dto.UserUpdate;
@@ -32,11 +34,14 @@ public class NetworkSocketHandler implements SocketHandler {
 
     private InputSocket inputSocket;
 
-    public NetworkSocketHandler(Network instance, CustomChat chat, TabManager tabManager, Connect connect, Constants constants) {
+    private final Teleport teleport;
+
+    public NetworkSocketHandler(Network instance, CustomChat chat, TabManager tabManager, Connect connect, Constants constants, Teleport teleport) {
         this.instance = instance;
         this.chat = chat;
         this.tabManager = tabManager;
         this.connect = connect;
+        this.teleport = teleport;
 
         // Register input socket for receiving messages from the proxy.
         int inputSocketPort = constants.chatSocketInputPort();
@@ -63,6 +68,7 @@ public class NetworkSocketHandler implements SocketHandler {
             case OnlineUsersReply onlineUsersReply -> instance.handleOnlineUsersReply(onlineUsersReply);
             case OnlineUserAdd onlineUserAdd -> instance.handleOnlineUserAdd(onlineUserAdd);
             case OnlineUserRemove onlineUserRemove -> instance.handleOnlineUserRemove(onlineUserRemove);
+            case TeleportEvent teleportEvent -> teleport.handleTeleportEvent(teleportEvent);
             default -> log.warning(String.format("Socket object has an unrecognised type %s",
                     abstractTransferObject.getClass().getTypeName()));
         }

@@ -3,6 +3,8 @@ package net.bteuk.network.utils;
 import lombok.extern.java.Log;
 import net.bteuk.network.Network;
 import net.bteuk.network.core.Constants;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -12,6 +14,7 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -23,7 +26,7 @@ import java.util.stream.Collectors;
 @Log
 public class Tips {
 
-    private HashMap<String, TipsList> tipsMap;
+    private Map<String, TipsList> tipsMap;
 
     /**
      * Load the tips from the text files in the tips folder, if any exist.
@@ -145,8 +148,9 @@ public class Tips {
          *
          * @return tip at the index counter
          */
-        public String getTip() {
-            return tips[counter];
+        public Component getTip() {
+            MiniMessage miniMessage = MiniMessage.miniMessage();
+            return miniMessage.deserialize(tips[counter]);
         }
     }
 }

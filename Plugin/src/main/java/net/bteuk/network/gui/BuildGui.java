@@ -112,7 +112,7 @@ public class BuildGui extends NetworkRefreshableGui {
                                 u.player.closeInventory();
 
                                 // Set current location for /back
-                                back.setPreviousCoordinate(u.player.getUniqueId().toString(), location);
+                                provider.previousLocationTracker().setPreviousCoordinate(u.player.getUniqueId().toString(), location);
 
                                 eventAPI.createTeleportEvent(false, u.player.getUniqueId().toString(), "plotsystemteleport plot " + id, location);
                             } else {
@@ -298,7 +298,7 @@ public class BuildGui extends NetworkRefreshableGui {
 
                                 staffApproval = constants.regionStaffRequestAlways() || regionManager.wasClaimed(region);
 
-                                //If still not requiring staff approval, check the neighbour regions
+                                // If still not requiring staff approval, check the neighbour regions
                                 if (!staffApproval) {
 
                                     // Get region coords.
@@ -317,7 +317,7 @@ public class BuildGui extends NetworkRefreshableGui {
 
                                         // Iterate through all regions in the radius.
                                         for (int i = x; (i <= x + radius * 2) && !staffApproval; i++) {
-                                            for (int j = z; (j <= z + radius * 2) && !staffApproval ; j++) {
+                                            for (int j = z; (j <= z + radius * 2) && !staffApproval; j++) {
 
                                                 String regionName = i + "," + j;
 
@@ -350,10 +350,11 @@ public class BuildGui extends NetworkRefreshableGui {
                             else
 
                                 setItem(4, Utils.createItem(Material.DARK_OAK_DOOR, 1, Utils.title("Join Region"), Utils.line("Click to join the region you are standing in."),
-                                        Utils.line("The region currently has no active owner."), Utils.line("Joining the region will make you the region owner.")), (NetworkUser u) -> {
-                                    regionManager.joinRegion(region, u.player);
-                                    u.player.closeInventory();
-                                });
+                                                Utils.line("The region currently has no active owner."), Utils.line("Joining the region will make you the region owner.")),
+                                        (NetworkUser u) -> {
+                                            regionManager.joinRegion(region, u.player);
+                                            u.player.closeInventory();
+                                        });
                         }
                     } else {
 

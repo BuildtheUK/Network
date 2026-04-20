@@ -103,6 +103,9 @@ public class RegionTeleportListener extends AbstractMoveListener implements List
 
         if (newRegion == null) {
             log.info("New region of " + regionUser.getPlayer().getName() + " is null");
+        } else if (newRegion.equals(regionUser.getTrackedRegion())) {
+            // Region is the same, do nothing.
+            return;
         } else {
             log.info("New region of " + regionUser.getPlayer().getName() + " is " + newRegion.regionName());
         }

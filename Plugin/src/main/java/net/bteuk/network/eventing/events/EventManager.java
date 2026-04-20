@@ -4,7 +4,7 @@ import lombok.extern.java.Log;
 import net.bteuk.network.api.EventAPI;
 import net.bteuk.network.api.entity.Event;
 import net.bteuk.network.api.entity.NetworkLocation;
-import net.bteuk.network.commands.navigation.Back;
+import net.bteuk.network.commands.navigation.PreviousLocationTracker;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.sql.GlobalSQL;
 import net.kyori.adventure.text.Component;
@@ -18,19 +18,12 @@ public class EventManager implements EventAPI, Event {
     private final HashMap<String, Event> events = new HashMap<>();
     private final GlobalSQL globalSQL;
     private final Constants constants;
+    private final PreviousLocationTracker previousLocationTracker;
 
-    private Back back;
-
-    public EventManager(GlobalSQL globalSQL, Constants constants) {
+    public EventManager(GlobalSQL globalSQL, Constants constants, PreviousLocationTracker previousLocationTracker) {
         this.globalSQL = globalSQL;
         this.constants = constants;
-    }
-
-    public void registerBack(Back back) {
-        if (this.back == null) {
-            this.back = back;
-            log.info("Back function registered in EventManager.");
-        }
+        this.previousLocationTracker = previousLocationTracker;
     }
 
     public void registerEvent(String name, Event event) {
@@ -39,20 +32,18 @@ public class EventManager implements EventAPI, Event {
 
     public void createJoinEvent(String uuid, String event) {
         globalSQL.update(
-                "INSERT INTO join_events(uuid,event) " + "VALUES('" + uuid + "','" + event + "') " + "ON DUPLICATE KEY UPDATE event='" + event + "';");
+                "INSERT INTO join_events(uuid,event) VALUES(?,?) ON DUPLICATE KEY UPDATE event=?;", uuid, event, event);
     }
 
     public void createJoinEvent(String uuid, String event, String message) {
         globalSQL.update(
-                "INSERT INTO join_events(uuid,event,message) " + "VALUES('" + uuid + "','" + event + "','" + message + "') " + "ON DUPLICATE KEY " + "UPDATE event='" + event +
-                        "', message='" + message + "';");
+                "INSERT INTO join_events(uuid,event,message) VALUES(?,?,?) ON DUPLICATE KEY UPDATE event=?, message=?;", uuid, event, message, event, message);
     }
 
     public void createJoinEvent(String uuid, String event, Component message) {
         String messageString = PlainTextComponentSerializer.plainText().serialize(message);
         globalSQL.update(
-                "INSERT INTO join_events(uuid,event,message) " + "VALUES('" + uuid + "','" + event + "','" + message + "') " + "ON DUPLICATE KEY " + "UPDATE event='" + event +
-                        "', message='" + messageString + "';");
+                "INSERT INTO join_events(uuid,event,message) VALUES(?,?,?) ON DUPLICATE KEY UPDATE event=?, message=?;", uuid, event, messageString, event, messageString);
     }
 
     /**
@@ -64,9 +55,9 @@ public class EventManager implements EventAPI, Event {
      */
     public void createEvent(String uuid, String server, String event) {
         if (uuid == null) {
-            globalSQL.update("INSERT INTO server_events(server,event) " + "VALUES('" + server + "','" + event + "');");
+            globalSQL.update("INSERT INTO server_events(server,event) VALUES(?,?);", server, event);
         } else {
-            globalSQL.update("INSERT INTO server_events(uuid,server,event) " + "VALUES('" + uuid + "','" + server + "','" + event + "');");
+            globalSQL.update("INSERT INTO server_events(uuid,server,event) VALUES(?,?,?);", uuid, server, event);
         }
     }
 
@@ -80,10 +71,10 @@ public class EventManager implements EventAPI, Event {
      */
     public void createEvent(String uuid, String server, String event, String message) {
         if (uuid == null) {
-            globalSQL.update("INSERT INTO server_events(server,event,message) " + "VALUES('" + server + "','" + event + "','" + message + "');");
+            globalSQL.update("INSERT INTO server_events(server,event,message) VALUES(?,?,?);", server, event, message);
         } else {
             globalSQL.update(
-                    "INSERT INTO server_events(uuid,server,event,message) " + "VALUES('" + uuid + "','" + server + "','" + event + "','" + message + "');");
+                    "INSERT INTO server_events(uuid,server,event,message) VALUES(?,?,?,?);", uuid, server, event, message);
         }
     }
 
@@ -98,16 +89,16 @@ public class EventManager implements EventAPI, Event {
     public void createEvent(String uuid, String server, String event, Component message) {
         String messageString = PlainTextComponentSerializer.plainText().serialize(message);
         if (uuid == null) {
-            globalSQL.update("INSERT INTO server_events(server,event,message) " + "VALUES('" + server + "','" + event + "','" + messageString + "');");
+            globalSQL.update("INSERT INTO server_events(server,event,message) VALUES(?,?,?);", server, event, messageString);
         } else {
             globalSQL.update(
-                    "INSERT INTO server_events(uuid,server,event,message) " + "VALUES('" + uuid + "','" + server + "','" + event + "','" + messageString + "');");
+                    "INSERT INTO server_events(uuid,server,event,message) VALUES(?,?,?,?);", uuid, server, event, messageString);
         }
     }
 
     public void createTeleportEvent(boolean join, String uuid, String event, NetworkLocation previousLocation) {
 
-        back.setPreviousCoordinate(uuid, previousLocation);
+        previousLocationTracker.setPreviousCoordinate(uuid, previousLocation);
 
         // Create event
         if (join) {
@@ -119,7 +110,7 @@ public class EventManager implements EventAPI, Event {
 
     public void createTeleportEvent(boolean join, String uuid, String event, String message, NetworkLocation previousLocation) {
 
-        back.setPreviousCoordinate(uuid, previousLocation);
+        previousLocationTracker.setPreviousCoordinate(uuid, previousLocation);
 
         // Create event
         if (join) {
@@ -132,7 +123,7 @@ public class EventManager implements EventAPI, Event {
     public void createTeleportEvent(boolean join, String uuid, String event, Component message, NetworkLocation previousLocation) {
 
         String messageString = PlainTextComponentSerializer.plainText().serialize(message);
-        back.setPreviousCoordinate(uuid, previousLocation);
+        previousLocationTracker.setPreviousCoordinate(uuid, previousLocation);
 
         // Create event
         if (join) {

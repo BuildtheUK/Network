@@ -6,20 +6,18 @@ import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.sql.PlotSQL;
 import net.bteuk.network.utils.NetworkUser;
+import net.bteuk.network.utils.PlayerProfileCache;
 import net.bteuk.network.utils.Utils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.codehaus.plexus.util.StringUtils;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * This menu is an extension on the {@link AcceptedPlotMenu}
@@ -27,8 +25,6 @@ import java.util.concurrent.Executors;
  * The filter is per player, or all plots.
  */
 public class FilterMenu extends NetworkRefreshableGui {
-
-    private static final ExecutorService EXECUTOR = Executors.newVirtualThreadPerTaskExecutor();
 
     private final PlotSQL plotSQL;
     private final GlobalSQL globalSQL;
@@ -53,9 +49,9 @@ public class FilterMenu extends NetworkRefreshableGui {
     protected void createGui() {
 
         // Get a list of all users that have completed plots.
-        HashMap<String, Integer> map = plotSQL.getStringIntMap(
+        Map<String, Integer> map = plotSQL.getStringIntMap(
                 "SELECT uuid,COUNT(id) FROM plot_review WHERE " + "accepted=1 AND completed=1 GROUP BY uuid ORDER BY COUNT(id) DESC;");
-        HashMap<String, Integer> newMap = new LinkedHashMap<>();
+        Map<String, Integer> newMap = new LinkedHashMap<>();
 
         // The first item is for all plots.
         newMap.put("", plotSQL.getInt("SELECT COUNT(1) FROM plot_review WHERE accepted=1 AND completed=1;"));
@@ -127,16 +123,15 @@ public class FilterMenu extends NetworkRefreshableGui {
                     });
                 } else {
 
-                    PlayerProfile profile = Bukkit.createProfile(UUID.fromString(uuid));
-                    if (profile.hasTextures()) {
-                        createPlayerHeadGuiItem(profile, newMap.get(uuid), uuid, slot);
-                    } else {
-                        int finalSlot = slot;
-                        EXECUTOR.submit(() -> {
-                            profile.complete();
+                    int finalSlot = slot;
+                    int finalPage = page;
+                    PlayerProfileCache.getProfile(UUID.fromString(uuid)).thenAccept(profile -> {
+                        // Only set the item if the page is the same.
+                        if (page == finalPage) {
                             createPlayerHeadGuiItem(profile, newMap.get(uuid), uuid, finalSlot);
-                        });
-                    }
+                        }
+                    });
+
                 }
             }
 

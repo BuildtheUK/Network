@@ -14,6 +14,7 @@ import net.bteuk.network.lobby.Lobby;
 import net.bteuk.network.papercore.LocationAdapter;
 import net.bteuk.network.papercore.PlayerAdapter;
 import net.bteuk.network.sql.GlobalSQL;
+import net.bteuk.network.survey.SurveyBook;
 import net.bteuk.network.utils.LightsOut;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
@@ -104,6 +105,12 @@ public class NavigatorGui extends NetworkGui {
                 Utils.line("You can also use the command ").append(Component.text("/nightvision", NamedTextColor.GRAY)).append(Utils.line(" or "))
                         .append(Component.text("/nv", NamedTextColor.GRAY))), nightvision::toggleNightvision);
 
+        // Survey
+        if (constants.UKSurvey())
+            setItem(18, Utils.createItem(Material.PAPER, 1, Utils.title("UK Survey"), Utils.line("Assist us with our PR strategy.")), (NetworkUser u) -> {
+                SurveyBook.openSurvey(u, globalSQL);
+            });
+
         setItem(19, Utils.createItem(Material.REDSTONE_LAMP, 1, Utils.title("Lights Out"), Utils.line("Play a game of Lights Out.")), (NetworkUser u) -> {
             if (u.lightsOut == null) {
 
@@ -130,7 +137,7 @@ public class NavigatorGui extends NetworkGui {
                 NetworkLocation location = LocationAdapter.adapt(u.player.getLocation());
                 if (constants.serverType() == ServerType.LOBBY) {
 
-                    back.setPreviousCoordinate(u.player.getUniqueId().toString(), location);
+                    provider.previousLocationTracker().setPreviousCoordinate(u.player.getUniqueId().toString(), location);
                     u.player.teleport(lobby.getSpawn());
                     u.player.sendMessage(ChatUtils.success("Teleported to spawn."));
                 } else {
