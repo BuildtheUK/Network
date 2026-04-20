@@ -12,7 +12,7 @@
     <groupId>net.bteuk.network</groupId>
     <artifactId>plugin</artifactId>
     <name>Network Plugin</name>
-    <description>Minecraft plugin for the BTEUK Network</description>
+    <description>Minecraft plugin for the BTUK Network</description>
 
     <properties>
         <junit.version>5.11.2</junit.version>
@@ -226,6 +226,10 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>33.4.8-jre</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
         </dependency>
 
         <dependency>

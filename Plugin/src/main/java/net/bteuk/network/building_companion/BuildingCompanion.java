@@ -32,6 +32,7 @@ import org.bukkit.scheduler.BukkitTask;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -63,7 +64,7 @@ public class BuildingCompanion {
 
     // The player that this building companion is for.
     private final NetworkUser user;
-    private final HashMap<UUID, SavedOutline> saved_outlines;
+    private final Map<UUID, SavedOutline> saved_outlines;
     private World world;
     private boolean asyncActive = false;
 

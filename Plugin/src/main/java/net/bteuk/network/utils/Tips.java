@@ -14,6 +14,7 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -25,7 +26,7 @@ import java.util.stream.Collectors;
 @Log
 public class Tips {
 
-    private HashMap<String, TipsList> tipsMap;
+    private Map<String, TipsList> tipsMap;
 
     /**
      * Load the tips from the text files in the tips folder, if any exist.

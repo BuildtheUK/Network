@@ -5,10 +5,11 @@ import net.bteuk.network.api.TimerAPI;
 import net.bteuk.network.api.entity.ShutdownHook;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class TimerAPIImpl implements TimerAPI, ShutdownHook {
 
-    private final HashMap<Integer, Runnable> timers = new HashMap<>();
+    private final Map<Integer, Runnable> timers = new HashMap<>();
 
     private final Network instance;
 

@@ -52,9 +52,10 @@ public class Tpll extends AbstractCommand {
     private final ServerAPI serverAPI;
     private final Back back;
     private final GlobalSQL globalSQL;
+    private final PreviousLocationTracker previousLocationTracker;
 
     public Tpll(Network instance, boolean requiresPermission, RegionManager regionManager, Constants constants, PlotSQL plotSQL, EventAPI eventAPI, ServerAPI serverAPI, Back back,
-                GlobalSQL globalSQL) {
+                GlobalSQL globalSQL, PreviousLocationTracker previousLocationTracker) {
         this.instance = instance;
         this.requiresPermission = requiresPermission;
         this.regionManager = regionManager;
@@ -64,6 +65,7 @@ public class Tpll extends AbstractCommand {
         this.serverAPI = serverAPI;
         this.back = back;
         this.globalSQL = globalSQL;
+        this.previousLocationTracker = previousLocationTracker;
     }
 
     /**
@@ -369,7 +371,7 @@ public class Tpll extends AbstractCommand {
             if (!fromEvent) {
 
                 // Set current location for /back
-                back.setPreviousCoordinate(p.getUniqueId().toString(), LocationAdapter.adapt(p.getLocation()));
+                previousLocationTracker.setPreviousCoordinate(p.getUniqueId().toString(), LocationAdapter.adapt(p.getLocation()));
             }
 
             // Set the altitude
