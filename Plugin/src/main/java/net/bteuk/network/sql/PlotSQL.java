@@ -179,7 +179,7 @@ public class PlotSQL extends AbstractSQL {
                 ResultSet results = statement.executeQuery()
         ) {
             while (results.next()) {
-                list.add(new SubmittedPlot(results.getInt(1), results.getLong(2)));
+                list.add(new SubmittedPlot(results.getInt(1), results.getLong(2), plotDifficulty.getValue()));
             }
         } catch (SQLException e) {
             log.log(Level.SEVERE, "Failed to fetch submitted plots", e);
