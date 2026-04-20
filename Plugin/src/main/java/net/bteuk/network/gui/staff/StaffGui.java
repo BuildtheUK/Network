@@ -170,12 +170,13 @@ public class StaffGui extends NetworkRefreshableGui {
                 submittedPlots.sort(Comparator.comparingLong(SubmittedPlot::submitTime));
 
                 if (submittedPlots.isEmpty()) {
-                    user.player.sendMessage(ChatUtils.error("There are currently no submitted plots that you can review.."));
+                    user.player.sendMessage(ChatUtils.error("There are currently no submitted plots that you can review."));
                 } else if (submittedPlots.size() == 1) {
                     PlotReviewGui.reviewPlot(provider, submittedPlots.getFirst(), user);
                 } else {
                     this.delete();
                     user.staffGui = new PlotReviewGui(provider, submittedPlots);
+                    user.staffGui.open(user.player);
                 }
             });
 
@@ -221,7 +222,7 @@ public class StaffGui extends NetworkRefreshableGui {
                                 provider.serverAPI().switchServer(PlayerAdapter.adapt(u.player), server);
                             }
                         } else {
-                            u.player.sendMessage(ChatUtils.error("There are currently no submitted plots that you can review.."));
+                            u.player.sendMessage(ChatUtils.error("There are currently no submitted plots that you can review."));
                         }
                     });
         }
