@@ -147,8 +147,8 @@ public class SurveyBook {
         page4 = appendOptionYesNo("TikTok", page4, SurveyAnswerOption.Q2_TIKTOK, survey.bMediumTiktok, !survey.bMediumTiktok);
         page4 = appendOptionYesNo("YouTube Short", page4, SurveyAnswerOption.Q2_YT_SHORT, survey.bMediumYoutubeShorts, !survey.bMediumYoutubeShorts);
         page4 = appendOptionYesNo("YouTube Longform", page4, SurveyAnswerOption.Q2_YT_LONG, survey.bMediumYoutubeLongform, !survey.bMediumYoutubeLongform);
-        page4 = appendOptionYesNo("YouTube Instagram", page4, SurveyAnswerOption.Q2_INSTAGRAM, survey.bMediumInstagram, !survey.bMediumInstagram);
-        page4 = appendOptionYesNo("YouTube Search Engine - Browsing", page4, SurveyAnswerOption.Q2_SEARCH, survey.bSearchEngineBrowsing, !survey.bSearchEngineBrowsing);
+        page4 = appendOptionYesNo("Instagram", page4, SurveyAnswerOption.Q2_INSTAGRAM, survey.bMediumInstagram, !survey.bMediumInstagram);
+        page4 = appendOptionYesNo("Search Engine - Browsing", page4, SurveyAnswerOption.Q2_SEARCH, survey.bSearchEngineBrowsing, !survey.bSearchEngineBrowsing);
         page4 = appendOptionYesNo("Online News", page4, SurveyAnswerOption.Q2_ONLINE_NEWS, survey.bOnlineNews, !survey.bOnlineNews);
         page4 = appendOptionYesNo("TV News", page4, SurveyAnswerOption.Q2_TV_NEWS, survey.bTVNews, !survey.bTVNews);
         page4 = appendOptionYesNo("Physical Newspaper", page4, SurveyAnswerOption.Q2_NEWSPAPER, survey.bPhysicalNewspaper, !survey.bPhysicalNewspaper);
