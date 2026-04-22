@@ -17,6 +17,7 @@ import net.bteuk.network.socket.MessageSender;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Roles;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.entity.Player;
@@ -75,12 +76,23 @@ public class CustomChat implements ChatAPI {
         Role userRole = user.getPrimaryRole();
         return userRole.getColouredPrefix() // The prefix based on the role.
                 .append(Component.space())
-                .append(user.player.displayName()) // Player name in white without formatting.
+                .append(formatDisplayName(user.player))
                 .append(Component.space())
                 .append(Component.text(">", NamedTextColor.GRAY).decorate(TextDecoration.BOLD)) // Arrow between the
                 // player and message in bold.
                 .append(Component.space())
                 .append(message.color(NamedTextColor.WHITE)); // The message in white without formatting.
+    }
+
+    private static Component formatDisplayName(Player player) {
+        Component displayName = player.displayName();
+        Component username = ChatUtils.line(player.getName());
+
+        if (!displayName.equals(username)) {
+            return displayName.hoverEvent(HoverEvent.showText(ChatUtils.greyText(player.getName())));
+        }
+
+        return displayName;
     }
 
     private static Component directMessageFormat(String message, String sender, String recipient) {
