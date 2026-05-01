@@ -98,6 +98,13 @@
                                         <exclude>org/intellij/lang/annotations/**</exclude>
                                     </excludes>
                                 </filter>
+
+                                <filter>
+                                    <artifact>com.github.ben-manes.caffeine:caffeine</artifact>
+                                    <includes>
+                                        <include>**</include>
+                                    </includes>
+                                </filter>
                             </filters>
 
                             <relocations>
@@ -108,6 +115,10 @@
                                 <relocation>
                                     <pattern>org.apache.commons.io</pattern>
                                     <shadedPattern>net.bteuk.network.shaded.commons.io</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.github.benmanes.caffeine</pattern>
+                                    <shadedPattern>net.bteuk.network.shaded.caffeine</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
