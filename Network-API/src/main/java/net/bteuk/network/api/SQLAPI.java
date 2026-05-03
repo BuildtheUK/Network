@@ -25,8 +25,11 @@ public interface SQLAPI {
 
     Map<Integer, String> getIntStringMap(String sql);
 
+    Map<Integer, Integer> getIntIntMap(String sql);
+
+    Map<String, String> getStringStringMap(String sql);
+
     List<String> getStringList(String sql);
 
     List<Integer> getIntList(String sql);
-
 }

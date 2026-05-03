@@ -28,5 +28,28 @@ public interface TimerAPI {
      */
     int registerTimer(Runnable runnable, long intervalMillis, long delay);
 
+    /**
+     * Registers a timer at a specific interval.
+     * The timer is run asynchronously, thus it will not block the main server thread.
+     *
+     * @param runnable       the code to run on each interval
+     * @param intervalMillis the interval
+     * @return the timer id
+     */
+    default int registerAsyncTimer(Runnable runnable, long intervalMillis) {
+        return registerAsyncTimer(runnable, intervalMillis, 0);
+    }
+
+    /**
+     * Registers a timer at a specific interval.
+     * The timer is run asynchronously, thus it will not block the main server thread.
+     *
+     * @param runnable       the code to run on each interval
+     * @param intervalMillis the interval
+     * @param delay          the delay until first execution
+     * @return the timer id
+     */
+    int registerAsyncTimer(Runnable runnable, long intervalMillis, long delay);
+
     void cancelTimer(int timerId);
 }

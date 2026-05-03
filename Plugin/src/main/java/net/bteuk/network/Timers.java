@@ -58,11 +58,10 @@ public class Timers {
     }
 
     public void startTimers() {
-
         // 1-tick timer (50ms)
-        instance.getTimerAPI().registerTimer(() -> {
-
-            // Check for new server_events.
+        // Check for new server_events.
+        // This is done asynchronously to avoid blocking the main thread.
+        instance.getTimerAPI().registerAsyncTimer(() -> {
             if (globalSQL.hasRow("SELECT uuid FROM server_events WHERE server='" + constants.serverName() + "';")) {
 
                 // If events are not empty, skip this iteration.
@@ -75,23 +74,26 @@ public class Timers {
                     // Get events for this server.
                     events = globalSQL.getEvents(constants.serverName(), events);
 
-                    for (String[] event : events) {
+                    // Process events on the main thread.
+                    instance.getServer().getScheduler().runTask(instance, () -> {
+                        for (String[] event : events) {
 
-                        // [uuid,event,message]
+                            // [uuid,event,message]
 
-                        // Deal with events here.
-                        log.info("Event: " + event[1]);
+                            // Deal with events here.
+                            log.info("Event: " + event[1]);
 
-                        // Split the event by word.
-                        String[] aEvent = event[1].split(" ");
+                            // Split the event by word.
+                            String[] aEvent = event[1].split(" ");
 
-                        // Send the event to the event handler.
-                        eventManager.event(event[0], aEvent, event[2]);
-                    }
+                            // Send the event to the event handler.
+                            eventManager.event(event[0], aEvent, event[2]);
+                        }
 
-                    // Clear events when done.
-                    events.clear();
-                    isBusy = false;
+                        // Clear events when done.
+                        events.clear();
+                        isBusy = false;
+                    });
                 }
             }
         }, 50L);

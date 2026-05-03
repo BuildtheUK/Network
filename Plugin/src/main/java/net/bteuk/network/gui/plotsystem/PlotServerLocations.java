@@ -15,7 +15,9 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
 
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class PlotServerLocations extends NetworkRefreshableGui {
 
@@ -27,6 +29,12 @@ public class PlotServerLocations extends NetworkRefreshableGui {
     private int plotSize;
     private Material mSize;
     private String sSize;
+
+    private List<String> locations;
+    private final Map<String, String> aliases = new HashMap<>();
+    private final Map<String, Integer> easyCounts = new HashMap<>();
+    private final Map<String, Integer> normalCounts = new HashMap<>();
+    private final Map<String, Integer> hardCounts = new HashMap<>();
 
     public PlotServerLocations(GuiProvider provider, NetworkUser u) {
 
@@ -91,6 +99,19 @@ public class PlotServerLocations extends NetworkRefreshableGui {
         }
     }
 
+    @Override
+    protected void loadData() {
+        // Get all locations from database.
+        locations = plotSQL.getStringList("SELECT name FROM location_data");
+
+        for (String location : locations) {
+            aliases.put(location, plotSQL.getString("SELECT alias FROM location_data WHERE name='" + location + "';"));
+            easyCounts.put(location, plotSQL.getInt("SELECT count(id) FROM plot_data WHERE location='" + location + "' AND status='unclaimed' AND difficulty=1;"));
+            normalCounts.put(location, plotSQL.getInt("SELECT count(id) FROM plot_data WHERE location='" + location + "' AND status='unclaimed' AND difficulty=2;"));
+            hardCounts.put(location, plotSQL.getInt("SELECT count(id) FROM plot_data WHERE location='" + location + "' AND status='unclaimed' AND difficulty=3;"));
+        }
+    }
+
     protected void createGui() {
 
         setDifficulty();
@@ -123,134 +144,141 @@ public class PlotServerLocations extends NetworkRefreshableGui {
             this.updatePlayerInventory(u.player);
         });
 
-        // Get all locations from database.
-        ArrayList<String> locations = plotSQL.getStringList("SELECT name FROM location_data");
-
         // Starting slot.
         int slot = 10;
 
         // Iterate through locations and add them to the gui.
-        for (String location : locations) {
+        if (locations != null) {
+            for (String location : locations) {
 
-            // Create location button.
-            setItem(slot, Utils.createItem(Material.DIAMOND_PICKAXE, 1, Utils.title(plotSQL.getString("SELECT alias FROM location_data WHERE name='" + location + "';")),
-                    Utils.line("Click to teleport to a plot in this location"), Utils.line("subject to the settings shown above."),
-                    Utils.line("Available plots of each difficulty:"), Utils.line("Easy: ").append(Component.text(
-                            plotSQL.getInt("SELECT count(id) FROM plot_data WHERE " + "location='" + location + "' AND status='unclaimed' AND " + "difficulty=1;"),
-                            NamedTextColor.GRAY)), Utils.line("Normal: ").append(Component.text(
-                            plotSQL.getInt("SELECT count(id) FROM plot_data WHERE " + "location='" + location + "' AND status='unclaimed' AND " + "difficulty=2;"),
-                            NamedTextColor.GRAY)), Utils.line("Hard: ").append(Component.text(
-                            plotSQL.getInt("SELECT count(id) FROM plot_data WHERE " + "location='" + location + "' AND status='unclaimed' AND " + "difficulty=3;"),
-                            NamedTextColor.GRAY))), (NetworkUser u) ->
+                // Create location button.
+                setItem(slot, Utils.createItem(Material.DIAMOND_PICKAXE, 1, Utils.title(aliases.get(location)),
+                        Utils.line("Click to teleport to a plot in this location"), Utils.line("subject to the settings shown above."),
+                        Utils.line("Available plots of each difficulty:"), Utils.line("Easy: ").append(Component.text(
+                                easyCounts.getOrDefault(location, 0),
+                                NamedTextColor.GRAY)), Utils.line("Normal: ").append(Component.text(
+                                normalCounts.getOrDefault(location, 0),
+                                NamedTextColor.GRAY)), Utils.line("Hard: ").append(Component.text(
+                                hardCounts.getOrDefault(location, 0),
+                                NamedTextColor.GRAY))), (NetworkUser u) ->
 
             {
 
                 // Check if a plot is available with the given parameters.
                 // If difficulty and size are 0 pick a random plot within the parameters that is allowed for
                 // the player.
-                int id;
+                // This must be done asynchronously as it involves database queries.
+                provider.instance().getServer().getScheduler().runTaskAsynchronously(provider.instance(), () -> {
 
-                if (plotDifficulty == 0 && plotSize == 0) {
+                    int id;
 
-                    if (roles.builderRole(u.player).getId().equals("jrbuilder")) {
+                    if (plotDifficulty == 0 && plotSize == 0) {
 
-                        // Select a random plot of the hard difficulty.
-                        // Since this is the next plot difficulty to get Builder.
-                        id = plotSQL.getInt("SELECT id FROM plot_data WHERE location = '" + location + "' AND status='unclaimed' AND difficulty=3 ORDER BY RAND() LIMIT 1;");
-                    } else if (roles.builderRole(u.player).getId().equals("apprentice")) {
+                        if (roles.builderRole(u.player).getId().equals("jrbuilder")) {
 
-                        // Select a random plot of the normal difficulty.
-                        // Since this is the next plot difficulty to get Jr.Builder.
-                        id = plotSQL.getInt("SELECT id FROM plot_data WHERE location = '" + location + "' AND status='unclaimed' AND difficulty=2 ORDER BY RAND() LIMIT 1;");
-                    } else if (roles.builderRole(u.player).getId().equals("default")) {
+                            // Select a random plot of the hard difficulty.
+                            // Since this is the next plot difficulty to get Builder.
+                            id = plotSQL.getInt("SELECT id FROM plot_data WHERE location = '" + location + "' AND status='unclaimed' AND difficulty=3 ORDER BY RAND() LIMIT 1;");
+                        } else if (roles.builderRole(u.player).getId().equals("apprentice")) {
 
-                        // Select a random plot of the easy difficulty.
-                        // Since this is the next plot difficulty to get Apprentice.
-                        id = plotSQL.getInt("SELECT id FROM plot_data WHERE location = '" + location + "' AND status='unclaimed' AND difficulty=1 ORDER BY RAND() LIMIT 1;");
+                            // Select a random plot of the normal difficulty.
+                            // Since this is the next plot difficulty to get Jr.Builder.
+                            id = plotSQL.getInt("SELECT id FROM plot_data WHERE location = '" + location + "' AND status='unclaimed' AND difficulty=2 ORDER BY RAND() LIMIT 1;");
+                        } else if (roles.builderRole(u.player).getId().equals("default")) {
+
+                            // Select a random plot of the easy difficulty.
+                            // Since this is the next plot difficulty to get Apprentice.
+                            id = plotSQL.getInt("SELECT id FROM plot_data WHERE location = '" + location + "' AND status='unclaimed' AND difficulty=1 ORDER BY RAND() LIMIT 1;");
+                        } else {
+
+                            // Select a random plot of any difficulty.
+                            id = plotSQL.getInt("SELECT id FROM plot_data WHERE location = '" + location + "' AND status='unclaimed' ORDER BY RAND() LIMIT 1;");
+                        }
+                    } else if (plotDifficulty == 0) {
+                        // Pick plot with random difficulty but fixed size.
+
+                        if (roles.builderRole(u.player).getId().equals("jrbuilder")) {
+
+                            // Select a random plot of the hard difficulty.
+                            // Since this is the next plot difficulty to get Builder.
+                            id = plotSQL.getInt(
+                                    "SELECT id FROM plot_data WHERE location = '" + location + "' AND status='unclaimed' AND difficulty=3 AND size=" + plotSize + " ORDER BY" + " " + "RAND() LIMIT 1;");
+                        } else if (roles.builderRole(u.player).getId().equals("apprentice")) {
+
+                            // Select a random plot of the normal difficulty.
+                            // Since this is the next plot difficulty to get Jr.Builder.
+                            id = plotSQL.getInt(
+                                    "SELECT id FROM plot_data WHERE location = '" + location + "' AND status='unclaimed' AND difficulty=2 AND size=" + plotSize + " ORDER BY" + " " + "RAND() LIMIT 1;");
+                        } else if (roles.builderRole(u.player).getId().equals("default")) {
+
+                            // Select a random plot of the easy difficulty.
+                            // Since this is the next plot difficulty to get Apprentice.
+                            id = plotSQL.getInt(
+                                    "SELECT id FROM plot_data WHERE location = '" + location + "' AND status='unclaimed' AND difficulty=1 AND size=" + plotSize + " ORDER BY" + " " + "RAND() LIMIT 1;");
+                        } else {
+                            // Select a random plot of any difficulty.
+                            id = plotSQL.getInt(
+                                    "SELECT id FROM plot_data WHERE location = '" + location + "' AND status='unclaimed' AND size=" + plotSize + " ORDER BY RAND() LIMIT 1;");
+                        }
+                    } else if (plotSize == 0) {
+                        // Pick plot with random size but fixed difficulty.
+
+                        id = plotSQL.getInt(
+                                "SELECT id FROM plot_data WHERE location='" + location + "' AND status='unclaimed' AND difficulty=" + plotDifficulty + " ORDER BY RAND() " + "LIMIT " + "1;");
                     } else {
+                        // Both size and difficulty are specified.
 
                         // Select a random plot of any difficulty.
-                        id = plotSQL.getInt("SELECT id FROM plot_data WHERE location = '" + location + "' AND status='unclaimed' ORDER BY RAND() LIMIT 1;");
+                        id = plotSQL.getInt(
+                                "SELECT id FROM plot_data WHERE location='" + location + "' AND status='unclaimed' AND difficulty=" + plotDifficulty + " AND size=" + plotSize + " " + "ORDER BY RAND() LIMIT 1;");
                     }
-                } else if (plotDifficulty == 0) {
-                    // Pick plot with random difficulty but fixed size.
 
-                    if (roles.builderRole(u.player).getId().equals("jrbuilder")) {
+                    // If no plots fit the specified parameters the id will be 0.
+                    if (id == 0) {
 
-                        // Select a random plot of the hard difficulty.
-                        // Since this is the next plot difficulty to get Builder.
-                        id = plotSQL.getInt(
-                                "SELECT id FROM plot_data WHERE location = '" + location + "' AND status='unclaimed' AND difficulty=3 AND size=" + plotSize + " ORDER BY" + " " + "RAND() LIMIT 1;");
-                    } else if (roles.builderRole(u.player).getId().equals("apprentice")) {
-
-                        // Select a random plot of the normal difficulty.
-                        // Since this is the next plot difficulty to get Jr.Builder.
-                        id = plotSQL.getInt(
-                                "SELECT id FROM plot_data WHERE location = '" + location + "' AND status='unclaimed' AND difficulty=2 AND size=" + plotSize + " ORDER BY" + " " + "RAND() LIMIT 1;");
-                    } else if (roles.builderRole(u.player).getId().equals("default")) {
-
-                        // Select a random plot of the easy difficulty.
-                        // Since this is the next plot difficulty to get Apprentice.
-                        id = plotSQL.getInt(
-                                "SELECT id FROM plot_data WHERE location = '" + location + "' AND status='unclaimed' AND difficulty=1 AND size=" + plotSize + " ORDER BY" + " " + "RAND() LIMIT 1;");
+                        u.player.sendMessage(ChatUtils.error("No plots are available with the specified settings,"));
+                        u.player.sendMessage(ChatUtils.error("try another location or change the settings."));
                     } else {
-                        // Select a random plot of any difficulty.
-                        id = plotSQL.getInt(
-                                "SELECT id FROM plot_data WHERE location = '" + location + "' AND status='unclaimed' AND size=" + plotSize + " ORDER BY RAND() LIMIT 1;");
+
+                        // Get the server of the plot.
+                        String server = plotSQL.getString(
+                                "SELECT server FROM location_data WHERE name='" + location + "';");
+
+                        // Switch to main thread for teleportation.
+                        provider.instance().getServer().getScheduler().runTask(provider.instance(), () -> {
+
+                            // If the plot is on the current server teleport them directly.
+                            // Else teleport them to the correct server and then teleport them to the plot.
+                            if (server.equals(provider.constants().serverName())) {
+
+                                u.player.closeInventory();
+
+                                provider.eventAPI().createTeleportEvent(false, u.player.getUniqueId().toString(), "plotsystemteleport plot " + id, LocationAdapter.adapt(u.player.getLocation()));
+                            } else {
+                                u.player.closeInventory();
+
+                                // Set the server join event.
+                                provider.eventAPI().createTeleportEvent(true, u.player.getUniqueId().toString(), "plotsystemteleport plot " + id, LocationAdapter.adapt(u.player.getLocation()));
+
+                                // Teleport them to another server.
+                                provider.serverAPI().switchServer(PlayerAdapter.adapt(u.player), server);
+                            }
+                        });
                     }
-                } else if (plotSize == 0) {
-                    // Pick plot with random size but fixed difficulty.
-
-                    id = plotSQL.getInt(
-                            "SELECT id FROM plot_data WHERE location='" + location + "' AND status='unclaimed' AND difficulty=" + plotDifficulty + " ORDER BY RAND() " + "LIMIT " + "1;");
-                } else {
-                    // Both size and difficulty are specified.
-
-                    // Select a random plot of any difficulty.
-                    id = plotSQL.getInt(
-                            "SELECT id FROM plot_data WHERE location='" + location + "' AND status='unclaimed' AND difficulty=" + plotDifficulty + " AND size=" + plotSize + " " + "ORDER BY RAND() LIMIT 1;");
-                }
-
-                // If no plots fit the specified parameters the id will be 0.
-                if (id == 0) {
-
-                    u.player.sendMessage(ChatUtils.error("No plots are available with the specified settings,"));
-                    u.player.sendMessage(ChatUtils.error("try another location or change the settings."));
-                } else {
-
-                    // Get the server of the plot.
-                    String server = plotSQL.getString(
-                            "SELECT server FROM location_data WHERE name='" + plotSQL.getString("SELECT location FROM plot_data WHERE id=" + id + ";") + "';");
-
-                    // If the plot is on the current server teleport them directly.
-                    // Else teleport them to the correct server and then teleport them to the plot.
-                    if (server.equals(provider.constants().serverName())) {
-
-                        u.player.closeInventory();
-
-                        provider.eventAPI().createTeleportEvent(false, u.player.getUniqueId().toString(), "plotsystemteleport plot " + id, LocationAdapter.adapt(u.player.getLocation()));
-                    } else {
-                        u.player.closeInventory();
-
-                        // Set the server join event.
-                        provider.eventAPI().createTeleportEvent(true, u.player.getUniqueId().toString(), "plotsystemteleport plot " + id, LocationAdapter.adapt(u.player.getLocation()));
-
-                        // Teleport them to another server.
-                        provider.serverAPI().switchServer(PlayerAdapter.adapt(u.player), server);
-                    }
-                }
+                });
             });
 
-            // Increase the slot accordingly.
-            if (slot % 9 == 7) {
-                // Increase row, basically add 3.
-                slot += 3;
-            } else if (slot == 34) {
-                // Last possible slot, end iteration.
-                break;
-            } else {
-                // Increase value by 1.
-                slot++;
+                // Increase the slot accordingly.
+                if (slot % 9 == 7) {
+                    // Increase row, basically add 3.
+                    slot += 3;
+                } else if (slot == 34) {
+                    // Last possible slot, end iteration.
+                    break;
+                } else {
+                    // Increase value by 1.
+                    slot++;
+                }
             }
         }
 

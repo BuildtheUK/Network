@@ -1,5 +1,6 @@
 package net.bteuk.network.gui.plotsystem;
 
+import net.bteuk.network.api.plotsystem.PlotDifficulty;
 import net.bteuk.network.gui.BuildGui;
 import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.NetworkRefreshableGui;
@@ -12,11 +13,18 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 public class PlotMenu extends NetworkRefreshableGui {
 
     private final NetworkUser user;
     private final PlotSQL plotSQL;
+
+    private ArrayList<Integer> plots;
+    private final ArrayList<Integer> difficulties = new ArrayList<>();
+    private final ArrayList<Boolean> isOwners = new ArrayList<>();
+    private boolean hasVerifiedReviews;
 
     public PlotMenu(GuiProvider provider, NetworkUser user) {
 
@@ -26,48 +34,70 @@ public class PlotMenu extends NetworkRefreshableGui {
         this.plotSQL = provider.plotSQL();
     }
 
-    protected void createGui() {
+    @Override
+    protected void loadData() {
+        plots = plotSQL.getIntList("SELECT id FROM plot_members WHERE uuid='" + user.player.getUniqueId() + "' ORDER " +
+                "BY last_enter DESC;");
 
-        ArrayList<Integer> plots =
-                plotSQL.getIntList("SELECT id FROM plot_members WHERE uuid='" + user.player.getUniqueId() + "' ORDER " +
-                        "BY last_enter DESC;");
+        // Get the difficulty and ownership for each plot.
+        difficulties.clear();
+        isOwners.clear();
+        if (plots != null && !plots.isEmpty()) {
+            String ids = plots.toString().replace("[", "(").replace("]", ")");
+            List<PlotDifficulty> plotDifficulties = plotSQL.getPlotDifficulties(ids);
+            List<Integer> ownerPlots = plotSQL.getIntList("SELECT id FROM plot_members WHERE uuid='" + user.player.getUniqueId() + "' AND is_owner=1 AND id IN " + ids + ";");
+
+            for (int id : plots) {
+                Optional<PlotDifficulty> plotDifficulty = plotDifficulties.stream().filter(pd -> pd.id() == id).findFirst();
+                difficulties.add(plotDifficulty.map(PlotDifficulty::difficulty).orElse(0));
+                isOwners.add(ownerPlots.contains(id));
+            }
+        }
+
+        // Verified review menu.
+        hasVerifiedReviews = plotSQL.hasRow("SELECT 1 FROM plot_verification WHERE review_id IN (SELECT id FROM plot_review " +
+                "WHERE reviewer='" + user.getUuid() + "');");
+    }
+
+    protected void createGui() {
 
         // Slot count.
         int slot = 10;
 
         // Make a button for each plot.
-        for (int i = 0; i < plots.size(); i++) {
+        if (plots != null) {
+            for (int i = 0; i < plots.size(); i++) {
 
-            int finalI = i;
+                int finalI = i;
 
-            // Change the colour of the material for plot owners/members.
-            // Lime for owners, yellow for members.
-            int difficulty = plotSQL.getInt("SELECT difficulty FROM plot_data WHERE id=" + plots.get(i) + ";");
-            boolean isOwner = plotSQL.hasRow("SELECT uuid FROM plot_members WHERE uuid='" + user.player.getUniqueId() + "' AND id=" + plots.get(i) + " AND is_owner=1;");
-            setItem(slot, Utils.createItem(getPlotIcon(difficulty, isOwner), 1, Utils.title("Plot " + plots.get(i)), Utils.line("Click to open the menu of this plot.")),
-                    (NetworkUser u) -> {
-                        // Delete this gui.
-                        this.delete();
-                        u.mainGui = null;
+                // Change the colour of the material for plot owners/members.
+                // Lime for owners, yellow for members.
+                int difficulty = difficulties.get(i);
+                boolean isOwner = isOwners.get(i);
+                setItem(slot, Utils.createItem(getPlotIcon(difficulty, isOwner), 1, Utils.title("Plot " + plots.get(i)), Utils.line("Click to open the menu of this plot.")),
+                        (NetworkUser u) -> {
+                            // Delete this gui.
+                            this.delete();
+                            u.mainGui = null;
 
-                        // Switch to plot info.
-                        u.mainGui = new PlotInfo(provider, u, plots.get(finalI));
-                        u.mainGui.open(u.player);
-                    });
+                            // Switch to plot info.
+                            u.mainGui = new PlotInfo(provider, u, plots.get(finalI));
+                            u.mainGui.open(u.player);
+                        });
 
-            // Increase slot accordingly.
-            if (slot % 9 == 7) {
-                // Increase row, basically add 3.
-                slot += 3;
-            } else {
-                // Increase value by 1.
-                slot++;
+                // Increase slot accordingly.
+                if (slot % 9 == 7) {
+                    // Increase row, basically add 3.
+                    slot += 3;
+                } else {
+                    // Increase value by 1.
+                    slot++;
+                }
             }
         }
 
         // Verified review menu.
-        if (plotSQL.hasRow("SELECT 1 FROM plot_verification WHERE review_id IN (SELECT review_id FROM plot_review " +
-                "WHERE reviewer='" + user.getUuid() + "');")) {
+        if (hasVerifiedReviews) {
             setItem(4, Utils.createItem(Material.LECTERN, 1,
                             Utils.title("Verified Reviews"),
                             Utils.line("Click to view all verifications"),

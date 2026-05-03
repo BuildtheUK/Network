@@ -1,5 +1,6 @@
 package net.bteuk.network.regions;
 
+import lombok.Getter;
 import lombok.extern.java.Log;
 import net.bteuk.network.api.ChatAPI;
 import net.bteuk.network.api.CoordinateAPI;
@@ -50,12 +51,15 @@ public class RegionManager {
     private final WorldGuardAPI worldGuard;
     private final Constants constants;
     private final Set<RegionUser> users = new HashSet<>();
+    @Getter
+    private final JavaPlugin plugin;
 
     public RegionManager(RegionSQL regionSQL, NetworkAPI networkAPI, CoordinateAPI coordinateAPI, EventAPI eventAPI, WorldGuardAPI worldGuard, Constants constants,
                          JavaPlugin plugin, ServerAPI serverAPI) {
         regions = new HashMap<>();
 
         this.regionSQL = regionSQL;
+        this.plugin = plugin;
         this.globalSQL = networkAPI.getGlobalSQL();
         if (constants.plotSystemEnabled()) {
             this.plotAPI = networkAPI.getPlotAPI();
@@ -427,8 +431,7 @@ public class RegionManager {
     // Accept a request for a specific user.
     public void acceptRequest(Region region, String uuid, RequestType type) {
         switch (type) {
-            case BOTH ->
-            { confirmRequest(region, uuid); }
+            case BOTH -> confirmRequest(region, uuid);
             case STAFF -> {
                 // Updates the DB with staff accept set to 1
                 regionSQL.update("UPDATE region_requests SET staff_accept = 1 WHERE region='" + region.regionName() + "' AND " + "uuid='" + uuid + "'; ");
