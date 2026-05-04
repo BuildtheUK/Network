@@ -10,6 +10,7 @@ import net.bteuk.network.exceptions.RegionManagerNotFoundException;
 import net.bteuk.network.exceptions.RegionNotFoundException;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
@@ -66,6 +67,7 @@ public class WorldguardUtils {
      * @return the {@link ProtectedRegion}
      * @throws RegionManagerNotFoundException if no region manager exists for the world
      */
+    @Nullable
     public static ProtectedRegion getRegionAt(World world, BlockVector3 bv3) throws RegionManagerNotFoundException {
 
         RegionManager regionManager = WorldguardManager.getRegionManager(world);

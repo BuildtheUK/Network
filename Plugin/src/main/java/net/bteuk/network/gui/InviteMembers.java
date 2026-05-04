@@ -102,7 +102,7 @@ public class InviteMembers extends NetworkRefreshableGui {
 
             // Add player to gui.
             setItem(slot, Utils.createPlayerSkull(uuid, 1,
-                    Utils.title("Invite " + globalSQL.getString("SELECT name FROM player_data WHERE uuid='" + uuid + "';") + " to your " + regionType.label + "."),
+                    Utils.title("Invite " + globalSQL.getString("SELECT name FROM player_data WHERE uuid=?;", uuid) + " to your " + regionType.label + "."),
                     Utils.line("They will receive an invitation in chat.")), (NetworkUser u) ->
 
             {
@@ -198,17 +198,17 @@ public class InviteMembers extends NetworkRefreshableGui {
 
             Region region = (Region) o;
 
-            return regionSQL.hasRow("SELECT region FROM region_invites WHERE region='" + region.regionName() + "' AND" + " uuid='" + uuid + "';");
+            return regionSQL.hasRow("SELECT region FROM region_invites WHERE region=? AND uuid=?;", region.regionName(), uuid);
         } else if (regionType == RegionType.PLOT) {
 
             Integer plotID = (Integer) o;
 
-            return plotSQL.hasRow("SELECT id FROM plot_invites WHERE id='" + plotID + "' AND uuid='" + uuid + "';");
+            return plotSQL.hasRow("SELECT id FROM plot_invites WHERE id=? AND uuid=?;", plotID, uuid);
         } else if (regionType == RegionType.ZONE) {
 
             Integer zoneID = (Integer) o;
 
-            return plotSQL.hasRow("SELECT id FROM zone_invites WHERE id='" + zoneID + "' AND uuid='" + uuid + "';");
+            return plotSQL.hasRow("SELECT id FROM zone_invites WHERE id=? AND uuid=?;", zoneID, uuid);
         }
 
         return false;
@@ -220,17 +220,17 @@ public class InviteMembers extends NetworkRefreshableGui {
 
             Region region = (Region) o;
 
-            return regionSQL.hasRow("SELECT uuid FROM region_members WHERE region='" + region.regionName() + "' AND " + "uuid='" + uuid + "';");
+            return regionSQL.hasRow("SELECT uuid FROM region_members WHERE region=? AND uuid=?;", region.regionName(), uuid);
         } else if (regionType == RegionType.PLOT) {
 
             Integer plotID = (Integer) o;
 
-            return plotSQL.hasRow("SELECT uuid FROM plot_members WHERE id=" + plotID + " AND uuid='" + uuid + "';");
+            return plotSQL.hasRow("SELECT uuid FROM plot_members WHERE id=? AND uuid=?;", plotID, uuid);
         } else if (regionType == RegionType.ZONE) {
 
             Integer zoneID = (Integer) o;
 
-            return plotSQL.hasRow("SELECT uuid FROM zone_members WHERE id=" + zoneID + " AND uuid='" + uuid + "';");
+            return plotSQL.hasRow("SELECT uuid FROM zone_members WHERE id=? AND uuid=?;", zoneID, uuid);
         }
 
         return false;
@@ -246,9 +246,9 @@ public class InviteMembers extends NetworkRefreshableGui {
             // Send invite via chat.
             // The invite will be active until they disconnect from the network.
             // They will need to run a command to actually join the plot.
-            regionSQL.update("INSERT INTO region_invites(region,owner,uuid) VALUES('" + region.regionName() + "','" + u.player.getUniqueId() + "','" + uuid + "');");
+            regionSQL.update("INSERT INTO region_invites(region,owner,uuid) VALUES(?,?,?);", region.regionName(), u.player.getUniqueId().toString(), uuid);
 
-            String name = globalSQL.getString("SELECT name FROM player_data WHERE uuid='" + uuid + "'");
+            String name = globalSQL.getString("SELECT name FROM player_data WHERE uuid=?;", uuid);
             provider.instance().getOnlineUserByUuid(uuid).ifPresentOrElse(onlineUser -> {
                 provider.eventAPI().createEvent(uuid, onlineUser.getServer(), "invite region " + region.regionName());
                 u.player.sendMessage(ChatUtils.success("Invited %s to region %s", name, provider.regionManager().getTag(region, u.player.getUniqueId().toString())));
@@ -260,9 +260,9 @@ public class InviteMembers extends NetworkRefreshableGui {
             // Send invite via chat.
             // The invite will be active until they disconnect from the network.
             // They will need to run a command to actually join the plot.
-            plotSQL.update("INSERT INTO plot_invites(id,owner,uuid) VALUES(" + plotID + ",'" + u.player.getUniqueId() + "','" + uuid + "');");
+            plotSQL.update("INSERT INTO plot_invites(id,owner,uuid) VALUES(?,?,?);", plotID, u.player.getUniqueId().toString(), uuid);
 
-            String name = globalSQL.getString("SELECT name FROM player_data WHERE uuid='" + uuid + "'");
+            String name = globalSQL.getString("SELECT name FROM player_data WHERE uuid=?;", uuid);
             provider.instance().getOnlineUserByUuid(uuid).ifPresentOrElse(onlineUser -> {
                 provider.eventAPI().createEvent(uuid, onlineUser.getServer(), "invite plot " + plotID);
                 u.player.sendMessage(ChatUtils.success("Invited %s to your Plot.", name));
@@ -274,9 +274,9 @@ public class InviteMembers extends NetworkRefreshableGui {
             // Send invite via chat.
             // The invite will be active until they disconnect from the network.
             // They will need to run a command to actually join the plot.
-            plotSQL.update("INSERT INTO zone_invites(id,owner,uuid) VALUES(" + zoneID + ",'" + u.player.getUniqueId() + "','" + uuid + "');");
+            plotSQL.update("INSERT INTO zone_invites(id,owner,uuid) VALUES(?,?,?);", zoneID, u.player.getUniqueId().toString(), uuid);
 
-            String name = globalSQL.getString("SELECT name FROM player_data WHERE uuid='" + uuid + "'");
+            String name = globalSQL.getString("SELECT name FROM player_data WHERE uuid=?;", uuid);
             provider.instance().getOnlineUserByUuid(uuid).ifPresentOrElse(onlineUser -> {
                 provider.eventAPI().createEvent(uuid, onlineUser.getServer(), "invite zone " + zoneID);
                 u.player.sendMessage(ChatUtils.success("Invited %s to zone your Zone.", name));

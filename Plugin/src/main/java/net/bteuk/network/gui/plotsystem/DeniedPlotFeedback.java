@@ -34,10 +34,10 @@ public class DeniedPlotFeedback extends NetworkRefreshableGui {
     protected void createGui() {
 
         // Get the plot owner uuid.
-        String uuid = plotSQL.getString("SELECT uuid FROM plot_members WHERE id=" + plotID + " AND is_owner=1;");
+        String uuid = plotSQL.getString("SELECT uuid FROM plot_members WHERE id=? AND is_owner=1;", plotID);
 
         // Get the number of times the plot was denied for the current plot owner.
-        int deniedCount = plotSQL.getInt("SELECT COUNT(attempt) FROM plot_review WHERE plot_id=" + plotID + " AND " + "uuid='" + uuid + "' AND accepted=0 AND completed=1;");
+        int deniedCount = plotSQL.getInt("SELECT COUNT(attempt) FROM plot_review WHERE plot_id=? AND uuid=? AND accepted=0 AND completed=1;", plotID, uuid);
 
         // Slot count.
         int slot = 10;
@@ -56,8 +56,8 @@ public class DeniedPlotFeedback extends NetworkRefreshableGui {
             // Add player to gui.
             int finalI = i;
             setItem(slot, Utils.createItem(Material.WRITTEN_BOOK, 1, Utils.title("Feedback for submission " + i), Utils.line("Click to view feedback for this submission."),
-                            Utils.line("Reviewed by ").append(Component.text(globalSQL.getString("SELECT name FROM player_data WHERE " + "uuid='" + plotSQL.getString(
-                                    "SELECT reviewer FROM plot_review WHERE plot_id=" + plotID + " " + "AND uuid='" + uuid + "' AND attempt=" + i + ";") + "';"),
+                            Utils.line("Reviewed by ").append(Component.text(globalSQL.getString("SELECT name FROM player_data WHERE uuid=?;", plotSQL.getString(
+                                    "SELECT reviewer FROM plot_review WHERE plot_id=? AND uuid=? AND attempt=?;", plotID, uuid, i)),
                                     NamedTextColor.GRAY))),
 
                     (NetworkUser u) -> {
@@ -66,7 +66,7 @@ public class DeniedPlotFeedback extends NetworkRefreshableGui {
                         u.player.closeInventory();
 
                         // Create the feedback book.
-                        int reviewId = plotSQL.getInt("SELECT id FROM plot_review WHERE plot_id=" + plotID + " AND " + "uuid='" + uuid + "' AND attempt=" + finalI + ";");
+                        int reviewId = plotSQL.getInt("SELECT id FROM plot_review WHERE plot_id=? AND uuid=? AND attempt=?;", plotID, uuid, finalI);
 
                         // Open the book.
                         u.player.openBook(ReviewFeedback.createFeedbackBook(globalSQL, plotAPI, reviewId));

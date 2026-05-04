@@ -41,12 +41,12 @@ public class ReviewRegionRequest extends NetworkRefreshableGui {
     protected void createGui() {
 
         setItem(4, Utils.createItem(Material.BOOK, 1, Utils.title("Region " + request.region), Utils.line("Requested by ")
-                .append(Component.text(provider.globalSQL().getString("SELECT name FROM " + "player_data WHERE uuid='" + request.uuid + "';"), NamedTextColor.GRAY))));
+                .append(Component.text(provider.globalSQL().getString("SELECT name FROM player_data WHERE uuid=?;", request.uuid), NamedTextColor.GRAY))));
 
         setItem(11, Utils.createItem(Material.LIME_CONCRETE, 1, Utils.title("Accept Request"), Utils.line("The user will be able to build in this region.")), (NetworkUser u) -> {
 
             // Create event to accept request.
-            provider.eventAPI().createEvent(u.player.getUniqueId().toString(), provider.globalSQL().getString("SELECT name FROM server_data WHERE " + "type='EARTH';"),
+            provider.eventAPI().createEvent(u.player.getUniqueId().toString(), provider.globalSQL().getString("SELECT name FROM server_data WHERE type=?;", "EARTH"),
                     "region request accept " + request.region + " " + request.uuid +" " + requestType.name().toLowerCase());
 
             // Return to the request menu.
@@ -78,7 +78,7 @@ public class ReviewRegionRequest extends NetworkRefreshableGui {
         {
 
             // Create event to deny request.
-            provider.eventAPI().createEvent(u.player.getUniqueId().toString(), provider.globalSQL().getString("SELECT name FROM server_data WHERE " + "type='EARTH';"),
+            provider.eventAPI().createEvent(u.player.getUniqueId().toString(), provider.globalSQL().getString("SELECT name FROM server_data WHERE type=?;", "EARTH"),
                     "region request deny " + request.region + " " + request.uuid);
 
             // Return to the request menu.
@@ -114,10 +114,10 @@ public class ReviewRegionRequest extends NetworkRefreshableGui {
 
                     // Get coordinate.
                     Location l = globalSQL.getLocation(
-                            regionSQL.getInt("SELECT coordinate_id FROM region_requests " + "WHERE region='" + request.region + "' AND uuid='" + request.uuid + "';"));
+                            regionSQL.getInt("SELECT coordinate_id FROM region_requests WHERE region=? AND uuid=?;", request.region, request.uuid));
 
                     // If the player is on the earth server get the coordinate.
-                    if (provider.constants().serverName().equals(globalSQL.getString("SELECT name FROM server_data WHERE type='EARTH';"))) {
+                    if (provider.constants().serverName().equals(globalSQL.getString("SELECT name FROM server_data WHERE type=?;", "EARTH"))) {
 
                         // Close inventory.
                         u.player.closeInventory();
@@ -136,7 +136,7 @@ public class ReviewRegionRequest extends NetworkRefreshableGui {
                                 LocationAdapter.adapt(u.player.getLocation()));
 
                         // Switch server.
-                        provider.serverAPI().switchServer(PlayerAdapter.adapt(u.player), globalSQL.getString("SELECT name FROM server_data WHERE " + "type='EARTH'"));
+                        provider.serverAPI().switchServer(PlayerAdapter.adapt(u.player), globalSQL.getString("SELECT name FROM server_data WHERE type=?;", "EARTH"));
                     }
                 });
 

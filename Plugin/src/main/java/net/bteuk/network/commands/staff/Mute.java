@@ -45,14 +45,14 @@ public class Mute extends AbstractCommand {
 
         // Check player.
         // If uuid exists for name.
-        if (!globalSQL.hasRow("SELECT uuid FROM player_data WHERE name='" + args[0] + "';")) {
+        if (!globalSQL.hasRow("SELECT uuid FROM player_data WHERE name=?;", args[0])) {
             sender.sendMessage(Component.text(args[0], NamedTextColor.DARK_RED)
                     .append(ChatUtils.error(" is not a valid player.")));
             return;
         }
 
-        String uuid = globalSQL.getString("SELECT uuid FROM player_data WHERE name='" + args[0] + "';");
-        String name = globalSQL.getString("SELECT name FROM player_data WHERE name='" + args[0] + "';");
+        String uuid = globalSQL.getString("SELECT uuid FROM player_data WHERE name=?;", args[0]);
+        String name = globalSQL.getString("SELECT name FROM player_data WHERE name=?;", args[0]);
 
         // Get the duration of the ban.
         long time;

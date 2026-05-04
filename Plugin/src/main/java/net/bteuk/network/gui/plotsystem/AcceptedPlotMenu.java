@@ -66,15 +66,15 @@ public class AcceptedPlotMenu extends NetworkRefreshableGui {
         // Fetch accepted plots.
         Map<Integer, String> plots;
         if (StringUtils.isEmpty(filter)) {
-            plots = plotSQL.getIntStringMap("SELECT plot_id,uuid FROM plot_review WHERE accepted=1 AND completed=1 " + "ORDER BY review_time DESC;");
+            plots = plotSQL.getIntStringMap("SELECT plot_id,uuid FROM plot_review WHERE accepted=1 AND completed=1 ORDER BY review_time DESC;");
         } else {
-            plots = plotSQL.getIntStringMap("SELECT plot_id,uuid FROM plot_review WHERE accepted=1 AND completed=1 " + "AND uuid='" + filter + "' ORDER BY review_time DESC;");
+            plots = plotSQL.getIntStringMap("SELECT plot_id,uuid FROM plot_review WHERE accepted=1 AND completed=1 AND uuid=? ORDER BY review_time DESC;", filter);
         }
 
         // Set the filter.
         // Open the filter menu.
         setItem(4, Utils.createItem(Material.SPRUCE_SIGN, 1, Utils.title("Set filter"), Utils.line("The current filter is set to: ")
-                .append(Component.text(StringUtils.isEmpty(filter) ? "All Players" : globalSQL.getString("SELECT name FROM " + "player_data WHERE uuid='" + filter + "';"),
+                .append(Component.text(StringUtils.isEmpty(filter) ? "All Players" : globalSQL.getString("SELECT name FROM player_data WHERE uuid=?;", filter),
                         NamedTextColor.GRAY)), Utils.line("Click to select a different filter.")), (NetworkUser u) -> filterMenu.open(u.player));
 
         // Slot count.
@@ -163,7 +163,7 @@ public class AcceptedPlotMenu extends NetworkRefreshableGui {
 
     private void createPlayerHeadGuiItem(PlayerProfile profile, int plotID, String uuid, int slot) {
         ItemStack guiItem = Utils.createPlayerSkull(profile, 1, Utils.title("Plot " + plotID),
-                Utils.line("Completed by: ").append(Component.text(globalSQL.getString("SELECT name FROM player_data " + "WHERE uuid='" + uuid + "';"), NamedTextColor.GRAY)),
+                Utils.line("Completed by: ").append(Component.text(globalSQL.getString("SELECT name FROM player_data WHERE uuid=?;", uuid), NamedTextColor.GRAY)),
                 Utils.line("Click to open the menu of this plot."));
 
         setItem(slot, guiItem, (NetworkUser u) -> {

@@ -5,11 +5,27 @@ import java.util.Map;
 
 public interface SQLAPI {
 
+    boolean hasRow(String sql, Object... args);
+
     boolean hasRow(String sql);
+
+    boolean getBoolean(String sql, Object... args);
+
+    boolean getBoolean(String sql);
 
     int getInt(String sql, Object... args);
 
     int getInt(String sql);
+
+    double getDouble(String sql, Object... args);
+
+    double getDouble(String sql);
+
+    float getFloat(String sql, Object... args);
+
+    float getFloat(String sql);
+
+    long getLong(String sql, Object... args);
 
     long getLong(String sql);
 
@@ -25,7 +41,11 @@ public interface SQLAPI {
 
     Map<Integer, String> getIntStringMap(String sql);
 
+    List<String> getStringList(String sql, Object... args);
+
     List<String> getStringList(String sql);
+
+    List<Integer> getIntList(String sql, Object... args);
 
     List<Integer> getIntList(String sql);
 

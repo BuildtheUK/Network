@@ -56,13 +56,13 @@ public class Home extends AbstractCommand {
         if (args.length == 0) {
 
             // If a default home is set, teleport to it.
-            if (!globalSQL.hasRow("SELECT uuid FROM home WHERE uuid='" + player.getUniqueId() + "' AND name IS NULL;")) {
+            if (!globalSQL.hasRow("SELECT uuid FROM home WHERE uuid=? AND name IS NULL;", player.getUniqueId().toString())) {
                 player.sendMessage(ChatUtils.error("You do not have a default home set, you can set it typing ").append(Component.text("/sethome", NamedTextColor.DARK_RED)));
                 return;
             }
 
             // Get coordinate ID.
-            coordinateId = globalSQL.getInt("SELECT coordinate_id FROM home WHERE uuid='" + player.getUniqueId() + "' AND name IS NULL;");
+            coordinateId = globalSQL.getInt("SELECT coordinate_id FROM home WHERE uuid=? AND name IS NULL;", player.getUniqueId().toString());
             message = "&aTeleported to your default home.";
         } else {
 
@@ -77,18 +77,18 @@ public class Home extends AbstractCommand {
             String name = String.join(" ", Arrays.copyOfRange(args, 0, args.length));
 
             // Check if home with this name exists.
-            if (!globalSQL.hasRow("SELECT uuid FROM home WHERE uuid='" + player.getUniqueId() + "' AND name='" + name + "';")) {
+            if (!globalSQL.hasRow("SELECT uuid FROM home WHERE uuid=? AND name=?;", player.getUniqueId().toString(), name)) {
                 player.sendMessage(ChatUtils.error("You do not have a home with the name ").append(Component.text(name, NamedTextColor.DARK_RED)));
                 return;
             }
 
             // Get coordinate ID.
-            coordinateId = globalSQL.getInt("SELECT coordinate_id FROM home WHERE uuid='" + player.getUniqueId() + "' AND name='" + name + "';");
+            coordinateId = globalSQL.getInt("SELECT coordinate_id FROM home WHERE uuid=? AND name=?;", player.getUniqueId().toString(), name);
             message = "&aTeleported to your home &3" + name + "&a.";
         }
 
         // Get server.
-        String server = globalSQL.getString("SELECT server FROM coordinates WHERE id=" + coordinateId + ";");
+        String server = globalSQL.getString("SELECT server FROM coordinates WHERE id=?;", coordinateId);
 
         // Check if server is current.
         if (Objects.equals(constants.serverName(), server)) {

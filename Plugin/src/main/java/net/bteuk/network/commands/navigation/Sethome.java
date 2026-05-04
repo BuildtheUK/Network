@@ -37,7 +37,7 @@ public class Sethome extends AbstractCommand {
         if (args.length == 0) {
 
             // If already has a default home set, the player first has to delete it.
-            if (globalSQL.hasRow("SELECT uuid FROM home WHERE uuid='" + player.getUniqueId() + "' AND name IS NULL;")) {
+            if (globalSQL.hasRow("SELECT uuid FROM home WHERE uuid=? AND name IS NULL;", player.getUniqueId().toString())) {
                 player.sendMessage(ChatUtils.error("You already have a default home set, to delete it type ")
                         .append(Component.text("/delhome", NamedTextColor.DARK_RED)));
                 return;
@@ -47,8 +47,7 @@ public class Sethome extends AbstractCommand {
             int coordinate_id = getCoordinateID(player.getLocation());
 
             globalSQL.update(
-                    "INSERT INTO home(coordinate_id,uuid) VALUES(" + coordinate_id + ",'" + player.getUniqueId() +
-                            "');");
+                    "INSERT INTO home(coordinate_id,uuid) VALUES(?,?);", coordinate_id, player.getUniqueId().toString());
 
             player.sendMessage(ChatUtils.success("Default home set to current location, to teleport here type ")
                     .append(Component.text("/home", NamedTextColor.DARK_AQUA)));
@@ -72,7 +71,7 @@ public class Sethome extends AbstractCommand {
             }
 
             if (globalSQL.hasRow(
-                    "SELECT uuid FROM home WHERE uuid='" + player.getUniqueId() + "' AND name='" + name + "';")) {
+                    "SELECT uuid FROM home WHERE uuid=? AND name=?;", player.getUniqueId().toString(), name)) {
                 player.sendMessage(ChatUtils.error("You already have a home set with the name ")
                         .append(Component.text(name, NamedTextColor.DARK_RED))
                         .append(ChatUtils.error(", you can delete it by typing "))
@@ -84,7 +83,7 @@ public class Sethome extends AbstractCommand {
             int coordinate_id = getCoordinateID(player.getLocation());
 
             globalSQL.update(
-                    "INSERT INTO home(coordinate_id,uuid,name) VALUES(" + coordinate_id + ",'" + player.getUniqueId() + "','" + name + "');");
+                    "INSERT INTO home(coordinate_id,uuid,name) VALUES(?,?,?);", coordinate_id, player.getUniqueId().toString(), name);
 
             player.sendMessage(ChatUtils.success("Home set to current location, to teleport here type ")
                     .append(Component.text("/home " + name, NamedTextColor.DARK_AQUA)));

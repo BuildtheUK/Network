@@ -172,7 +172,7 @@ public class AddLocation extends NetworkRefreshableGui {
 
                 // If location is on this server teleport the player, else switch server.
                 // Teleport to location.
-                String server = globalSQL.getString("SELECT server FROM coordinates WHERE id=" + coordinate_id + ";");
+                String server = globalSQL.getString("SELECT server FROM coordinates WHERE id=?;", coordinate_id);
                 if (constants.serverName().equalsIgnoreCase(server)) {
                     // Get location from coordinate id.
                     Location l = globalSQL.getLocation(coordinate_id);
@@ -236,12 +236,12 @@ public class AddLocation extends NetworkRefreshableGui {
                             u.player.closeInventory();
 
                             // Name isn't duplicate (location or subcategory.
-                        } else if (globalSQL.hasRow("SELECT location FROM location_data WHERE location='" + name + "';") || globalSQL.hasRow(
-                                "SELECT name FROM location_subcategory WHERE name='" + name + "';")) {
+                        } else if (globalSQL.hasRow("SELECT location FROM location_data WHERE location=?;", name) || globalSQL.hasRow(
+                                "SELECT name FROM location_subcategory WHERE name=?;", name)) {
 
                             u.player.sendMessage(ChatUtils.error("A location or subcategory with this name already " + "exists."));
                             u.player.closeInventory();
-                        } else if (globalSQL.hasRow("SELECT location FROM location_requests WHERE location = '" + name + "';")) {
+                        } else if (globalSQL.hasRow("SELECT location FROM location_requests WHERE location=?;", name)) {
 
                             u.player.sendMessage(ChatUtils.error("A location with this name has already been " + "requested."));
                             u.player.closeInventory();
@@ -255,12 +255,12 @@ public class AddLocation extends NetworkRefreshableGui {
                                 String worldName = u.player.getLocation().getWorld().getName();
 
                                 // If location exists.
-                                if (provider.plotSQL().hasRow("SELECT name FROM location_data WHERE " + "name='" + worldName + "';")) {
+                                if (provider.plotSQL().hasRow("SELECT name FROM location_data WHERE name=?;", worldName)) {
 
                                     // Add coordinate transformation.
                                     l = new Location(l.getWorld(),
-                                            l.getX() - provider.plotSQL().getInt("SELECT xTransform " + "FROM location_data WHERE name='" + worldName + "';"), l.getY(),
-                                            l.getZ() - provider.plotSQL().getInt("SELECT zTransform " + "FROM location_data WHERE name='" + worldName + "';"), l.getYaw(),
+                                            l.getX() - provider.plotSQL().getInt("SELECT xTransform FROM location_data WHERE name=?;", worldName), l.getY(),
+                                            l.getZ() - provider.plotSQL().getInt("SELECT zTransform FROM location_data WHERE name=?;", worldName), l.getYaw(),
                                             l.getPitch());
                                 }
                             }
@@ -318,7 +318,7 @@ public class AddLocation extends NetworkRefreshableGui {
             setItem(5, Utils.createItem(Material.RED_CONCRETE, 1, Utils.title("Deny Location Request"), Utils.line("Location request will be denied.")), (NetworkUser u) -> {
 
                 // Delete request.
-                globalSQL.update("DELETE FROM location_requests WHERE location='" + name + "';");
+                globalSQL.update("DELETE FROM location_requests WHERE location=?;", name);
 
                 // Notify player.
                 u.player.sendMessage(ChatUtils.error("Denied location request ").append(Component.text(name, NamedTextColor.DARK_RED)));
@@ -368,17 +368,17 @@ public class AddLocation extends NetworkRefreshableGui {
         // If the subcategory has been set, find the subcategory id.
         int subcategory_id = 0;
         if (!subcategory.equals("None")) {
-            subcategory_id = globalSQL.getInt("SELECT id FROM location_subcategory WHERE name='" + subcategory + "';");
+            subcategory_id = globalSQL.getInt("SELECT id FROM location_subcategory WHERE name=?;", subcategory);
             if (subcategory_id == 0) {
                 u.player.sendMessage(ChatUtils.error("The subcategory no longer exists, adding location without " + "subcategory."));
             }
         }
 
         if (subcategory_id == 0) {
-            globalSQL.update("INSERT INTO location_data(location,category,coordinate) " + "VALUES('" + name + "','" + category + "'," + coordinate_id + ");");
+            globalSQL.update("INSERT INTO location_data(location,category,coordinate) VALUES(?,?,?);", name, category.toString(), coordinate_id);
         } else {
             globalSQL.update(
-                    "INSERT INTO location_data(location,category,subcategory,coordinate) " + "VALUES('" + name + "'," + "'" + category + "'," + subcategory_id + "," + coordinate_id + ");");
+                    "INSERT INTO location_data(location,category,subcategory,coordinate) VALUES(?,?,?,?);", name, category.toString(), subcategory_id, coordinate_id);
         }
 
         u.player.sendMessage(ChatUtils.success("Location ").append(Component.text(name, NamedTextColor.DARK_AQUA)).append(ChatUtils.success(" added to exploration menu.")));
@@ -396,17 +396,17 @@ public class AddLocation extends NetworkRefreshableGui {
         // If the subcategory has been set, find the subcategory id.
         int subcategory_id = 0;
         if (!subcategory.equals("None")) {
-            subcategory_id = globalSQL.getInt("SELECT id FROM location_subcategory WHERE name='" + subcategory + "';");
+            subcategory_id = globalSQL.getInt("SELECT id FROM location_subcategory WHERE name=?;", subcategory);
             if (subcategory_id == 0) {
                 u.player.sendMessage(ChatUtils.error("The subcategory no longer exists, adding location without " + "subcategory."));
             }
         }
 
         if (subcategory_id == 0) {
-            globalSQL.update("UPDATE location_data SET location='" + name + "',category='" + category + "' WHERE " + "location='" + old_name + "';");
+            globalSQL.update("UPDATE location_data SET location=?,category=? WHERE location=?;", name, category.toString(), old_name);
         } else {
             globalSQL.update(
-                    "UPDATE location_data SET location='" + name + "',category='" + category + "'," + "subcategory=" + subcategory_id + " WHERE location='" + old_name + "';");
+                    "UPDATE location_data SET location=?,category=?,subcategory=? WHERE location=?;", name, category.toString(), subcategory_id, old_name);
         }
 
         u.player.sendMessage(ChatUtils.success("Updated location ").append(Component.text(name, NamedTextColor.DARK_AQUA)));
@@ -421,12 +421,12 @@ public class AddLocation extends NetworkRefreshableGui {
     public void acceptRequest(NetworkUser u) {
 
         // Delete request.
-        globalSQL.update("DELETE FROM location_requests WHERE location='" + old_name + "';");
+        globalSQL.update("DELETE FROM location_requests WHERE location=?;", old_name);
 
         // If the subcategory has been set, find the subcategory id.
         int subcategory_id = 0;
         if (!subcategory.equals("None")) {
-            subcategory_id = globalSQL.getInt("SELECT id FROM location_subcategory WHERE name='" + subcategory + "';");
+            subcategory_id = globalSQL.getInt("SELECT id FROM location_subcategory WHERE name=?;", subcategory);
             if (subcategory_id == 0) {
                 u.player.sendMessage(ChatUtils.error("The subcategory no longer exists, adding location without " + "subcategory."));
             }
@@ -434,10 +434,10 @@ public class AddLocation extends NetworkRefreshableGui {
 
         // Add location.
         if (subcategory_id == 0) {
-            globalSQL.update("INSERT INTO location_data(location,category,coordinate) " + "VALUES('" + name + "','" + category + "'," + coordinate_id + ");");
+            globalSQL.update("INSERT INTO location_data(location,category,coordinate) VALUES(?,?,?);", name, category.toString(), coordinate_id);
         } else {
             globalSQL.update(
-                    "INSERT INTO location_data(location,category,subcategory,coordinate) " + "VALUES('" + name + "'," + "'" + category + "'," + subcategory_id + "," + coordinate_id + ");");
+                    "INSERT INTO location_data(location,category,subcategory,coordinate) VALUES(?,?,?,?);", name, category.toString(), subcategory_id, coordinate_id);
         }
 
         // Notify player.
@@ -449,17 +449,17 @@ public class AddLocation extends NetworkRefreshableGui {
         // If the subcategory has been set, find the subcategory id.
         int subcategory_id = 0;
         if (!subcategory.equals("None")) {
-            subcategory_id = globalSQL.getInt("SELECT id FROM location_subcategory WHERE name='" + subcategory + "';");
+            subcategory_id = globalSQL.getInt("SELECT id FROM location_subcategory WHERE name=?;", subcategory);
             if (subcategory_id == 0) {
                 u.player.sendMessage(ChatUtils.error("The subcategory no longer exists, adding location without " + "subcategory."));
             }
         }
 
         if (subcategory_id == 0) {
-            globalSQL.update("INSERT INTO location_requests(location,category,coordinate) " + "VALUES('" + name + "'," + "'" + category + "'," + coordinate_id + ");");
+            globalSQL.update("INSERT INTO location_requests(location,category,coordinate) VALUES(?,?,?);", name, category.toString(), coordinate_id);
         } else {
             globalSQL.update(
-                    "INSERT INTO location_requests(location,category,subcategory,coordinate) " + "VALUES('" + name + "','" + category + "'," + subcategory_id + "," + coordinate_id + ");");
+                    "INSERT INTO location_requests(location,category,subcategory,coordinate) VALUES(?,?,?,?);", name, category.toString(), subcategory_id, coordinate_id);
         }
 
         // Notify reviewers.

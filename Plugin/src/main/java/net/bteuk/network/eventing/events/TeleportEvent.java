@@ -80,9 +80,9 @@ public class TeleportEvent implements Event {
 
                     p.teleport(player.getLocation());
                     p.sendMessage(ChatUtils.success("Teleported to ")
-                            .append(Component.text(globalSQL.getString("SELECT name FROM player_data WHERE uuid='" + event[2] + "';"), NamedTextColor.DARK_AQUA)));
+                            .append(Component.text(globalSQL.getString("SELECT name FROM player_data WHERE uuid=?;", event[2]), NamedTextColor.DARK_AQUA)));
                 } else {
-                    p.sendMessage(Component.text(globalSQL.getString("SELECT name FROM player_data WHERE uuid='" + event[2] + "';"), NamedTextColor.DARK_RED)
+                    p.sendMessage(Component.text(globalSQL.getString("SELECT name FROM player_data WHERE uuid=?;", event[2]), NamedTextColor.DARK_RED)
                             .append(ChatUtils.error(" is not online.")));
                 }
             }
@@ -107,14 +107,14 @@ public class TeleportEvent implements Event {
                 // Get the coordinate id.
                 int coordinate_id;
                 if (event[1].equals("location")) {
-                    coordinate_id = globalSQL.getInt("SELECT coordinate FROM location_data" + " WHERE location='" + location + "';");
+                    coordinate_id = globalSQL.getInt("SELECT coordinate FROM location_data WHERE location=?;", location);
                 } else {
-                    coordinate_id = globalSQL.getInt("SELECT coordinate FROM " + "location_requests WHERE location='" + location + "';");
+                    coordinate_id = globalSQL.getInt("SELECT coordinate FROM location_requests WHERE location=?;", location);
                 }
 
                 Location l = globalSQL.getLocation(coordinate_id);
 
-                String worldName = globalSQL.getString("SELECT world FROM coordinates " + "WHERE id=" + coordinate_id + ";");
+                String worldName = globalSQL.getString("SELECT world FROM coordinates WHERE id=?;", coordinate_id);
 
                 // Check if world is in plotsystem.
                 if (plotAPI.hasLocation(worldName)) {

@@ -28,7 +28,7 @@ public class SelectSubcategory extends NetworkRefreshableGui {
 
         // Iterate through the subcategories, starting with 'None'.
         List<String> subcategories = provider.globalSQL()
-                .getStringList("SELECT name FROM " + "location_subcategory WHERE category='" + addLocation.getCategory() + "' ORDER BY name ASC;");
+                .getStringList("SELECT name FROM location_subcategory WHERE category=? ORDER BY name ASC;", addLocation.getCategory().toString());
         subcategories.addFirst("None");
 
         // If page > 1 set the number of iterations that must be skipped.

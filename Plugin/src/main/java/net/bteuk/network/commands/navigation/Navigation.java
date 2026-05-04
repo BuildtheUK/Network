@@ -113,7 +113,7 @@ public class Navigation extends AbstractCommand {
 
         // Check if the location exists.
         if (!globalSQL
-                .hasRow("SELECT location FROM location_data WHERE location='" + location + "';")) {
+                .hasRow("SELECT location FROM location_data WHERE location=?;", location)) {
             u.sendMessage(ChatUtils.error("The location ")
                     .append(Component.text(location, NamedTextColor.DARK_RED))
                     .append(ChatUtils.error(" does not exist.")));
@@ -122,7 +122,7 @@ public class Navigation extends AbstractCommand {
 
         // Check if there is a marker on the map.
         if (globalSQL
-                .hasRow("SELECT location FROM location_marker WHERE location='" + location + "';")) {
+                .hasRow("SELECT location FROM location_marker WHERE location=?;", location)) {
             u.sendMessage(ChatUtils.error("The location %s has a marker on the map, this must be removed first using " +
                             "%s",
                     location, String.format("/map remove %s", location)));
@@ -136,17 +136,13 @@ public class Navigation extends AbstractCommand {
         }
 
         // Get details from the location.
-        Category category = Category.valueOf(globalSQL.getString("SELECT category FROM " +
-                "location_data WHERE location='" + location + "';"));
-        int subcategory_id = globalSQL.getInt("SELECT subcategory FROM location_data WHERE" +
-                " location='" + location + "';");
+        Category category = Category.valueOf(globalSQL.getString("SELECT category FROM location_data WHERE location=?;", location));
+        int subcategory_id = globalSQL.getInt("SELECT subcategory FROM location_data WHERE location=?;", location);
         String subcategory = null;
         if (subcategory_id != 0) {
-            subcategory = globalSQL.getString("SELECT name FROM location_subcategory WHERE" +
-                    " id=" + subcategory_id + ";");
+            subcategory = globalSQL.getString("SELECT name FROM location_subcategory WHERE id=?;", subcategory_id);
         }
-        int coordinate_id = globalSQL.getInt("SELECT coordinate FROM location_data WHERE " +
-                "location='" + location + "';");
+        int coordinate_id = globalSQL.getInt("SELECT coordinate FROM location_data WHERE location=?;", location);
         u.staffGui = new AddLocation(provider, AddLocationType.UPDATE, location, coordinate_id, category, subcategory);
         u.staffGui.open(u.player);
     }
@@ -167,7 +163,7 @@ public class Navigation extends AbstractCommand {
 
         // Check if the location exists.
         if (!globalSQL
-                .hasRow("SELECT location FROM location_data WHERE location='" + location + "';")) {
+                .hasRow("SELECT location FROM location_data WHERE location=?;", location)) {
             u.sendMessage(ChatUtils.error("The location ")
                     .append(Component.text(location, NamedTextColor.DARK_RED))
                     .append(ChatUtils.error(" does not exist.")));
@@ -176,7 +172,7 @@ public class Navigation extends AbstractCommand {
 
         // Check if there is a marker on the map.
         if (globalSQL
-                .hasRow("SELECT location FROM location_marker WHERE location='" + location + "';")) {
+                .hasRow("SELECT location FROM location_marker WHERE location=?;", location)) {
             u.sendMessage(ChatUtils.error("The location %s has a marker on the map, this must be removed first using " +
                             "%s",
                     location, String.format("/map remove %s", location)));
@@ -184,7 +180,7 @@ public class Navigation extends AbstractCommand {
         }
 
         // Delete location.
-        globalSQL.update("DELETE FROM location_data WHERE location='" + location + "';");
+        globalSQL.update("DELETE FROM location_data WHERE location=?;", location);
         u.sendMessage(ChatUtils.success("Location ")
                 .append(Component.text(location, NamedTextColor.DARK_AQUA))
                 .append(ChatUtils.success(" removed.")));
@@ -198,20 +194,17 @@ public class Navigation extends AbstractCommand {
 
                 // Check if the location exists.
                 if (globalSQL
-                        .hasRow("SELECT location FROM location_data WHERE location='" + location + "';")) {
+                        .hasRow("SELECT location FROM location_data WHERE location=?;", location)) {
                     // Change suggested status of location.
-                    if (globalSQL.hasRow("SELECT location FROM location_data WHERE " +
-                            "location='" + location + "' AND suggested=1;")) {
+                    if (globalSQL.hasRow("SELECT location FROM location_data WHERE location=? AND suggested=1;", location)) {
                         // Location is already suggested, remove that.
-                        globalSQL.update("UPDATE location_data SET suggested=0 WHERE " +
-                                "location='" + location + "';");
+                        globalSQL.update("UPDATE location_data SET suggested=0 WHERE location=?;", location);
                         u.sendMessage(ChatUtils.success("The location ")
                                 .append(Component.text(location, NamedTextColor.DARK_AQUA))
                                 .append(ChatUtils.success(" will no longer be suggested.")));
                     } else {
                         // Set location as suggested.
-                        globalSQL.update("UPDATE location_data SET suggested=1 WHERE " +
-                                "location='" + location + "';");
+                        globalSQL.update("UPDATE location_data SET suggested=1 WHERE location=?;", location);
                         u.sendMessage(ChatUtils.success("The location ")
                                 .append(Component.text(location, NamedTextColor.DARK_AQUA))
                                 .append(ChatUtils.success(" will now be suggested.")));

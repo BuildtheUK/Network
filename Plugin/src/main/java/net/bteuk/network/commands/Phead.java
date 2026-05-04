@@ -45,11 +45,11 @@ public class Phead extends AbstractCommand {
         }
 
         // Check if player exists in the database.
-        if (globalSQL.hasRow("SELECT uuid FROM player_data WHERE name='" + args[0] + "';")) {
+        if (globalSQL.hasRow("SELECT uuid FROM player_data WHERE name=?;", args[0])) {
 
             // Get uuid.
-            String uuid = globalSQL.getString("SELECT uuid FROM player_data WHERE name='" + args[0] + "';");
-            String name = globalSQL.getString("SELECT name FROM player_data WHERE name='" + args[0] + "';");
+            String uuid = globalSQL.getString("SELECT uuid FROM player_data WHERE name=?;", args[0]);
+            String name = globalSQL.getString("SELECT name FROM player_data WHERE name=?;", args[0]);
 
             // Give item to player.
             Utils.giveItem(instance, player, Utils.createPlayerSkull(uuid, 1, Component.text(name + "'s head", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false)),

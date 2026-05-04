@@ -15,17 +15,15 @@ public class PreviousLocationTracker {
     public void setPreviousCoordinate(String uuid, NetworkLocation location) {
 
         // Set previous location for /back.
-        if (globalSQL.getInt("SELECT previous_coordinate FROM player_data WHERE uuid='" + uuid + "';") == 0) {
+        int coordinateID = globalSQL.getInt("SELECT previous_coordinate FROM player_data WHERE uuid=?;", uuid);
+        if (coordinateID == 0) {
 
             // No coordinate exists, create new.
-            int coordinateID = globalSQL.addCoordinate(location);
+            coordinateID = globalSQL.addCoordinate(location);
 
             // Set coordinate id in player data.
-            globalSQL.update("UPDATE player_data SET previous_coordinate=" + coordinateID + " WHERE uuid='" + uuid + "';");
+            globalSQL.update("UPDATE player_data SET previous_coordinate=? WHERE uuid=?;", coordinateID, uuid);
         } else {
-
-            // Get coordinate id.
-            int coordinateID = globalSQL.getInt("SELECT previous_coordinate FROM player_data WHERE uuid='" + uuid + "';");
 
             // Update existing coordinate.
             globalSQL.updateCoordinate(coordinateID, location);
