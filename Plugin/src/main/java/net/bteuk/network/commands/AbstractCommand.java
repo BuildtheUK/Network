@@ -39,7 +39,7 @@ public abstract class AbstractCommand implements BasicCommand {
 
     public  abstract String getDescription();
 
-    public  List<String> getAliases() {
+    public List<String> getAliases() {
         return Collections.emptyList();
     }
 
