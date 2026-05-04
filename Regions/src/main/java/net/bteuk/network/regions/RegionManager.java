@@ -171,7 +171,7 @@ public class RegionManager {
         if (constants.plotSystemEnabled() && regionSQL.hasRow("SELECT region FROM regions WHERE region=? AND status='plot';", region.regionName())) {
             return (plotAPI.getRegionServer(region.regionName()));
         } else {
-            return (globalSQL.getString("SELECT name FROM server_data WHERE type=?;", "EARTH"));
+            return (globalSQL.getString("SELECT name FROM server_data WHERE type='EARTH';"));
         }
     }
 
@@ -221,7 +221,7 @@ public class RegionManager {
         // Kick members if exist.
         for (String uuid : getMembers(region)) {
 
-            // Send message to user.
+            // Send a message to the user.
             // Is sent before actual removal so we can read the region tag.
             DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), uuid, "server",
                     ChatUtils.error("You have been kicked from region %s, it has been moved to the plot system.", getTag(region, uuid)), true);
@@ -230,10 +230,10 @@ public class RegionManager {
             // Leave region in database.
             regionSQL.update("DELETE FROM region_members WHERE region=? AND uuid=?;", region.regionName(), uuid);
 
-            // Close log of player in region.
+            // Close log of player in the region.
             regionSQL.update("UPDATE region_logs SET end_time=? WHERE region=? AND uuid=?;", Time.currentTime(), region.regionName(), uuid);
 
-            // Leave region in worldGuard.
+            // Leave the region in worldGuard.
             worldGuard.addMember(region.regionName(), uuid, constants.earthWorld());
         }
 
