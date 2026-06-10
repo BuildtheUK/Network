@@ -26,6 +26,10 @@
             <groupId>com.github.BTEUK</groupId>
             <artifactId>NetworkLib</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.github.BuildtheUK.BTUKLib</groupId>
+            <artifactId>Minecraft</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

@@ -4,7 +4,6 @@ import net.bteuk.network.api.EventAPI;
 import net.bteuk.network.api.ServerAPI;
 import net.bteuk.network.api.entity.NetworkLocation;
 import net.bteuk.network.commands.Navigator;
-import net.bteuk.network.commands.navigation.Back;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.ServerType;
 import net.bteuk.network.gui.plotsystem.PlotMenu;
@@ -27,26 +26,25 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 
 import java.util.Optional;
 
 public class BuildGui extends NetworkRefreshableGui {
 
-    private final NetworkUser user;
+    private final Player player;
     private final PlotSQL plotSQL;
     private final Constants constants;
-    private final Back back;
     private final EventAPI eventAPI;
     private final ServerAPI serverAPI;
     private final RegionManager regionManager;
     private final Navigator navigator;
 
-    public BuildGui(GuiProvider provider, NetworkUser user) {
+    public BuildGui(GuiProvider provider, Player player) {
         super(provider, 27, Component.text("Building Menu", NamedTextColor.AQUA, TextDecoration.BOLD));
-        this.user = user;
+        this.player = player;
         this.plotSQL = provider.plotSQL();
         this.constants = provider.constants();
-        this.back = provider.back();
         this.eventAPI = provider.eventAPI();
         this.serverAPI = provider.serverAPI();
         this.regionManager = provider.regionManager();
@@ -204,16 +202,16 @@ public class BuildGui extends NetworkRefreshableGui {
             // Join region (Users with uknet.regions.join only)
             // If region is claimable.
             // Check if the player is in a region.
-            Optional<RegionUser> optionalRegionUser = regionManager.getUserByPlayer(user.player);
+            Optional<RegionUser> optionalRegionUser = regionManager.getUserByPlayer(player);
             if (optionalRegionUser.isPresent() && optionalRegionUser.get().hasTrackedRegion()) {
                 Region region = optionalRegionUser.get().getTrackedRegion();
 
                 // Check if you're an owner or member of this region.
                 // If true then open the region info menu instead.
                 // If you're already waiting for you request to be reviewed then show that.
-                if (regionManager.isOwner(region, user.player.getUniqueId().toString())) {
+                if (regionManager.isOwner(region, player.getUniqueId().toString())) {
 
-                    setItem(4, Utils.createItem(Material.LIME_GLAZED_TERRACOTTA, 1, Utils.title("Region " + regionManager.getTag(region, user.player.getUniqueId().toString())),
+                    setItem(4, Utils.createItem(Material.LIME_GLAZED_TERRACOTTA, 1, Utils.title("Region " + regionManager.getTag(region, player.getUniqueId().toString())),
                             Utils.line("You are the owner of this region."), Utils.line("Click to open the menu of this region.")), (NetworkUser u) -> {
 
                         // Delete this gui.
@@ -223,9 +221,9 @@ public class BuildGui extends NetworkRefreshableGui {
                         u.mainGui = new RegionInfo(provider, region, u.player.getUniqueId().toString());
                         u.mainGui.open(u.player);
                     });
-                } else if (regionManager.isMember(region, user.player.getUniqueId().toString())) {
+                } else if (regionManager.isMember(region, player.getUniqueId().toString())) {
 
-                    setItem(4, Utils.createItem(Material.YELLOW_GLAZED_TERRACOTTA, 1, Utils.title("Region " + regionManager.getTag(region, user.player.getUniqueId().toString())),
+                    setItem(4, Utils.createItem(Material.YELLOW_GLAZED_TERRACOTTA, 1, Utils.title("Region " + regionManager.getTag(region, player.getUniqueId().toString())),
                             Utils.line("You are a member of this region."), Utils.line("Click to open the menu of this plot.")), (NetworkUser u) -> {
 
                         // Delete this gui.
@@ -235,9 +233,9 @@ public class BuildGui extends NetworkRefreshableGui {
                         u.mainGui = new RegionInfo(provider, region, u.player.getUniqueId().toString());
                         u.mainGui.open(u.player);
                     });
-                } else if (regionManager.hasRequest(region, user.getUuid())) {
+                } else if (regionManager.hasRequest(region, player.getUniqueId().toString())) {
 
-                    setItem(4, Utils.createItem(Material.ORANGE_GLAZED_TERRACOTTA, 1, Utils.title("Region " + regionManager.getTag(region, user.player.getUniqueId().toString())),
+                    setItem(4, Utils.createItem(Material.ORANGE_GLAZED_TERRACOTTA, 1, Utils.title("Region " + regionManager.getTag(region, player.getUniqueId().toString())),
                                     Utils.line("You have requested to join this region."), Utils.line("The request is still pending."), Utils.line("Click to cancel the request.")),
                             (NetworkUser u) -> {
 
@@ -247,14 +245,14 @@ public class BuildGui extends NetworkRefreshableGui {
                                 // Cancel the request.
                                 regionManager.cancelRequest(region, u.player);
                             });
-                } else if (user.player.hasPermission("uknet.regions.join")) {
+                } else if (player.hasPermission("uknet.regions.join")) {
 
                     // Check if the region is claimable.
                     if (regionManager.isClaimable(region)) {
 
                         boolean hasOwner = regionManager.hasActiveOwner(region);
                         String owner = (hasOwner) ? regionManager.ownerName(region) : "noone";
-                        boolean alwaysStaffApproval = user.player.hasPermission("uknet.regions.staff_request.always");
+                        boolean alwaysStaffApproval = player.hasPermission("uknet.regions.staff_request.always");
 
                         // If the region has an owner.
                         if (hasOwner) {
@@ -294,7 +292,7 @@ public class BuildGui extends NetworkRefreshableGui {
                             // Check if the region was previously claimed or staff request is always required
                             // Check if any nearby regions are claimed by someone else.
                             // If true then the region needs to be checked by a staff member.
-                            if (!staffApproval && !user.player.hasPermission("uknet.regions.staff_request.bypass")) {
+                            if (!staffApproval && !player.hasPermission("uknet.regions.staff_request.bypass")) {
 
                                 staffApproval = constants.regionStaffRequestAlways() || regionManager.wasClaimed(region);
 
@@ -326,7 +324,7 @@ public class BuildGui extends NetworkRefreshableGui {
                                                 if (regionManager.exists(regionName)) {
                                                     Region regionInRadius = regionManager.getRegion(regionName);
                                                     if (regionManager.hasOwner(regionInRadius)) {
-                                                        if (!regionManager.getOwner(regionInRadius).equals(user.player.getUniqueId().toString())) {
+                                                        if (!regionManager.getOwner(regionInRadius).equals(player.getUniqueId().toString())) {
                                                             // Staff approval is required.
                                                             staffApproval = true;
                                                         }
@@ -400,24 +398,6 @@ public class BuildGui extends NetworkRefreshableGui {
             u.mainGui = new UtilsGui(provider);
             u.mainGui.open(u.player);
         });
-
-        // if (constants.progressMap() && user.player.hasPermission("uknet.progressmap.edit")) {
-        //     // Progress map edit menu
-        //     setItem(0, Utils.createItem(Material.MAP, 1, Utils.title("Progress Map"), Utils.line("Edit or add areas to the progress map")), (NetworkUser u) -> {
-        //
-        //         LocalFeaturesMenu localFeatures = new LocalFeaturesMenu(constants.progressMapID(), constants.mapHubAPIKey(), u.player);
-        //
-        //         // Check to see if the location could be established
-        //         if (localFeatures.getPlayerCoordinates() == null) {
-        //             u.player.sendMessage(ChatUtils.error("Could not locate you"));
-        //         } else {
-        //             this.delete();
-        //             // Switch to the local features menu
-        //             u.mainGui = new LocalFeatureListGUI(provider, localFeatures, localFeatures.getGUI());
-        //             u.mainGui.open(u.player);
-        //         }
-        //     });
-        // }
 
         // Return
         setItem(26, Utils.createItem(Material.SPRUCE_DOOR, 1, Utils.title("Return"), Utils.line("Open the navigator main menu.")), (NetworkUser u) -> {

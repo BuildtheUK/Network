@@ -1,6 +1,5 @@
 package net.bteuk.network.gui.plotsystem;
 
-import net.bteuk.network.gui.BuildGui;
 import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.lib.utils.ChatUtils;
@@ -13,9 +12,12 @@ import net.bteuk.network.utils.Utils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.btuk.minecraft.gui.GuiFactory;
+import org.btuk.minecraft.gui.GuiOpenContext;
 import org.bukkit.Material;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class PlotServerLocations extends NetworkRefreshableGui {
 
@@ -256,11 +258,13 @@ public class PlotServerLocations extends NetworkRefreshableGui {
 
         // Return
         setItem(44, Utils.createItem(Material.SPRUCE_DOOR, 1, Utils.title("Return"), Utils.line("Open the build menu.")), (NetworkUser u) -> {
-
-            // Switch back to the build menu.
-            this.delete();
-            u.mainGui = new BuildGui(provider, u);
-            u.mainGui.open(u.player);
+            GuiFactory guiFactory = getManager().getReturnGui(PlotSystemGuiType.PLOT_SERVER_LOCATIONS);
+            if (guiFactory != null) {
+                // Switch back to the build menu.
+                this.delete();
+                u.mainGui = guiFactory.create(new GuiOpenContext(u.player, Collections.emptyMap()));
+                u.mainGui.open(u.player);
+            }
         });
     }
 }

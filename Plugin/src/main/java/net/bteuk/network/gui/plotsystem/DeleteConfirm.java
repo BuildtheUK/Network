@@ -81,7 +81,7 @@ public class DeleteConfirm extends NetworkRefreshableGui {
                 u.mainGui = new ZoneInfo(provider, u, id, u.player.getUniqueId().toString());
             } else {
 
-                u.mainGui = new BuildGui(provider, u);
+                u.mainGui = new BuildGui(provider, u.player);
             }
 
             u.mainGui.open(u.player);

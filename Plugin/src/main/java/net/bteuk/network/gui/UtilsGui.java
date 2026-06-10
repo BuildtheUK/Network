@@ -53,7 +53,7 @@ public class UtilsGui extends NetworkGui {
             this.delete();
 
             // Switch to navigation menu.
-            u.mainGui = new BuildGui(provider, u);
+            u.mainGui = new BuildGui(provider, u.player);
             u.mainGui.open(u.player);
         });
     }

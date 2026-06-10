@@ -15,6 +15,7 @@ import net.bteuk.network.gui.BuildGui;
 import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.NavigatorGui;
 import net.bteuk.network.gui.navigation.ExploreGui;
+import net.bteuk.network.gui.plotsystem.PlotSystemGuiType;
 import net.bteuk.network.gui.tutorials.TutorialsGui;
 import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.lobby.Lobby;
@@ -53,6 +54,12 @@ public class Navigator extends AbstractCommand {
                 roles, tutorialsDBConnection, chatAPI, moderation, previousLocationTracker);
 
         this.navigator = new NavigatorGui(provider);
+
+        // Register return menu's for plot system GUI's.
+        guiManager.registerReturnGui(PlotSystemGuiType.PLOT_MENU, (guiOpenContext) -> new BuildGui(provider, guiOpenContext.getPlayer()));
+        guiManager.registerReturnGui(PlotSystemGuiType.ZONE_MENU, (guiOpenContext) -> new BuildGui(provider, guiOpenContext.getPlayer()));
+        guiManager.registerReturnGui(PlotSystemGuiType.PLOT_SYSTEM_LOCATIONS, (guiOpenContext) -> new BuildGui(provider, guiOpenContext.getPlayer()));
+        guiManager.registerReturnGui(PlotSystemGuiType.PLOT_SERVER_LOCATIONS, (guiOpenContext) -> new BuildGui(provider, guiOpenContext.getPlayer()));
     }
 
     public void openNavigator(NetworkUser u) {
@@ -119,7 +126,7 @@ public class Navigator extends AbstractCommand {
         if (u.mainGui != null) {
             u.mainGui.delete();
         }
-        u.mainGui = new BuildGui(provider, u);
+        u.mainGui = new BuildGui(provider, u.player);
         u.mainGui.open(u.player);
     }
 

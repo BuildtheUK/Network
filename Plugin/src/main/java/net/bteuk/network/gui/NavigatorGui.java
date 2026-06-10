@@ -39,7 +39,7 @@ public class NavigatorGui extends NetworkGui {
 
         setItem(2, Utils.createItem(Material.DIAMOND_PICKAXE, 1, Utils.title("Build"), Utils.line("Click to open the build menu.")), (NetworkUser u) -> {
             // Switch to the build menu.
-            u.mainGui = new BuildGui(provider, u);
+            u.mainGui = new BuildGui(provider, u.player);
             u.mainGui.open(u.player);
         });
 

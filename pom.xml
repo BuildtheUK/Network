@@ -27,7 +27,7 @@
         <paper.api.version>1.21.10-R0.1-SNAPSHOT</paper.api.version>
 
         <bteuk.proxy.version>develop-2c95cc659b-1</bteuk.proxy.version>
-        <bteuk.lib.version>main-36b0421e66-1</bteuk.lib.version>
+        <btuklib.version>016fdc2ce8</btuklib.version>
         <bteuk.networklib.version>955372d721</bteuk.networklib.version>
 
         <kyori.version>4.26.1</kyori.version>
@@ -95,7 +95,7 @@
             <dependency>
                 <groupId>com.github.BuildtheUK.BTUKLib</groupId>
                 <artifactId>Minecraft</artifactId>
-                <version>${bteuk.lib.version}</version>
+                <version>${btuklib.version}</version>
             </dependency>
 
             <dependency>

@@ -175,7 +175,7 @@ public class RegionMenu extends NetworkRefreshableGui {
             this.delete();
 
             // Switch to plot info.
-            u.mainGui = new BuildGui(provider, u);
+            u.mainGui = new BuildGui(provider, u.player);
             u.mainGui.open(u.player);
         });
     }
