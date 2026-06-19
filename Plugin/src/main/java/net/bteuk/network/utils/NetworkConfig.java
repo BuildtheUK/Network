@@ -43,7 +43,7 @@ public class NetworkConfig {
     private String latestVersion() {
         String version = Objects.requireNonNull(config.getDefaults()).getString("version");
         // If null return default.
-        return Objects.requireNonNullElse(version, "1.10.0");
+        return Objects.requireNonNullElse(version, "1.11.0-SNAPSHOT");
     }
 
     // Update config if the version is outdated.

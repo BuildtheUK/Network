@@ -56,6 +56,12 @@ public class RegionMoveListener extends AbstractMoveListener implements Listener
         }
         RegionUser regionUser = optionalRegionUser.get();
 
+        // If the user is currently switching region/server, cancel any movement.
+        if (regionUser.isSwitching()) {
+            e.setCancelled(true);
+            return;
+        }
+
         // Check for movement between regions.
         // If the player is currently not in a region, then that implies they are in a world without regions, so
         // movement will not affect this.
@@ -75,38 +81,67 @@ public class RegionMoveListener extends AbstractMoveListener implements Listener
                 // Get the new region.
                 Region newRegion = regionManager.getRegion(x, z);
 
-                // Check if the new region is on this server or not. If it is, check whether it is on the same world.
-                if (!regionManager.getServer(regionUser.getTrackedRegion()).equals(regionManager.getServer(newRegion))) {
+                // Set the user to switching, this will block any further movement events.
+                regionUser.setSwitching(true);
+                regionUser.setSwitchingRegion(newRegion);
 
-                    switchServer(regionUser, newRegion, e.getTo());
-                    e.setCancelled(true);
-                } else {
+                // Check for server/region switch asynchronously.
+                Bukkit.getScheduler().runTaskAsynchronously(regionManager.getPlugin(), () -> {
 
-                    Location newLocation = e.getTo().clone();
+                    // Check if the new region is on this server or not. If it is, check whether it is on the same world.
+                    if (!regionManager.getServer(regionUser.getTrackedRegion()).equals(regionManager.getServer(newRegion))) {
 
-                    // Get true coordinates (as on terra world)
-                    double trueNewX = e.getTo().getX() + regionUser.getDeltaX();
-                    double trueNewZ = e.getTo().getZ() + regionUser.getDeltaZ();
+                        // Region is on another server.
+                        Bukkit.getScheduler().runTask(regionManager.getPlugin(), () -> {
+                            switchServer(regionUser, newRegion, e.getTo());
+                            // We don't need to unset switching here as the player will be leaving the server.
+                        });
 
-                    // Get the world that the region is in.
-                    boolean isPlot = regionManager.isPlot(newRegion);
-                    String world = isPlot ? plotAPI.getRegionLocation(newRegion.regionName()) : constants.earthWorld();
+                    } else {
 
-                    if (!newLocation.getWorld().getName().equals(world)) {
-                        if (isPlot) {
-                            // Apply new region shift
-                            String szLocation = plotAPI.getRegionLocation(newRegion.regionName());
-                            trueNewX = trueNewX + plotAPI.getXTransform(szLocation);
-                            trueNewZ = trueNewZ + plotAPI.getZTransform(szLocation);
-                        }
-                        newLocation.setWorld(Bukkit.getWorld(world));
-                        newLocation.setX(trueNewX);
-                        newLocation.setZ(trueNewZ);
-                        e.setTo(newLocation);
+                        // Region is on the same server.
+                        Bukkit.getScheduler().runTask(regionManager.getPlugin(), () -> {
+
+                            Location newLocation = e.getTo().clone();
+
+                            // Get true coordinates (as on terra world)
+                            double trueNewX = e.getTo().getX() + regionUser.getDeltaX();
+                            double trueNewZ = e.getTo().getZ() + regionUser.getDeltaZ();
+
+                            // Get the world that the region is in.
+                            boolean isPlot = regionManager.isPlot(newRegion);
+                            String world = isPlot ? plotAPI.getRegionLocation(newRegion.regionName()) : constants.earthWorld();
+
+                            if (!newLocation.getWorld().getName().equals(world)) {
+                                if (isPlot) {
+                                    // Apply new region shift
+                                    String szLocation = plotAPI.getRegionLocation(newRegion.regionName());
+                                    trueNewX = trueNewX + plotAPI.getXTransform(szLocation);
+                                    trueNewZ = trueNewZ + plotAPI.getZTransform(szLocation);
+                                }
+                                newLocation.setWorld(Bukkit.getWorld(world));
+                                newLocation.setX(trueNewX);
+                                newLocation.setZ(trueNewZ);
+
+                                // Since we are now on the main thread and can't change 'e.setTo()', we must teleport the player.
+                                regionUser.getPlayer().teleport(newLocation);
+                            }
+
+                            if (switchRegion(regionUser, newRegion)) {
+                                // If switchRegion returned true, it means the entry was cancelled.
+                                // Teleport the player back to their 'from' location.
+                                regionUser.getPlayer().teleport(e.getFrom());
+                            }
+
+                            // Unset switching.
+                            regionUser.setSwitching(false);
+                            regionUser.setSwitchingRegion(null);
+                        });
                     }
+                });
 
-                    e.setCancelled(switchRegion(regionUser, newRegion));
-                }
+                // Cancel the original movement event while we process the switch.
+                e.setCancelled(true);
             }
         }
     }

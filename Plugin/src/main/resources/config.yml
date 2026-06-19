@@ -1,5 +1,5 @@
 # Config version; do not update this manually as it could break the config.
-version: 1.10.0
+version: 1.11.0-SNAPSHOT
 
 # MySQL is mandatory for this plugin.
 # Login information

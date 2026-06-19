@@ -31,6 +31,14 @@ public class RegionUser {
     @Setter
     int deltaZ;
 
+    @Getter
+    @Setter
+    private boolean switching;
+
+    @Getter
+    @Setter
+    private Region switchingRegion;
+
     public RegionUser(Player player, Constants constants, RegionManager regionManager, PlotAPI plotAPI) {
         this.player = player;
 

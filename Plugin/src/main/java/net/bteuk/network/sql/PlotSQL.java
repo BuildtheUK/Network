@@ -1,8 +1,12 @@
 package net.bteuk.network.sql;
 
 import lombok.extern.java.Log;
+import net.bteuk.network.api.plotsystem.PlotDifficulty;
 import net.bteuk.network.api.plotsystem.SubmittedPlot;
 import net.bteuk.network.api.plotsystem.SubmittedStatus;
+import net.bteuk.network.api.plotsystem.VerificationStatus;
+import net.bteuk.network.api.plotsystem.ZoneMembership;
+import net.bteuk.network.api.plotsystem.ZoneOwner;
 import net.bteuk.network.core.Time;
 import net.bteuk.network.core.sql.AbstractSQL;
 import net.bteuk.network.lib.enums.PlotDifficulties;
@@ -17,7 +21,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 
 @Log
@@ -536,5 +542,103 @@ public class PlotSQL extends AbstractSQL {
             log.log(Level.SEVERE, "An error occurred while creating a plot submission", sql);
             return false;
         }
+    }
+
+    public List<PlotDifficulty> getPlotDifficulties(String ids) {
+        List<PlotDifficulty> list = new ArrayList<>();
+        String sql = "SELECT id, difficulty FROM plot_data WHERE id IN " + ids + ";";
+        try (
+                Connection conn = conn(); PreparedStatement statement = conn.prepareStatement(sql); ResultSet results = statement.executeQuery()
+        ) {
+            while (results.next()) {
+                list.add(new PlotDifficulty(results.getInt(1), results.getInt(2)));
+            }
+        } catch (SQLException e) {
+            log.log(Level.SEVERE, "SQL query failed in getPlotDifficulties: " + sql, e);
+        }
+        return list;
+    }
+
+    public List<ZoneMembership> getZoneMemberships(String uuid, String ids) {
+        List<ZoneMembership> list = new ArrayList<>();
+        String sql = "SELECT id, is_owner FROM zone_members WHERE uuid='" + uuid + "' AND id IN " + ids + ";";
+        try (
+                Connection conn = conn(); PreparedStatement statement = conn.prepareStatement(sql); ResultSet results = statement.executeQuery()
+        ) {
+            while (results.next()) {
+                list.add(new ZoneMembership(results.getInt(1), results.getInt(2) == 1));
+            }
+        } catch (SQLException e) {
+            log.log(Level.SEVERE, "SQL query failed in getZoneMemberships: " + sql, e);
+        }
+        return list;
+    }
+
+    public List<ZoneOwner> getZoneOwners(String ids) {
+        List<ZoneOwner> list = new ArrayList<>();
+        String sql = "SELECT id, uuid FROM zone_members WHERE is_owner=1 AND id IN " + ids + ";";
+        try (
+                Connection conn = conn(); PreparedStatement statement = conn.prepareStatement(sql); ResultSet results = statement.executeQuery()
+        ) {
+            while (results.next()) {
+                list.add(new ZoneOwner(results.getInt(1), results.getString(2)));
+            }
+        } catch (SQLException e) {
+            log.log(Level.SEVERE, "SQL query failed in getZoneOwners: " + sql, e);
+        }
+        return list;
+    }
+
+    public List<VerificationStatus> getVerificationStatuses(String ids) {
+        List<VerificationStatus> list = new ArrayList<>();
+
+        // Fetch all relevant data for verifications in one go.
+        // We need to know if outcome, selection, or feedback changed.
+        // Feedback/Selection changes are in plot_verification_category.
+        // Outcome changes are in plot_verification.
+
+        // Get outcome changes.
+        String sqlOutcome = "SELECT id, (accepted_old <> accepted_new) AS outcome_changed FROM plot_verification WHERE id IN " + ids + ";";
+
+        // Get category changes.
+        String sqlCategory = "SELECT verification_id, " +
+                "SUM(selection_old <> selection_new) > 0 AS selection_changed, " +
+                "SUM(book_id_old <> book_id_new) > 0 AS feedback_changed " +
+                "FROM plot_verification_category WHERE verification_id IN " + ids + " GROUP BY verification_id;";
+
+        Map<Integer, Boolean> outcomeMap = new HashMap<>();
+        try (Connection conn = conn(); PreparedStatement stmt = conn.prepareStatement(sqlOutcome); ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                outcomeMap.put(rs.getInt(1), rs.getBoolean(2));
+            }
+        } catch (SQLException e) {
+            log.log(Level.SEVERE, "SQL query failed in getVerificationStatuses (outcome): " + sqlOutcome, e);
+        }
+
+        Map<Integer, Boolean> selectionMap = new HashMap<>();
+        Map<Integer, Boolean> feedbackMap = new HashMap<>();
+        try (Connection conn = conn(); PreparedStatement stmt = conn.prepareStatement(sqlCategory); ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                int id = rs.getInt(1);
+                selectionMap.put(id, rs.getBoolean(2));
+                feedbackMap.put(id, rs.getBoolean(3));
+            }
+        } catch (SQLException e) {
+            log.log(Level.SEVERE, "SQL query failed in getVerificationStatuses (category): " + sqlCategory, e);
+        }
+
+        // Parse the ids string back to list for ordering if possible, or just use the outcomeMap keys.
+        // Since the input ids is a string like "(1, 2, 3)", it's hard to parse perfectly without knowing the format.
+        // But we can just iterate over the outcomeMap which should contain all requested ids.
+        for (int id : outcomeMap.keySet()) {
+            list.add(new VerificationStatus(
+                    id,
+                    outcomeMap.get(id),
+                    selectionMap.getOrDefault(id, false),
+                    feedbackMap.getOrDefault(id, false)
+            ));
+        }
+
+        return list;
     }
 }

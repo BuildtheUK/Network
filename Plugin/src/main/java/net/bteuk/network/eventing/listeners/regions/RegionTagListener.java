@@ -62,24 +62,29 @@ public class RegionTagListener implements Listener {
                 e.getPlayer().sendMessage(ChatUtils.error("The region tag can't be longer than 64 characters."));
             } else {
 
-                // Set region tag.
-                regionManager.setTag(region, p.getUniqueId().toString(),
-                        PlainTextComponentSerializer.plainText().serialize(e.message()));
+                // Set region tag asynchronously.
+                Bukkit.getScheduler().runTaskAsynchronously(instance, () -> {
+                    regionManager.setTag(region, p.getUniqueId().toString(),
+                            PlainTextComponentSerializer.plainText().serialize(e.message()));
 
-                // Send message to player.
-                p.sendMessage(ChatUtils.success("Set tag for region ")
-                        .append(Component.text(region.regionName(), NamedTextColor.DARK_AQUA))
-                        .append(ChatUtils.success(" to "))
-                        .append(e.message().color(NamedTextColor.DARK_AQUA)));
+                    // Run the rest of the logic on the main thread.
+                    Bukkit.getScheduler().runTask(instance, () -> {
+                        // Send message to player.
+                        p.sendMessage(ChatUtils.success("Set tag for region ")
+                                .append(Component.text(region.regionName(), NamedTextColor.DARK_AQUA))
+                                .append(ChatUtils.success(" to "))
+                                .append(e.message().color(NamedTextColor.DARK_AQUA)));
 
-                // Unregister listener and task.
-                task.cancel();
-                unregister();
+                        // Unregister listener and task.
+                        task.cancel();
+                        unregister();
 
-                // Reset the regionInfo gui
-                NetworkUser u = instance.getUser(p);
-                Objects.requireNonNull(u).mainGui.delete();
-                u.mainGui = new RegionInfo(provider, region, p.getUniqueId().toString());
+                        // Reset the regionInfo gui
+                        NetworkUser u = instance.getUser(p);
+                        Objects.requireNonNull(u).mainGui.delete();
+                        u.mainGui = new RegionInfo(provider, region, p.getUniqueId().toString());
+                    });
+                });
             }
         }
     }

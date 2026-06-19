@@ -236,6 +236,38 @@ public abstract class AbstractSQL implements SQLAPI {
         }
     }
 
+    public Map<Integer, Integer> getIntIntMap(String sql) {
+
+        Map<Integer, Integer> map = new HashMap<>();
+
+        try (
+                Connection conn = conn(); PreparedStatement statement = conn.prepareStatement(sql); ResultSet results = statement.executeQuery()
+        ) {
+            while (results.next()) {
+                map.put(results.getInt(1), results.getInt(2));
+            }
+        } catch (SQLException e) {
+            log.log(Level.SEVERE, "An invalid sql query was attempted, " + sql, e);
+        }
+        return map;
+    }
+
+    public Map<String, String> getStringStringMap(String sql) {
+
+        Map<String, String> map = new HashMap<>();
+
+        try (
+                Connection conn = conn(); PreparedStatement statement = conn.prepareStatement(sql); ResultSet results = statement.executeQuery()
+        ) {
+            while (results.next()) {
+                map.put(results.getString(1), results.getString(2));
+            }
+        } catch (SQLException e) {
+            log.log(Level.SEVERE, "An invalid sql query was attempted, " + sql, e);
+        }
+        return map;
+    }
+
     public ArrayList<String> getStringList(String sql) {
 
         ArrayList<String> list = new ArrayList<>();

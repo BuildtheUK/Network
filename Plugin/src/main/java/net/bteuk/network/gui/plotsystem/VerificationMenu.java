@@ -1,5 +1,6 @@
 package net.bteuk.network.gui.plotsystem;
 
+import net.bteuk.network.api.plotsystem.VerificationStatus;
 import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.sql.PlotSQL;
@@ -11,6 +12,8 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Menu to view previous reviews that have been verified.
@@ -21,6 +24,10 @@ public class VerificationMenu extends NetworkRefreshableGui {
 
     private final PlotSQL plotSQL;
 
+    private ArrayList<Integer> verifications;
+    private final ArrayList<Material> materials = new ArrayList<>();
+    private final ArrayList<Component[]> descriptions = new ArrayList<>();
+
     public VerificationMenu(GuiProvider provider, NetworkUser user) {
         super(provider, 45, Component.text("Verified Review Menu", NamedTextColor.AQUA, TextDecoration.BOLD));
 
@@ -28,56 +35,65 @@ public class VerificationMenu extends NetworkRefreshableGui {
         this.plotSQL = provider.plotSQL();
     }
 
-    protected void createGui() {
-
-        ArrayList<Integer> verifications = plotSQL.getIntList("SELECT id FROM plot_verification WHERE review_id IN " +
+    @Override
+    protected void loadData() {
+        verifications = plotSQL.getIntList("SELECT id FROM plot_verification WHERE review_id IN " +
                 "(SELECT id FROM plot_review WHERE reviewer='" + user.getUuid() + "') ORDER BY id ASC;");
+
+        materials.clear();
+        descriptions.clear();
+        if (verifications != null && !verifications.isEmpty()) {
+            String ids = verifications.toString().replace("[", "(").replace("]", ")");
+
+            List<VerificationStatus> statuses = plotSQL.getVerificationStatuses(ids);
+
+            for (int verificationId : verifications) {
+                Optional<VerificationStatus> status = statuses.stream().filter(s -> s.id() == verificationId).findFirst();
+                if (status.isPresent() && status.get().outcomeChanged()) {
+                    materials.add(Material.RED_CONCRETE);
+                    descriptions.add(new Component[]{Utils.line("The outcome of the review was altered."), Utils.line("Click" +
+                            " to view the changes.")});
+                } else if (status.isPresent() && status.get().selectionChanged()) {
+                    materials.add(Material.ORANGE_CONCRETE);
+                    descriptions.add(new Component[]{Utils.line("The selection of a category was altered."), Utils.line(
+                            "Click to view the changes.")});
+                } else if (status.isPresent() && status.get().feedbackChanged()) {
+                    materials.add(Material.YELLOW_CONCRETE);
+                    descriptions.add(new Component[]{Utils.line("The feedback of a category was altered."), Utils.line(
+                            "Click to view the changes.")});
+                } else {
+                    materials.add(Material.LIME_CONCRETE);
+                    descriptions.add(new Component[]{Utils.line("The review was not altered.")});
+                }
+            }
+        }
+    }
+
+    protected void createGui() {
 
         // Slot count.
         int slot = 10;
 
         // Make a button for each review.
-        for (int verificationId : verifications) {
+        if (this.verifications != null) {
+            for (int i = 0; i < this.verifications.size(); i++) {
 
-            // Determine the colour based on what was changed in the verification.
-            boolean feedbackChanged = plotSQL.hasRow("SELECT 1 FROM plot_verification_category WHERE " +
-                    "verification_id=" + verificationId + " AND book_id_old <> book_id_new;");
-            boolean selectionChanged = plotSQL.hasRow("SELECT 1 FROM plot_verification_category WHERE " +
-                    "verification_id=" + verificationId + " AND selection_old <> selection_old;");
-            boolean outcomeChanged = plotSQL.hasRow("SELECT 1 FROM plot_verification WHERE id=" + verificationId + " " +
-                    "AND accepted_old <> accepted_new;");
+                int verificationId = this.verifications.get(i);
+                Material item = materials.get(i);
+                Component[] description = descriptions.get(i);
 
-            Material item;
-            Component[] description;
-            if (outcomeChanged) {
-                item = Material.RED_CONCRETE;
-                description = new Component[]{Utils.line("The outcome of the review was altered."), Utils.line("Click" +
-                        " to view the changes.")};
-            } else if (selectionChanged) {
-                item = Material.ORANGE_CONCRETE;
-                description = new Component[]{Utils.line("The selection of a category was altered."), Utils.line(
-                        "Click to view the changes.")};
-            } else if (feedbackChanged) {
-                item = Material.YELLOW_CONCRETE;
-                description = new Component[]{Utils.line("The feedback of a category was altered."), Utils.line(
-                        "Click to view the changes.")};
-            } else {
-                item = Material.LIME_CONCRETE;
-                description = new Component[]{Utils.line("The review was not altered.")};
-            }
+                setItem(slot, Utils.createItem(item, 1,
+                                Utils.title("Verification " + verificationId),
+                                description),
+                        (NetworkUser u) -> {
+                            // Delete this gui.
+                            this.delete();
+                            u.mainGui = null;
 
-            setItem(slot, Utils.createItem(item, 1,
-                            Utils.title("Verification " + verificationId),
-                            description),
-                    (NetworkUser u) -> {
-                        // Delete this gui.
-                        this.delete();
-                        u.mainGui = null;
-
-                        // Switch to plot info.
-                        u.mainGui = new VerificationInfo(provider, verificationId);
-                        u.mainGui.open(u.player);
-                    });
+                            // Switch to plot info.
+                            u.mainGui = new VerificationInfo(provider, verificationId);
+                            u.mainGui.open(u.player);
+                        });
 
             // Increase slot accordingly.
             if (slot % 9 == 7) {
@@ -99,5 +115,6 @@ public class VerificationMenu extends NetworkRefreshableGui {
             u.mainGui = new PlotMenu(provider, u);
             u.mainGui.open(u.player);
         }, Utils.line("Open the plot menu."));
+        }
     }
 }

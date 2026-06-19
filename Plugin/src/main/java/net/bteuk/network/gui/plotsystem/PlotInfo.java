@@ -49,6 +49,9 @@ public class PlotInfo extends NetworkRefreshableGui {
     private final ServerAPI serverAPI;
 
     private String plot_owner;
+    private PlotStatus status;
+    private SubmittedStatus submittedStatus;
+    private PLOT_INFO_TYPE plotInfoType;
 
     @Setter
     private AcceptedPlotMenu acceptedPlotMenu;
@@ -68,15 +71,12 @@ public class PlotInfo extends NetworkRefreshableGui {
         this.serverAPI = provider.serverAPI();
     }
 
-    public void createGui() {
-
+    @Override
+    protected void loadData() {
         // Get the plot status.
-        PlotStatus status = PlotStatus.fromDatabaseValue(plotSQL.getString("SELECT status FROM plot_data WHERE id=" + plotID + ";"));
-        SubmittedStatus submittedStatus = null;
-        if (status == null) {
-            user.player.sendMessage(ChatUtils.error("This plot has an invalid status, can't open the info menu."));
-            return;
-        } else if (status == PlotStatus.SUBMITTED) {
+        status = PlotStatus.fromDatabaseValue(plotSQL.getString("SELECT status FROM plot_data WHERE id=" + plotID + ";"));
+        submittedStatus = null;
+        if (status == PlotStatus.SUBMITTED) {
             submittedStatus = SubmittedStatus.fromDatabaseValue(plotSQL.getString("SELECT status FROM plot_submission" + " WHERE plot_id=" + plotID + ";"));
         }
         // Get the plot owner.
@@ -86,7 +86,18 @@ public class PlotInfo extends NetworkRefreshableGui {
             plot_owner = plotSQL.getString("SELECT uuid FROM plot_review WHERE plot_id=" + plotID + " AND accepted=1 AND " + "completed=1;");
         }
         // Determine the type of menu to create.
-        PLOT_INFO_TYPE plotInfoType = determineMenuType(status, submittedStatus);
+        if (status != null) {
+            plotInfoType = determineMenuType(status, submittedStatus);
+        }
+    }
+
+    public void createGui() {
+
+        if (status == null) {
+            user.player.sendMessage(ChatUtils.error("This plot has an invalid status, can't open the info menu."));
+            return;
+        }
+
         if (plotInfoType == null || plotInfoType == PLOT_INFO_TYPE.DELETED) {
             user.player.sendMessage(ChatUtils.error("This plot not longer exists, can't open the info menu."));
             return;

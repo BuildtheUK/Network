@@ -114,18 +114,24 @@ public class CommandPreProcess implements Listener {
         if (s.getCommand().equalsIgnoreCase("stop")) {
             if (!instance.allowShutdown) {
                 instance.allowShutdown = true;
-                onServerClose(instance.getUsers());
 
                 // Delay shutdown by 3 seconds to make sure players have switched server.
                 s.setCancelled(true);
-                Bukkit.getScheduler().scheduleSyncDelayedTask(instance, () -> {
-                    // Disable the LeaveServer event, although everyone should already be disconnected by now.
-                    if (connect != null) {
-                        connect.setBlockLeaveEvent(true);
-                    }
 
-                    Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "stop");
-                }, 60L);
+                // Run the server close logic asynchronously.
+                Bukkit.getScheduler().runTaskAsynchronously(instance, () -> {
+                    onServerClose(instance.getUsers());
+
+                    // Schedule the actual stop on the main thread after a delay.
+                    Bukkit.getScheduler().runTaskLater(instance, () -> {
+                        // Disable the LeaveServer event, although everyone should already be disconnected by now.
+                        if (connect != null) {
+                            connect.setBlockLeaveEvent(true);
+                        }
+
+                        Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "stop");
+                    }, 60L);
+                });
             }
         }
     }

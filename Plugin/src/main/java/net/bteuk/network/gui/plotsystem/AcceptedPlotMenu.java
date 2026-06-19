@@ -17,6 +17,7 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.codehaus.plexus.util.StringUtils;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -57,24 +58,38 @@ public class AcceptedPlotMenu extends NetworkRefreshableGui {
 
         this.plotSQL = provider.plotSQL();
         this.globalSQL = provider.globalSQL();
-
-        createGui();
     }
 
-    protected void createGui() {
+    private Map<Integer, String> plots;
+    private final Map<String, String> builderNames = new HashMap<>();
+    private String filterName;
 
+    @Override
+    protected void loadData() {
         // Fetch accepted plots.
-        Map<Integer, String> plots;
         if (StringUtils.isEmpty(filter)) {
             plots = plotSQL.getIntStringMap("SELECT plot_id,uuid FROM plot_review WHERE accepted=1 AND completed=1 " + "ORDER BY review_time DESC;");
         } else {
             plots = plotSQL.getIntStringMap("SELECT plot_id,uuid FROM plot_review WHERE accepted=1 AND completed=1 " + "AND uuid='" + filter + "' ORDER BY review_time DESC;");
         }
 
+        filterName = StringUtils.isEmpty(filter) ? "All Players" : globalSQL.getString("SELECT name FROM " + "player_data WHERE uuid='" + filter + "';");
+
+        // Pre-fetch builder names to avoid sync queries in createGui.
+        builderNames.clear();
+        if (plots != null && !plots.isEmpty()) {
+            // Get unique uuids from plots map values.
+            String uuids = plots.values().stream().distinct().map(uuid -> "'" + uuid + "'").toList().toString().replace("[", "(").replace("]", ")");
+            builderNames.putAll(globalSQL.getStringStringMap("SELECT uuid, name FROM player_data WHERE uuid IN " + uuids + ";"));
+        }
+    }
+
+    protected void createGui() {
+
         // Set the filter.
         // Open the filter menu.
         setItem(4, Utils.createItem(Material.SPRUCE_SIGN, 1, Utils.title("Set filter"), Utils.line("The current filter is set to: ")
-                .append(Component.text(StringUtils.isEmpty(filter) ? "All Players" : globalSQL.getString("SELECT name FROM " + "player_data WHERE uuid='" + filter + "';"),
+                .append(Component.text(filterName,
                         NamedTextColor.GRAY)), Utils.line("Click to select a different filter.")), (NetworkUser u) -> filterMenu.open(u.player));
 
         // Slot count.
@@ -162,8 +177,11 @@ public class AcceptedPlotMenu extends NetworkRefreshableGui {
     }
 
     private void createPlayerHeadGuiItem(PlayerProfile profile, int plotID, String uuid, int slot) {
+        // Player names are cached in player_data, we've pre-fetched them in loadData.
+        String builderName = builderNames.getOrDefault(uuid, "Unknown");
+
         ItemStack guiItem = Utils.createPlayerSkull(profile, 1, Utils.title("Plot " + plotID),
-                Utils.line("Completed by: ").append(Component.text(globalSQL.getString("SELECT name FROM player_data " + "WHERE uuid='" + uuid + "';"), NamedTextColor.GRAY)),
+                Utils.line("Completed by: ").append(Component.text(builderName, NamedTextColor.GRAY)),
                 Utils.line("Click to open the menu of this plot."));
 
         setItem(slot, guiItem, (NetworkUser u) -> {
