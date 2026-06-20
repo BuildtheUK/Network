@@ -19,6 +19,7 @@ import net.bteuk.network.commands.Demote;
 import net.bteuk.network.commands.Discord;
 import net.bteuk.network.commands.Focus;
 import net.bteuk.network.commands.Gamemode;
+import net.bteuk.network.commands.Hat;
 import net.bteuk.network.commands.Hdb;
 import net.bteuk.network.commands.Help;
 import net.bteuk.network.commands.Me;
@@ -478,6 +479,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
         commandManager.registerCommand(new Reply(messageSender));
         commandManager.registerCommand(new Nick(this, messageSender));
+        commandManager.registerCommand(new Hat());
 
         commandManager.registerCommand(new Promote(this, roleAPI, chat));
         commandManager.registerCommand(new Demote(this, roleAPI, chat));
