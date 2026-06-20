@@ -479,7 +479,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
         commandManager.registerCommand(new Reply(messageSender));
         commandManager.registerCommand(new Nick(this, messageSender));
-        commandManager.registerCommand(new Hat(this));
+        commandManager.registerCommand(new Hat());
 
         commandManager.registerCommand(new Promote(this, roleAPI, chat));
         commandManager.registerCommand(new Demote(this, roleAPI, chat));

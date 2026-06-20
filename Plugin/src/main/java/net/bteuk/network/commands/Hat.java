@@ -2,21 +2,13 @@ package net.bteuk.network.commands;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import lombok.extern.java.Log;
-import net.bteuk.network.Network;
 import net.bteuk.network.lib.utils.ChatUtils;
-import net.bteuk.network.utils.NetworkUser;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 @Log
-public class Hat extends AbstractCommand {
-
-    private final Network instance;
-
-    public Hat(Network instance) {
-        this.instance = instance;
-    }
+public final class Hat extends AbstractCommand {
 
     @Override
     public void execute(@NotNull CommandSourceStack stack, String @NotNull [] args) {
@@ -27,15 +19,6 @@ public class Hat extends AbstractCommand {
         }
 
         if (!hasPermission(player, "uknet.hat")) {
-            return;
-        }
-
-        NetworkUser user = instance.getUser(player);
-
-        // If the user is null, cancel.
-        if (user == null) {
-            log.severe("User " + player.getName() + " can not be found!");
-            player.sendMessage(ChatUtils.error("User can not be found, please relog!"));
             return;
         }
 
