@@ -20,6 +20,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.entity.Player;
 
 import static net.bteuk.network.lib.enums.ChatChannels.STAFF;
@@ -33,6 +34,7 @@ public class CustomChat implements ChatAPI {
     private final MessageSender messageSender;
     private final Constants constants;
     private final Roles roles;
+    private static final PlainTextComponentSerializer PLAIN_SERIALIZER = PlainTextComponentSerializer.plainText();
 
     public CustomChat(Network instance, MessageSender messageSender, Constants constants, Roles roles) {
 
@@ -85,14 +87,13 @@ public class CustomChat implements ChatAPI {
     }
 
     private static Component formatDisplayName(Player player) {
-        Component displayName = player.displayName();
-        Component username = ChatUtils.line(player.getName());
+        String displayName = PLAIN_SERIALIZER.serialize(player.displayName());
 
-        if (!displayName.equals(username)) {
-            return displayName.hoverEvent(HoverEvent.showText(ChatUtils.greyText(player.getName())));
+        if (!displayName.equals(player.getName())) {
+            return player.displayName().hoverEvent(HoverEvent.showText(ChatUtils.greyText(player.getName())));
         }
 
-        return displayName;
+        return player.displayName();
     }
 
     private static Component directMessageFormat(String message, String sender, String recipient) {
