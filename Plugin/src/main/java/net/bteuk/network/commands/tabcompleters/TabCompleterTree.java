@@ -56,9 +56,10 @@ public class TabCompleterTree {
                 tokens.add(current.toString());
                 current = new StringBuilder();
             } else if (currentChar == '(') {
-                current.append(' ');
+                current.append('(');
                 bracketsCount++;
             } else if (currentChar == ')') {
+                current.append(')');
                 bracketsCount--;
             } else {
                 current.append(currentChar);
@@ -67,11 +68,14 @@ public class TabCompleterTree {
         if (!current.isEmpty()) {
             tokens.add(current.toString());
         }
-        List<TabCompleterNode> finalList = new ArrayList<TabCompleterNode>();
+        List<TabCompleterNode> finalList = new ArrayList<TabCompleterNode>(); //doesn't work
         for (String s : tokens) {
-            if (s.contains(",")) {
-                String[] parts = s.split(" ");
-                finalList.add(new TabCompleterNode(parts[0], parseString(parts[1])));
+            if (s.contains("(")) {
+                int indexOfFirst = s.indexOf('(');
+                String base = s.substring(0,indexOfFirst);
+                String rest = s.substring(indexOfFirst);
+
+                finalList.add(new TabCompleterNode(base, parseString(rest.substring(1,rest.length() -1))));
             } else {
                 finalList.add(new TabCompleterNode(s, new ArrayList<TabCompleterNode>()));
             }
