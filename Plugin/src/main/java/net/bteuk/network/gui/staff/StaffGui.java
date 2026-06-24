@@ -38,7 +38,7 @@ public class StaffGui extends NetworkRefreshableGui {
             // Check if any location requests exist.
             // To make sure the string makes grammatical sense, we check if the number is 1, in this case we change 'are'
             // to 'is'.
-            int lRequestCount = provider.globalSQL().getInt("SELECT COUNT(location) FROM " + "location_requests");
+            int lRequestCount = provider.globalSQL().getInt("SELECT COUNT(location) FROM location_requests");
             Component lRequestString;
             if (lRequestCount == 1) {
                 lRequestString = Utils.line("There is currently ").append(Component.text(1, NamedTextColor.GRAY)).append(Utils.line(" location request."));

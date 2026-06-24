@@ -131,7 +131,7 @@ public class RegionInfo extends NetworkRefreshableGui {
                                 LocationAdapter.adapt(u.player.getLocation()));
 
                         // Switch server.
-                        provider.serverAPI().switchServer(PlayerAdapter.adapt(u.player), globalSQL.getString("SELECT name FROM server_data WHERE " + "type='EARTH'"));
+                        provider.serverAPI().switchServer(PlayerAdapter.adapt(u.player), globalSQL.getString("SELECT name FROM server_data WHERE type='EARTH';"));
                     }
                 });
 
@@ -189,8 +189,8 @@ public class RegionInfo extends NetworkRefreshableGui {
                             // Make sure this is done on the correct server.
                             // Create accept region event.
                             if (regionManager.hasRequests(region)) {
-                                globalSQL.update("INSERT INTO server_events(uuid,server,event) VALUES('" + u.player.getUniqueId() + "','" + globalSQL.getString(
-                                        "SELECT name FROM server_data WHERE type='EARTH';") + "','region request accept " + region.regionName() + "');");
+                                globalSQL.update("INSERT INTO server_events(uuid,server,event) VALUES(?,?,?);", u.player.getUniqueId().toString(), globalSQL.getString(
+                                        "SELECT name FROM server_data WHERE type='EARTH';"), "region request accept " + region.regionName());
                             }
 
                             u.player.sendMessage(ChatUtils.success("Region ").append(Component.text(regionManager.getTag(region, uuid), NamedTextColor.DARK_AQUA))

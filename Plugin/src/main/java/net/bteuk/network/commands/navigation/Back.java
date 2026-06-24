@@ -41,7 +41,7 @@ public class Back extends AbstractCommand {
         }
 
         // Get the coordinate ID.
-        int coordinateID = globalSQL.getInt("SELECT previous_coordinate FROM player_data " + "WHERE uuid='" + player.getUniqueId() + "';");
+        int coordinateID = globalSQL.getInt("SELECT previous_coordinate FROM player_data WHERE uuid=?;", player.getUniqueId().toString());
 
         // Check if the player has a previous coordinate.
         if (coordinateID == 0) {
@@ -51,7 +51,7 @@ public class Back extends AbstractCommand {
         }
 
         // Check if the server is this server.
-        String server = globalSQL.getString("SELECT server FROM coordinates WHERE id=" + coordinateID + ";");
+        String server = globalSQL.getString("SELECT server FROM coordinates WHERE id=?;", coordinateID);
         if (Objects.equals(constants.serverName(), server)) {
 
             // Get location.
@@ -68,12 +68,12 @@ public class Back extends AbstractCommand {
             // Teleport the player to the correct server with a join event to teleport to the coordinate id.
             // Create teleport event for location of coordinate id
             eventAPI.createTeleportEvent(true, player.getUniqueId().toString(),
-                    "teleport " + globalSQL.getString("SELECT world FROM coordinates WHERE id=" + coordinateID + ";") + " " + globalSQL.getDouble(
-                            "SELECT x FROM coordinates WHERE id=" + coordinateID + ";") + " " + globalSQL.getDouble(
-                            "SELECT y FROM coordinates WHERE id=" + coordinateID + ";") + " " + globalSQL.getDouble(
-                            "SELECT z FROM coordinates WHERE id=" + coordinateID + ";") + " " + globalSQL.getFloat(
-                            "SELECT yaw FROM coordinates WHERE id=" + coordinateID + ";") + " " + globalSQL.getFloat(
-                            "SELECT pitch FROM coordinates WHERE id=" + coordinateID + ";"), "&aTeleport to previous location.", LocationAdapter.adapt(player.getLocation()));
+                    "teleport " + globalSQL.getString("SELECT world FROM coordinates WHERE id=?;", coordinateID) + " " + globalSQL.getDouble(
+                            "SELECT x FROM coordinates WHERE id=?;", coordinateID) + " " + globalSQL.getDouble(
+                            "SELECT y FROM coordinates WHERE id=?;", coordinateID) + " " + globalSQL.getDouble(
+                            "SELECT z FROM coordinates WHERE id=?;", coordinateID) + " " + globalSQL.getFloat(
+                            "SELECT yaw FROM coordinates WHERE id=?;", coordinateID) + " " + globalSQL.getFloat(
+                            "SELECT pitch FROM coordinates WHERE id=?;", coordinateID), "&aTeleport to previous location.", LocationAdapter.adapt(player.getLocation()));
 
             // Switch server.
             serverAPI.switchServer(PlayerAdapter.adapt(player), server);

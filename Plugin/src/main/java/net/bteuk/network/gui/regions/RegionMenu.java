@@ -139,7 +139,7 @@ public class RegionMenu extends NetworkRefreshableGui {
         }
 
         // Check if you have any requests for regions you own.
-        if (regionSQL.hasRow("SELECT region FROM region_requests WHERE owner='" + user.player.getUniqueId() + "' AND " + "owner_accept=0;")) {
+        if (regionSQL.hasRow("SELECT region FROM region_requests WHERE owner=? AND owner_accept=0;", user.player.getUniqueId().toString())) {
 
             setItem(39, Utils.createItem(Material.LIME_STAINED_GLASS_PANE, 1, Utils.title("Review Region Requests"), Utils.line("View all region join requests for"),
                             Utils.line("regions that you are the owner of.")),
@@ -154,7 +154,7 @@ public class RegionMenu extends NetworkRefreshableGui {
         }
 
         // Check if the player has any active region requests.
-        if (regionSQL.hasRow("SELECT region FROM region_requests WHERE uuid='" + user.player.getUniqueId() + "';")) {
+        if (regionSQL.hasRow("SELECT region FROM region_requests WHERE uuid=?;", user.player.getUniqueId().toString())) {
 
             setItem(40, Utils.createItem(Material.ORANGE_STAINED_GLASS, 1, Utils.title("Region Requests"), Utils.line("View active regions requests"),
                             Utils.line("that you have made that have"), Utils.line("not yet been accepted.")),

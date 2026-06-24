@@ -89,7 +89,7 @@ public class RegionEvent implements Event {
                         // Send feedback to the user who accepted the request.
                         DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), uuid, "server",
                                 ChatUtils.success("Accepted region request for %s in the region %s.",
-                                        globalSQL.getString("SELECT name FROM player_data " + "WHERE uuid='" + event[4] + "';"), event[3]), true);
+                                        globalSQL.getString("SELECT name FROM player_data WHERE uuid=?;", event[4]), event[3]), true);
                         chatAPI.sendDirectMessage(directMessage);
                     }
                 } else if (event[2].equals("deny")) {
@@ -101,7 +101,7 @@ public class RegionEvent implements Event {
                     // Send feedback to the user who denied the request.
                     DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), uuid, "server",
                             ChatUtils.success("Denied region request for %s in the region %s.",
-                                    globalSQL.getString("SELECT name FROM player_data " + "WHERE uuid='" + event[4] + "';"), event[3]), true);
+                                    globalSQL.getString("SELECT name FROM player_data WHERE uuid=?;", event[4]), event[3]), true);
                     chatAPI.sendDirectMessage(directMessage);
                 }
             }

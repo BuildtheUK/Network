@@ -61,21 +61,21 @@ public class Warp extends AbstractCommand {
         String location = String.join(" ", Arrays.copyOfRange(args, 0, args.length));
 
         // Find a location.
-        if (globalSQL.hasRow("SELECT location FROM location_data WHERE location='" + location + "';")) {
+        if (globalSQL.hasRow("SELECT location FROM location_data WHERE location=?;", location)) {
 
             // Get coordinate id.
-            int coordinate_id = globalSQL.getInt("SELECT coordinate FROM location_data WHERE location='" + location + "';");
+            int coordinate_id = globalSQL.getInt("SELECT coordinate FROM location_data WHERE location=?;", location);
 
             // Get server, if server is not the current server,
             // teleport the player to the correct server with join event to teleport them to the location.
-            String server = globalSQL.getString("SELECT server FROM coordinates WHERE id=" + coordinate_id + ";");
+            String server = globalSQL.getString("SELECT server FROM coordinates WHERE id=?;", coordinate_id);
             NetworkLocation currentLocation = LocationAdapter.adapt(player.getLocation());
             if (server.equals(constants.serverName())) {
 
                 // Get location from coordinate id.
                 Location l = globalSQL.getLocation(coordinate_id);
 
-                String worldName = globalSQL.getString("SELECT world FROM coordinates WHERE id=" + coordinate_id + ";");
+                String worldName = globalSQL.getString("SELECT world FROM coordinates WHERE id=?;", coordinate_id);
 
                 // Check if world is in plotsystem.
                 if (plotAPI.hasLocation(worldName)) {

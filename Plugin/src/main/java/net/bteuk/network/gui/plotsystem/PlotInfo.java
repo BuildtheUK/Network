@@ -220,9 +220,8 @@ public class PlotInfo extends NetworkRefreshableGui {
                     u.player.closeInventory();
 
                     // Add server event to submit plot.
-                    globalSQL.update("INSERT INTO server_events(uuid,server,event) VALUES('" + u.player.getUniqueId() + "','" + plotSQL.getString(
-                            "SELECT server FROM location_data WHERE name='" + plotSQL.getString(
-                                    "SELECT location FROM plot_data WHERE id=" + plotID + ";") + "';") + "','submit plot " + plotID + "');");
+                    globalSQL.update("INSERT INTO server_events(uuid,server,event) VALUES(?,?,?);", u.player.getUniqueId().toString(), plotSQL.getString(
+                            "SELECT server FROM location_data WHERE name=(SELECT location FROM plot_data WHERE id=?);", plotID), "submit plot " + plotID);
                 });
             }
 
@@ -234,9 +233,8 @@ public class PlotInfo extends NetworkRefreshableGui {
                             u.player.closeInventory();
 
                             // Add server event to retract plot submission.
-                            globalSQL.update("INSERT INTO server_events(uuid,server,event) VALUES('" + u.player.getUniqueId() + "','" + plotSQL.getString(
-                                    "SELECT server FROM location_data WHERE name='" + plotSQL.getString(
-                                            "SELECT location FROM plot_data WHERE id=" + plotID + ";") + "';") + "','retract plot " + plotID + "');");
+                            globalSQL.update("INSERT INTO server_events(uuid,server,event) VALUES(?,?,?);", u.player.getUniqueId().toString(), plotSQL.getString(
+                                    "SELECT server FROM location_data WHERE name=(SELECT location FROM plot_data WHERE id=?);", plotID), "retract plot " + plotID);
                         });
             }
 
@@ -270,16 +268,15 @@ public class PlotInfo extends NetworkRefreshableGui {
                         }, 20L);
 
                         // Add server event to leave plot.
-                        globalSQL.update("INSERT INTO server_events(uuid,server,event) VALUES('" + u.player.getUniqueId() + "','" + plotSQL.getString(
-                                "SELECT server FROM location_data WHERE name='" + plotSQL.getString(
-                                        "SELECT location FROM plot_data WHERE id=" + plotID + ";") + "';") + "','leave plot " + plotID + "');");
+                        globalSQL.update("INSERT INTO server_events(uuid,server,event) VALUES(?,?,?);", u.player.getUniqueId().toString(), plotSQL.getString(
+                                "SELECT server FROM location_data WHERE name=(SELECT location FROM plot_data WHERE id=?);", plotID), "leave plot " + plotID);
                     });
         }
 
         // If this plot has feedback, add feedback for the plot owner and members (Slot 22)
         // As well as for reviewers (Slot 22 while submitted, reviewed or reviewing)
         if ((plotInfoType == PLOT_INFO_TYPE.CLAIMED_OWNER || plotInfoType == PLOT_INFO_TYPE.CLAIMED_MEMBER || plotInfoType == PLOT_INFO_TYPE.REVIEWING_REVIEWER || plotInfoType == PLOT_INFO_TYPE.SUBMITTED_REVIEWER || plotInfoType == PLOT_INFO_TYPE.REVIEWED_REVIEWER || plotInfoType == PLOT_INFO_TYPE.VERIFYING_REVIEWER) && plotSQL.hasRow(
-                "SELECT 1 FROM plot_review WHERE plot_id=" + plotID + " AND uuid='" + plot_owner + "' AND accepted=0 AND completed=1;")) {
+                "SELECT 1 FROM plot_review WHERE plot_id=? AND uuid=? AND accepted=0 AND completed=1;", plotID, plot_owner)) {
             setItem(getFeedbackSlot(plotInfoType), Utils.createItem(Material.WRITABLE_BOOK, 1, Utils.title("Plot Feedback"), Utils.line("Click to show feedback for this plot.")),
                     (NetworkUser u) -> {
 
@@ -293,11 +290,11 @@ public class PlotInfo extends NetworkRefreshableGui {
                     });
             // If the plot is accepted and has feedback show for the owner (Slot 21)
         } else if (plotInfoType == PLOT_INFO_TYPE.ACCEPTED_OWNER && plotSQL.hasRow(
-                "SELECT 1 FROM " + "plot_category_feedback WHERE review_id=( SELECT id FROM plot_review WHERE plot_id=" + plotID + " AND " + "accepted=1 AND completed=1 );")) {
+                "SELECT 1 FROM plot_category_feedback WHERE review_id=(SELECT id FROM plot_review WHERE plot_id=? AND accepted=1 AND completed=1);", plotID)) {
             setItem(getFeedbackSlot(plotInfoType), Utils.createItem(Material.WRITABLE_BOOK, 1, Utils.title("Plot Feedback"), Utils.line("Click to show feedback for this plot.")),
                     (NetworkUser u) -> {
                         int reviewId = plotSQL.getInt(
-                                "SELECT id FROM plot_review WHERE uuid='" + u.getUuid() + "' " + "AND plot_id=" + plotID + " AND accepted=1 AND completed=1;");
+                                "SELECT id FROM plot_review WHERE uuid=? AND plot_id=? AND accepted=1 AND completed=1;", u.getUuid(), plotID);
 
                         // Open the feedback book.
                         u.player.openBook(ReviewFeedback.createFeedbackBook(globalSQL, plotAPI, reviewId));

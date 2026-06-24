@@ -59,11 +59,11 @@ public class BuildGui extends NetworkRefreshableGui {
         if (constants.plotSystemEnabled()) {
             setItem(20, Utils.createItem(Material.ENDER_PEARL, 1, Utils.title("Random Plot"), Utils.line("Click teleport to a random claimable plot."),
                             Utils.line("Available plots of each difficulty:"), Utils.line("Easy: ")
-                                    .append(Component.text(plotSQL.getInt("SELECT count(id) " + "FROM plot_data WHERE status='unclaimed' AND difficulty=1;"), NamedTextColor.GRAY)),
+                                    .append(Component.text(plotSQL.getInt("SELECT count(id) FROM plot_data WHERE status='unclaimed' AND difficulty=1;"), NamedTextColor.GRAY)),
                             Utils.line("Normal: ")
-                                    .append(Component.text(plotSQL.getInt("SELECT count(id) " + "FROM plot_data WHERE status='unclaimed' AND difficulty=2;"), NamedTextColor.GRAY)),
+                                    .append(Component.text(plotSQL.getInt("SELECT count(id) FROM plot_data WHERE status='unclaimed' AND difficulty=2;"), NamedTextColor.GRAY)),
                             Utils.line("Hard: ")
-                                    .append(Component.text(plotSQL.getInt("SELECT count(id) " + "FROM plot_data WHERE status='unclaimed' AND difficulty=3;"),
+                                    .append(Component.text(plotSQL.getInt("SELECT count(id) FROM plot_data WHERE status='unclaimed' AND difficulty=3;"),
                                             NamedTextColor.GRAY))),
                     (NetworkUser u) -> {
 
@@ -72,37 +72,37 @@ public class BuildGui extends NetworkRefreshableGui {
                         if (u.player.hasPermission("uknet.plots.suggested.all")) {
 
                             // Select a random plot of any difficulty.
-                            id = plotSQL.getInt("SELECT id FROM plot_data WHERE " + "status='unclaimed' ORDER BY RAND() LIMIT 1;");
+                            id = plotSQL.getInt("SELECT id FROM plot_data WHERE status='unclaimed' ORDER BY RAND() LIMIT 1;");
                         } else if (u.player.hasPermission("uknet.plots.suggested.hard")) {
 
                             // Select a random plot of the hard difficulty.
                             // Since this is the next plot difficulty to get Builder.
-                            id = plotSQL.getInt("SELECT id FROM plot_data WHERE " + "status='unclaimed' AND difficulty=3 ORDER BY RAND() LIMIT 1;");
+                            id = plotSQL.getInt("SELECT id FROM plot_data WHERE status='unclaimed' AND difficulty=3 ORDER BY RAND() LIMIT 1;");
                         } else if (u.player.hasPermission("uknet.plots.suggested.normal")) {
 
                             // Select a random plot of the normal difficulty.
                             // Since this is the next plot difficulty to get Jr.Builder.
-                            id = plotSQL.getInt("SELECT id FROM plot_data WHERE " + "status='unclaimed' AND difficulty=2 ORDER BY RAND() LIMIT 1;");
+                            id = plotSQL.getInt("SELECT id FROM plot_data WHERE status='unclaimed' AND difficulty=2 ORDER BY RAND() LIMIT 1;");
                         } else if (u.player.hasPermission("uknet.plots.suggested.easy")) {
 
                             // Select a random plot of the easy difficulty.
                             // Since this is the next plot difficulty to get Apprentice.
-                            id = plotSQL.getInt("SELECT id FROM plot_data WHERE " + "status='unclaimed' AND difficulty=1 ORDER BY RAND() LIMIT 1;");
+                            id = plotSQL.getInt("SELECT id FROM plot_data WHERE status='unclaimed' AND difficulty=1 ORDER BY RAND() LIMIT 1;");
                         } else {
 
                             // Select a random plot of any difficulty.
-                            id = plotSQL.getInt("SELECT id FROM plot_data WHERE " + "status='unclaimed' ORDER BY RAND() LIMIT 1;");
+                            id = plotSQL.getInt("SELECT id FROM plot_data WHERE status='unclaimed' ORDER BY RAND() LIMIT 1;");
                         }
 
                         if (id == 0) {
 
-                            u.player.sendMessage(ChatUtils.error("There are no plots available, please wait for new plots" + " to be added."));
+                            u.player.sendMessage(ChatUtils.error("There are no plots available, please wait for new plots to be added."));
                             u.player.closeInventory();
                         } else {
 
                             // Get the server of the plot.
                             String server = plotSQL.getString(
-                                    "SELECT server FROM " + "location_data WHERE name='" + plotSQL.getString("SELECT location FROM plot_data WHERE " + "id=" + id + ";") + "';");
+                                    "SELECT server FROM location_data WHERE name=(SELECT location FROM plot_data WHERE id=?);", id);
 
                             // If the plot is on the current server teleport them directly.
                             // Else teleport them to the correct server and them teleport them to the plot.

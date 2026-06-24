@@ -4,7 +4,6 @@ import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.bteuk.network.Network;
 import net.bteuk.network.building_counter.Building;
 import net.bteuk.network.building_counter.ConfirmationListener;
-import net.bteuk.network.commands.tabcompleters.FixedArgSelector;
 import net.bteuk.network.commands.tabcompleters.TabCompleterTree;
 import net.bteuk.network.commands.tabcompleters.TreeTabCompleter;
 import net.bteuk.network.core.Constants;
@@ -18,7 +17,6 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
-import org.apache.maven.model.Build;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -517,7 +515,7 @@ public class Buildings extends AbstractCommand {
 
         if (b.isPublic() && b.playerBuilt()) {
             player.sendMessage(ChatUtils.success(String.format("Building ID: %d, Player: %s, Date Added: %s", b.buildingId(), playerName, formattedDate)));
-        } else if (b.isPublic() && !b.playerBuilt()) {
+        } else if (b.isPublic()) {
             player.sendMessage(ChatUtils.success(String.format("Building ID: %d, Unclaimed, Date Added: %s", b.buildingId(), formattedDate)));
         } else if (b.playerId().equals(player.getUniqueId().toString())) {
             player.sendMessage(ChatUtils.success(String.format("Building ID: %d, Player: %s, Date Added: %s", b.buildingId(), playerName, formattedDate)));

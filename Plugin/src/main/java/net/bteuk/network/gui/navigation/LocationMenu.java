@@ -123,10 +123,10 @@ public class LocationMenu extends NetworkRefreshableGui {
                         (NetworkUser u) -> {
 
                             // Get the coordinate id.
-                            int coordinate_id = globalSQL.getInt("SELECT coordinate FROM " + "location_data WHERE location='" + location.getKey() + "';");
+                            int coordinate_id = globalSQL.getInt("SELECT coordinate FROM location_data WHERE location=?;", location.getKey());
 
                             // Get the server of the location.
-                            String server = globalSQL.getString("SELECT server FROM " + "coordinates WHERE id=" + coordinate_id + ";");
+                            String server = globalSQL.getString("SELECT server FROM coordinates WHERE id=?;", coordinate_id);
 
                             // If the plot is on the current server teleport them directly.
                             // Else teleport them to the correct server and them teleport them to the plot.
@@ -138,15 +138,15 @@ public class LocationMenu extends NetworkRefreshableGui {
                                 // Get location from coordinate id.
                                 Location l = globalSQL.getLocation(coordinate_id);
 
-                                String worldName = globalSQL.getString("SELECT world FROM " + "coordinates WHERE id=" + coordinate_id + ";");
+                                String worldName = globalSQL.getString("SELECT world FROM coordinates WHERE id=?;", coordinate_id);
 
                                 // Check if world is in plotsystem.
-                                if (plotSQL.hasRow("SELECT name FROM location_data WHERE " + "name='" + worldName + "';")) {
+                                if (plotSQL.hasRow("SELECT name FROM location_data WHERE name=?;", worldName)) {
 
                                     // Add coordinate transformation.
                                     l = new Location(Bukkit.getWorld(worldName),
-                                            l.getX() + plotSQL.getInt("SELECT xTransform " + "FROM location_data WHERE name='" + worldName + "';"), l.getY(),
-                                            l.getZ() + plotSQL.getInt("SELECT zTransform " + "FROM location_data WHERE name='" + worldName + "';"), l.getYaw(), l.getPitch());
+                                            l.getX() + plotSQL.getInt("SELECT xTransform FROM location_data WHERE name=?;", worldName), l.getY(),
+                                            l.getZ() + plotSQL.getInt("SELECT zTransform FROM location_data WHERE name=?;", worldName), l.getYaw(), l.getPitch());
                                 }
 
                                 // Set the current location for /back
@@ -227,16 +227,16 @@ public class LocationMenu extends NetworkRefreshableGui {
 
             // Main categories (can include subcategories.
             case ENGLAND, SCOTLAND, WALES, NORTHERN_IRELAND, OTHER -> {
-                globalSQL.getStringList("SELECT name FROM location_subcategory WHERE " + "category='" + category + "' ORDER BY name ASC;")
+                globalSQL.getStringList("SELECT name FROM location_subcategory WHERE category=? ORDER BY name ASC;", category.toString())
                         .forEach(name -> locations.put(name, true));
-                globalSQL.getStringList("SELECT location FROM location_data WHERE " + "category='" + category + "' AND subcategory is null ORDER BY location ASC;")
+                globalSQL.getStringList("SELECT location FROM location_data WHERE category=? AND subcategory is null ORDER BY location ASC;", category.toString())
                         .forEach(name -> locations.put(name, false));
             }
             // Subcategory, can only include locations.
             case SUBCATEGORY -> {
                 // Get the subcategory id from the name.
-                int id = globalSQL.getInt("SELECT id FROM location_subcategory WHERE " + "name='" + extraInfo[0] + "';");
-                globalSQL.getStringList("SELECT location FROM location_data WHERE " + "subcategory=" + id + " ORDER BY location ASC;").forEach(name -> locations.put(name, false));
+                int id = globalSQL.getInt("SELECT id FROM location_subcategory WHERE name=?;", extraInfo[0]);
+                globalSQL.getStringList("SELECT location FROM location_data WHERE subcategory=? ORDER BY location ASC;", id).forEach(name -> locations.put(name, false));
             }
 
             // Suggested locations can only include locations.
@@ -271,13 +271,14 @@ public class LocationMenu extends NetworkRefreshableGui {
     private LinkedHashSet<String> searchLocations() {
 
         // The search query is the first argument of the extra info.
+        String query = "%" + extraInfo[0] + "%";
 
         // Search for locations that include the phrase.
-        ArrayList<String> locations = globalSQL.getStringList("SELECT location FROM " + "location_data WHERE location LIKE '%" + extraInfo[0] + "%';");
+        ArrayList<String> locations = globalSQL.getStringList("SELECT location FROM location_data WHERE location LIKE ?;", query);
 
         // Also search for any categories or subcategories.
-        locations.addAll(globalSQL.getStringList("SELECT location FROM location_data WHERE" + " category LIKE '%" + extraInfo[0] + "%';"));
-        locations.addAll(globalSQL.getStringList("SELECT location FROM location_data WHERE" + " subcategory LIKE '%" + extraInfo[0] + "%';"));
+        locations.addAll(globalSQL.getStringList("SELECT location FROM location_data WHERE category LIKE ?;", query));
+        locations.addAll(globalSQL.getStringList("SELECT location FROM location_data WHERE subcategory LIKE ?;", query));
 
         locations.sort(Comparator.naturalOrder());
 

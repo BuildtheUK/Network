@@ -26,23 +26,23 @@ public class PlotAPIImpl implements PlotAPI {
     @Override
     public void resetPlotSubmissions(String serverName) {
         plotSQL.update(
-                "UPDATE plot_submission AS ps INNER JOIN plot_data AS pd ON ps.plot_id=pd.id SET ps.status='submitted' WHERE ps.status='under review' AND pd.location IN (SELECT " +
-                        "name FROM location_data WHERE server='" + serverName + "');");
+                "UPDATE plot_submission AS ps INNER JOIN plot_data AS pd ON ps.plot_id=pd.id SET ps.status='submitted' WHERE ps.status='under review' AND pd.location IN (SELECT name FROM location_data WHERE server=?);",
+                serverName);
         plotSQL.update(
-                "UPDATE plot_submission AS ps INNER JOIN plot_data AS pd ON ps.plot_id=pd.id SET ps.status='awaiting verification' WHERE ps.status='under verification' AND pd" +
-                        ".location IN (SELECT name FROM location_data WHERE server='" + serverName + "');");
+                "UPDATE plot_submission AS ps INNER JOIN plot_data AS pd ON ps.plot_id=pd.id SET ps.status='awaiting verification' WHERE ps.status='under verification' AND pd.location IN (SELECT name FROM location_data WHERE server=?);",
+                serverName);
     }
 
     @Override
     public List<Integer> getActivePlots(String serverName) {
         return plotSQL.getIntList(
-                "SELECT pd.id FROM plot_data AS pd INNER JOIN location_data AS ld ON ld.name=pd.location WHERE pd.status IN ('unclaimed','claimed','submitted') AND " + "ld" +
-                        ".server='" + serverName + "';");
+                "SELECT pd.id FROM plot_data AS pd INNER JOIN location_data AS ld ON ld.name=pd.location WHERE pd.status IN ('unclaimed','claimed','submitted') AND ld.server=?;",
+                serverName);
     }
 
     @Override
     public List<Integer> getActivePlotsForLocation(String location) {
-        return plotSQL.getIntList("SELECT pd.id FROM plot_data AS pd WHERE pd.location='" + location + "' AND pd.status IN ('unclaimed','claimed','submitted');");
+        return plotSQL.getIntList("SELECT pd.id FROM plot_data AS pd WHERE pd.location=? AND pd.status IN ('unclaimed','claimed','submitted');", location);
     }
 
     @Override
@@ -62,7 +62,7 @@ public class PlotAPIImpl implements PlotAPI {
 
     @Override
     public String getLocationAlias(String locationName) {
-        return plotSQL.getString("SELECT alias FROM location_data WHERE name='" + locationName + "';");
+        return plotSQL.getString("SELECT alias FROM location_data WHERE name=?;", locationName);
     }
 
     @Override

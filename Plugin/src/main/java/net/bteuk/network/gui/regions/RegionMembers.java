@@ -123,7 +123,7 @@ public class RegionMembers extends NetworkRefreshableGui {
             if (transfer) {
 
                 setItem(slot, Utils.createPlayerSkull(uuid, 1,
-                        Utils.title("Make " + globalSQL.getString("SELECT name FROM player_data WHERE uuid='" + uuid + "';") + " the region " + "owner."),
+                        Utils.title("Make " + globalSQL.getString("SELECT name FROM player_data WHERE uuid=?;", uuid) + " the region owner."),
                         Utils.line("Most recently in this region at " + Time.getDateTime(regionManager.lastActive(region, uuid))),
                         Utils.line("You will be demoted to region member.")), (NetworkUser u) ->
 
@@ -140,7 +140,7 @@ public class RegionMembers extends NetworkRefreshableGui {
 
                     // Send message to user.
                     u.player.sendMessage(ChatUtils.success("Transferred ownership of the region to ")
-                            .append(Component.text(globalSQL.getString("SELECT name FROM player_data WHERE " + "uuid ='" + regionManager.getOwner(region) + "';"),
+                            .append(Component.text(globalSQL.getString("SELECT name FROM player_data WHERE uuid=?;", regionManager.getOwner(region)),
                                     NamedTextColor.DARK_AQUA)));
 
                     // Send message to new owner.
@@ -158,7 +158,7 @@ public class RegionMembers extends NetworkRefreshableGui {
             } else {
 
                 setItem(slot, Utils.createPlayerSkull(uuid, 1,
-                        Utils.title("Kick " + globalSQL.getString("SELECT name FROM player_data WHERE uuid='" + uuid + "';") + " from the " + "region."),
+                        Utils.title("Kick " + globalSQL.getString("SELECT name FROM player_data WHERE uuid=?;", uuid) + " from the region."),
                         Utils.line("Most recently in this region at: ").append(Component.text(Time.getDateTime(regionManager.lastActive(region, uuid))))), (NetworkUser u) ->
 
                 {
@@ -166,7 +166,7 @@ public class RegionMembers extends NetworkRefreshableGui {
                     regionManager.leaveRegion(region, uuid, ChatUtils.error("You have been kicked from region %s", regionManager.getTag(region, uuid)));
 
                     // Send message to user.
-                    u.player.sendMessage(ChatUtils.success("Kicked %s from the region", globalSQL.getString("SELECT name FROM player_data WHERE uuid ='" + uuid + "';")));
+                    u.player.sendMessage(ChatUtils.success("Kicked %s from the region", globalSQL.getString("SELECT name FROM player_data WHERE uuid=?;", uuid)));
 
                     // Refresh the gui.
                     // Delay this action so the user can be kicked, even if on another server.
