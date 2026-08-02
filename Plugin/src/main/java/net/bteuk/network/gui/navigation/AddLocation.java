@@ -12,8 +12,6 @@ import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.gui.staff.LocationRequests;
 import net.bteuk.network.gui.staff.StaffGui;
-import net.bteuk.network.lib.dto.ChatMessage;
-import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.papercore.LocationAdapter;
 import net.bteuk.network.papercore.PlayerAdapter;
 import net.bteuk.network.sql.GlobalSQL;
@@ -24,12 +22,14 @@ import net.bteuk.network.utils.enums.Category;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.btuk.network.lib.dto.ChatMessage;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.Location;
 import org.bukkit.Material;
 
 import java.util.Arrays;
 
-import static net.bteuk.network.lib.enums.ChatChannels.REVIEWER;
+import static org.btuk.network.lib.enums.ChatChannels.REVIEWER;
 
 public class AddLocation extends NetworkRefreshableGui {
 

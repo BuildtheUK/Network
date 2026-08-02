@@ -9,9 +9,9 @@ import net.bteuk.network.Network;
 import net.bteuk.network.api.ServerAPI;
 import net.bteuk.network.api.entity.NetworkPlayer;
 import net.bteuk.network.core.Constants;
-import net.bteuk.network.lib.dto.SwitchServerEvent;
-import net.bteuk.network.lib.dto.UserDisconnect;
-import net.bteuk.network.lib.utils.ChatUtils;
+import org.btuk.network.lib.dto.SwitchServerEvent;
+import org.btuk.network.lib.dto.UserDisconnect;
+import org.btuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.socket.MessageSender;
 import org.bukkit.entity.Player;
 

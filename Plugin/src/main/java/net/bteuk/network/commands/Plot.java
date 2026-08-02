@@ -8,7 +8,7 @@ import net.bteuk.network.commands.tabcompleters.FixedArgSelector;
 import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.plotsystem.PlotInfo;
 import net.bteuk.network.gui.plotsystem.PlotMenu;
-import net.bteuk.network.lib.utils.ChatUtils;
+import org.btuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
 import org.bukkit.entity.Player;

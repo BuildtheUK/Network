@@ -1,9 +1,9 @@
 package net.bteuk.network.commands;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
-import net.bteuk.network.lib.dto.ReplyMessage;
-import net.bteuk.network.lib.enums.ChatChannels;
-import net.bteuk.network.lib.utils.ChatUtils;
+import org.btuk.network.lib.dto.ReplyMessage;
+import org.btuk.network.lib.enums.ChatChannels;
+import org.btuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.socket.MessageSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;

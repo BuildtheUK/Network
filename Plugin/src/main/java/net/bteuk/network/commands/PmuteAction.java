@@ -3,7 +3,7 @@ package net.bteuk.network.commands;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.bteuk.network.Network;
 import net.bteuk.network.commands.tabcompleters.PlayerSelector;
-import net.bteuk.network.lib.dto.MuteEvent;
+import org.btuk.network.lib.dto.MuteEvent;
 import net.bteuk.network.socket.MessageSender;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;

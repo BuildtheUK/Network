@@ -2,8 +2,8 @@ package net.bteuk.network.socket;
 
 import lombok.extern.java.Log;
 import net.bteuk.network.core.Constants;
-import net.bteuk.network.lib.dto.AbstractTransferObject;
-import net.bteuk.network.lib.socket.OutputSocket;
+import org.btuk.network.lib.dto.AbstractTransferObject;
+import org.btuk.network.lib.socket.OutputSocket;
 import org.btuk.proxy.core.socket.ProxySocketHandler;
 
 import java.util.function.Consumer;

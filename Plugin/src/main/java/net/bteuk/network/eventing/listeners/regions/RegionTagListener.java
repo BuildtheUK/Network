@@ -4,7 +4,7 @@ import io.papermc.paper.event.player.AsyncChatEvent;
 import net.bteuk.network.Network;
 import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.regions.RegionInfo;
-import net.bteuk.network.lib.utils.ChatUtils;
+import org.btuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.regions.Region;
 import net.bteuk.network.regions.RegionManager;
 import net.bteuk.network.utils.NetworkUser;

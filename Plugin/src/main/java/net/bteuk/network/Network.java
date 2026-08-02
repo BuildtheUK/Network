@@ -82,11 +82,6 @@ import net.bteuk.network.eventing.listeners.NetworkMoveListener;
 import net.bteuk.network.eventing.listeners.NetworkTeleportListener;
 import net.bteuk.network.eventing.listeners.PlayerInteract;
 import net.bteuk.network.eventing.listeners.PreJoinServer;
-import net.bteuk.network.lib.dto.OnlineUser;
-import net.bteuk.network.lib.dto.OnlineUserAdd;
-import net.bteuk.network.lib.dto.OnlineUserRemove;
-import net.bteuk.network.lib.dto.OnlineUsersReply;
-import net.bteuk.network.lib.dto.ServerStartup;
 import net.bteuk.network.lobby.Lobby;
 import net.bteuk.network.lobby.LobbyCommand;
 import net.bteuk.network.logging.BukkitForwardingHandler;
@@ -115,7 +110,12 @@ import net.bteuk.teachingtutorials.services.PromotionService;
 import net.buildtheearth.terraminusminus.TerraConfig;
 import org.btuk.minecraft.gui.GuiListener;
 import org.btuk.minecraft.gui.GuiManager;
-import org.btuk.proxy.core.ProxyController;
+import org.btuk.network.lib.dto.OnlineUser;
+import org.btuk.network.lib.dto.OnlineUserAdd;
+import org.btuk.network.lib.dto.OnlineUserRemove;
+import org.btuk.network.lib.dto.OnlineUsersReply;
+import org.btuk.network.lib.dto.ServerStartup;
+import org.btuk.proxy.app.ProxyController;
 import org.btuk.proxy.core.socket.ProxySocketHandler;
 import org.btuk.proxy.database.DatabaseInit;
 import org.bukkit.Material;
@@ -132,13 +132,17 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @Log
 public final class Network extends JavaPlugin implements NetworkAPI {
@@ -158,9 +162,9 @@ public final class Network extends JavaPlugin implements NetworkAPI {
     private RegionManager regionManager;
     // List of users connected to the network.
     @Getter
-    private HashSet<OnlineUser> onlineUsers;
-    // Server User List
-    private ArrayList<NetworkUser> networkUsers;
+    private Map<UUID, OnlineUser> onlineUsers;
+
+    private Map<UUID, NetworkUser> networkUsers;
     // SQL
     private PlotSQL plotSQL;
 
@@ -316,8 +320,8 @@ public final class Network extends JavaPlugin implements NetworkAPI {
     public void enablePlugin() {
 
         // Create the user lists.
-        networkUsers = new ArrayList<>();
-        onlineUsers = new HashSet<>();
+        networkUsers = new HashMap<UUID, NetworkUser>();
+        onlineUsers = new HashMap<UUID, OnlineUser>();
 
         // Set up the message sender.
         MessageSender messageSender = new MessageSender(constants);
@@ -601,27 +605,24 @@ public final class Network extends JavaPlugin implements NetworkAPI {
             chat.onDisable();
         }
 
-        if (getUsers() != null) {
-            for (NetworkUser u : getUsers()) {
+        for (NetworkUser u : getUsers()) {
+            String uuid = u.player.getUniqueId().toString();
 
-                String uuid = u.player.getUniqueId().toString();
+            // Remove any outstanding invites that this player has sent.
+            plotSQL.update("DELETE FROM plot_invites WHERE owner='" + uuid + "';");
+            plotSQL.update("DELETE FROM zone_invites WHERE owner='" + uuid + "';");
 
-                // Remove any outstanding invites that this player has sent.
-                plotSQL.update("DELETE FROM plot_invites WHERE owner='" + uuid + "';");
-                plotSQL.update("DELETE FROM zone_invites WHERE owner='" + uuid + "';");
+            // Remove any outstanding invites that this player has received.
+            plotSQL.update("DELETE FROM plot_invites WHERE uuid='" + uuid + "';");
+            plotSQL.update("DELETE FROM zone_invites WHERE uuid='" + uuid + "';");
 
-                // Remove any outstanding invites that this player has received.
-                plotSQL.update("DELETE FROM plot_invites WHERE uuid='" + uuid + "';");
-                plotSQL.update("DELETE FROM zone_invites WHERE uuid='" + uuid + "';");
+            // Set last_online time in playerdata.
+            globalSQL.update("UPDATE player_data SET last_online=" + Time.currentTime() + " WHERE " + "UUID='" + uuid + "';");
 
-                // Set last_online time in playerdata.
-                globalSQL.update("UPDATE player_data SET last_online=" + Time.currentTime() + " WHERE " + "UUID='" + uuid + "';");
-
-                // Reset last logged time.
-                if (u.isAfk()) {
-                    u.last_movement = Time.currentTime();
-                    u.setAfk(false);
-                }
+            // Reset last logged time.
+            if (u.isAfk()) {
+                u.last_movement = Time.currentTime();
+                u.setAfk(false);
             }
         }
 
@@ -631,53 +632,48 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         }
     }
 
-    // Get user from player.
     public @Nullable NetworkUser getUser(Player p) {
-        return networkUsers.stream().filter((NetworkUser user) -> user.player.equals(p)).findFirst().orElse(null);
+        return networkUsers.get(p.getUniqueId());
     }
 
     public Optional<NetworkUser> getNetworkUserByUuid(String uuid) {
-        return networkUsers.stream().filter((NetworkUser user) -> user.player.getUniqueId().toString().equals(uuid)).findFirst();
+        return Optional.ofNullable(networkUsers.get(UUID.fromString(uuid)));
     }
 
-    // Get users.
-    public ArrayList<NetworkUser> getUsers() {
-        return networkUsers;
+    public Collection<NetworkUser> getUsers() {
+        return networkUsers.values();
     }
 
-    // Add user to list.
     public void addUser(NetworkUser u) {
-
-        networkUsers.add(u);
+        networkUsers.put(u.player.getUniqueId(), u);
     }
 
     public void removeUser(NetworkUser u) {
-        networkUsers.remove(u);
+        networkUsers.remove(u.player.getUniqueId());
     }
 
     public void handleOnlineUsersReply(OnlineUsersReply onlineUsersReply) {
-        onlineUsers.addAll(onlineUsersReply.getOnlineUsers());
+        onlineUsers.putAll(onlineUsersReply.getOnlineUsers().stream().collect(Collectors.toMap(onlineUser -> UUID.fromString(onlineUser.getUuid()), onlineUser -> onlineUser)));
     }
 
     public void handleOnlineUserAdd(OnlineUserAdd onlineUserAdd) {
-        onlineUsers.remove(onlineUserAdd.getUser());
-        onlineUsers.add(onlineUserAdd.getUser());
+        onlineUsers.put(UUID.fromString(onlineUserAdd.getUser().getUuid()), onlineUserAdd.getUser());
     }
 
     public void handleOnlineUserRemove(OnlineUserRemove onlineUserRemove) {
-        onlineUsers.stream().filter(onlineUser -> onlineUser.getUuid().equals(onlineUserRemove.getUuid())).findFirst().ifPresent(onlineUser -> onlineUsers.remove(onlineUser));
+        onlineUsers.remove(UUID.fromString(onlineUserRemove.getUuid()));
     }
 
     public boolean isOnlineOnNetwork(String uuid) {
-        return onlineUsers.stream().anyMatch(onlineUser -> onlineUser.getUuid().equals(uuid));
+        return onlineUsers.containsKey(UUID.fromString(uuid));
     }
 
     public Optional<OnlineUser> getOnlineUserByUuid(String uuid) {
-        return onlineUsers.stream().filter(onlineUser -> onlineUser.getUuid().equals(uuid)).findFirst();
+        return Optional.ofNullable(onlineUsers.get(UUID.fromString(uuid)));
     }
 
     public Optional<OnlineUser> getOnlineUserByNameIgnoreCase(String name) {
-        return onlineUsers.stream().filter(onlineUser -> onlineUser.getName().equalsIgnoreCase(name)).findFirst();
+        return onlineUsers.values().stream().filter(onlineUser -> onlineUser.getName().equalsIgnoreCase(name)).findFirst();
     }
 
     public PlotAPI getPlotAPI() {

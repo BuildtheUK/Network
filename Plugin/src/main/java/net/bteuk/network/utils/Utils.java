@@ -3,7 +3,7 @@ package net.bteuk.network.utils;
 import com.destroystokyo.paper.profile.PlayerProfile;
 import net.bteuk.network.Network;
 import net.bteuk.network.core.Constants;
-import net.bteuk.network.lib.utils.ChatUtils;
+import org.btuk.network.lib.utils.ChatUtils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;

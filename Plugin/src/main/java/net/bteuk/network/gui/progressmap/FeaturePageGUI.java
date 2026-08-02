@@ -7,7 +7,7 @@
 // import net.bteuk.network.eventing.listeners.progressmap.FeaturePropertiesBookListener;
 // import net.bteuk.network.gui.GuiProvider;
 // import net.bteuk.network.gui.NetworkRefreshableGui;
-// import net.bteuk.network.lib.utils.ChatUtils;
+// import org.btuk.network.lib.utils.ChatUtils;
 // import net.bteuk.network.utils.NetworkUser;
 // import net.bteuk.network.utils.Utils;
 // import net.kyori.adventure.text.Component;

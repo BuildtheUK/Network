@@ -88,7 +88,7 @@
                                 </filter>
 
                                 <filter>
-                                    <artifact>com.github.BTEUK:NetworkLib</artifact>
+                                    <artifact>com.github.BuildtheUK:NetworkLib</artifact>
                                     <excludes>
                                         <exclude>com/google/gson/**</exclude>
                                         <exclude>net/kyori/**</exclude>
@@ -165,6 +165,10 @@
             <artifactId>Minecraft</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.github.BuildtheUK.Proxy</groupId>
+            <artifactId>app</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.github.BuildtheUK.Proxy</groupId>
             <artifactId>core</artifactId>
@@ -244,7 +248,7 @@
         </dependency>
 
         <dependency>
-            <groupId>com.github.BTEUK</groupId>
+            <groupId>com.github.BuildtheUK</groupId>
             <artifactId>NetworkLib</artifactId>
         </dependency>
         <dependency>

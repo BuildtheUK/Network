@@ -2,7 +2,7 @@ package net.bteuk.network.commands;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import lombok.extern.java.Log;
-import net.bteuk.network.lib.utils.ChatUtils;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;

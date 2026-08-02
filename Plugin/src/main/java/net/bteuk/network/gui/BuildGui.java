@@ -13,7 +13,6 @@ import net.bteuk.network.gui.plotsystem.PlotsystemLocations;
 import net.bteuk.network.gui.plotsystem.ZoneMenu;
 import net.bteuk.network.gui.regions.RegionInfo;
 import net.bteuk.network.gui.regions.RegionMenu;
-import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.papercore.LocationAdapter;
 import net.bteuk.network.papercore.PlayerAdapter;
 import net.bteuk.network.regions.Region;
@@ -26,6 +25,7 @@ import net.bteuk.network.utils.Utils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.Material;
 
 import java.util.Optional;

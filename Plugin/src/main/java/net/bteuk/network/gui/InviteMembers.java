@@ -3,8 +3,6 @@ package net.bteuk.network.gui;
 import net.bteuk.network.gui.plotsystem.PlotInfo;
 import net.bteuk.network.gui.plotsystem.ZoneInfo;
 import net.bteuk.network.gui.regions.RegionInfo;
-import net.bteuk.network.lib.dto.OnlineUser;
-import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.regions.Region;
 import net.bteuk.network.regions.RegionType;
 import net.bteuk.network.regions.sql.RegionSQL;
@@ -15,6 +13,8 @@ import net.bteuk.network.utils.Utils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.btuk.network.lib.dto.OnlineUser;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.Material;
 
 import java.util.List;
@@ -47,7 +47,7 @@ public class InviteMembers extends NetworkRefreshableGui {
     protected void createGui() {
 
         // Get all online players in the network.
-        List<String> online_users = provider.instance().getOnlineUsers().stream().map(OnlineUser::getUuid).toList();
+        List<String> online_users = provider.instance().getOnlineUsers().values().stream().map(OnlineUser::getUuid).toList();
 
         // Slot count.
         int slot = 10;

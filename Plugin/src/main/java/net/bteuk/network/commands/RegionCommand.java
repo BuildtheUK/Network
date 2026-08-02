@@ -4,7 +4,7 @@ import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.bteuk.network.Network;
 import net.bteuk.network.api.EventAPI;
 import net.bteuk.network.core.Constants;
-import net.bteuk.network.lib.utils.ChatUtils;
+import org.btuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.regions.Region;
 import net.bteuk.network.regions.RegionManager;
 import net.kyori.adventure.text.Component;

@@ -3,10 +3,10 @@ package net.bteuk.network.utils;
 import net.bteuk.network.core.Time;
 import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.NetworkRefreshableGui;
-import net.bteuk.network.lib.utils.ChatUtils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.Material;
 
 import java.util.Arrays;

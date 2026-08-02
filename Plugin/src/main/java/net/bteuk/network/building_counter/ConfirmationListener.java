@@ -2,7 +2,7 @@ package net.bteuk.network.building_counter;
 
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.bteuk.network.commands.Buildings;
-import net.bteuk.network.lib.utils.ChatUtils;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;

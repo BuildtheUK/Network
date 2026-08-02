@@ -6,7 +6,7 @@ import net.bteuk.network.api.PlotAPI;
 import net.bteuk.network.api.SQLAPI;
 import net.bteuk.network.api.ServerAPI;
 import net.bteuk.network.core.Constants;
-import net.bteuk.network.lib.utils.ChatUtils;
+import org.btuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.papercore.PlayerAdapter;
 import net.bteuk.network.regions.Region;
 import net.bteuk.network.regions.RegionManager;

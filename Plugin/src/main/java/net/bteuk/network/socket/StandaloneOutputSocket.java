@@ -1,8 +1,8 @@
 package net.bteuk.network.socket;
 
-import net.bteuk.network.lib.dto.AbstractTransferObject;
-import net.bteuk.network.lib.socket.OutputSocket;
-import net.bteuk.network.lib.socket.SocketHandler;
+import org.btuk.network.lib.dto.AbstractTransferObject;
+import org.btuk.network.lib.socket.OutputSocket;
+import org.btuk.network.lib.socket.SocketHandler;
 
 public class StandaloneOutputSocket extends OutputSocket {
 

@@ -1,7 +1,7 @@
 package net.bteuk.network.survey;
 
 import lombok.Getter;
-import net.bteuk.network.lib.utils.ChatUtils;
+import org.btuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.utils.NetworkUser;
 import net.kyori.adventure.inventory.Book;

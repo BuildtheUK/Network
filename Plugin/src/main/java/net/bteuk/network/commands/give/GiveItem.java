@@ -4,9 +4,9 @@ import io.papermc.paper.command.brigadier.CommandSourceStack;
 import lombok.extern.java.Log;
 import net.bteuk.network.Network;
 import net.bteuk.network.commands.AbstractCommand;
-import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 

@@ -2,7 +2,6 @@ package net.bteuk.network.gui.navigation;
 
 import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.NetworkRefreshableGui;
-import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.papercore.LocationAdapter;
 import net.bteuk.network.papercore.PlayerAdapter;
 import net.bteuk.network.sql.GlobalSQL;
@@ -13,6 +12,7 @@ import net.bteuk.network.utils.enums.Category;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;

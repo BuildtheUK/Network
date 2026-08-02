@@ -3,7 +3,7 @@ package net.bteuk.network.gui.staff;
 import net.bteuk.network.api.plotsystem.SubmittedPlot;
 import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.NetworkMultiPageGui;
-import net.bteuk.network.lib.utils.ChatUtils;
+import org.btuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.papercore.PlayerAdapter;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;

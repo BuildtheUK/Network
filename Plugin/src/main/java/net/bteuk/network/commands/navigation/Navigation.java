@@ -7,13 +7,13 @@ import net.bteuk.network.commands.AbstractCommand;
 import net.bteuk.network.commands.tabcompleters.NavigationTabCompleter;
 import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.navigation.AddLocation;
-import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.enums.AddLocationType;
 import net.bteuk.network.utils.enums.Category;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 

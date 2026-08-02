@@ -6,10 +6,10 @@ import net.bteuk.network.building_counter.Building;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.Time;
 import net.bteuk.network.core.sql.AbstractSQL;
-import net.bteuk.network.lib.dto.DirectMessage;
 import net.bteuk.network.survey.Survey;
 import net.bteuk.network.utils.Coordinate;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import org.btuk.network.lib.dto.DirectMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 

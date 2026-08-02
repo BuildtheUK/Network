@@ -6,13 +6,13 @@ import net.bteuk.network.core.Time;
 import net.bteuk.network.eventing.listeners.staff.ModerationReasonListener;
 import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.NetworkRefreshableGui;
-import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
 import net.bteuk.network.utils.enums.ModerationType;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.Material;
 
 import java.util.Locale;

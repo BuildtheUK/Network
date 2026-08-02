@@ -1,8 +1,8 @@
 package net.bteuk.network.lobby;
 
 import net.bteuk.network.Network;
-import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.NetworkUser;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;

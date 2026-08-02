@@ -2,7 +2,7 @@ package net.bteuk.network.api.plotsystem;
 
 import net.bteuk.network.api.PlotAPI;
 import net.bteuk.network.api.SQLAPI;
-import net.bteuk.network.lib.utils.ChatUtils;
+import org.btuk.network.lib.utils.ChatUtils;
 import net.kyori.adventure.inventory.Book;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;

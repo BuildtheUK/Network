@@ -9,7 +9,7 @@ import net.bteuk.network.api.entity.NetworkLocation;
 import net.bteuk.network.commands.AbstractCommand;
 import net.bteuk.network.commands.tabcompleters.LocationSelector;
 import net.bteuk.network.core.Constants;
-import net.bteuk.network.lib.utils.ChatUtils;
+import org.btuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.papercore.LocationAdapter;
 import net.bteuk.network.papercore.PlayerAdapter;
 import net.bteuk.network.sql.GlobalSQL;

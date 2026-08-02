@@ -3,7 +3,7 @@ package net.bteuk.network.gui.staff;
 import net.bteuk.network.core.Time;
 import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.NetworkRefreshableGui;
-import net.bteuk.network.lib.dto.OnlineUser;
+import org.btuk.network.lib.dto.OnlineUser;
 import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
@@ -40,7 +40,7 @@ public class SelectUser extends NetworkRefreshableGui {
 
             case BAN, MUTE, KICK ->
                 // Get online users.
-                    users = provider.instance().getOnlineUsers().stream().map(OnlineUser::getUuid).toList();
+                    users = provider.instance().getOnlineUsers().values().stream().map(OnlineUser::getUuid).toList();
             case UNBAN ->
                 // Get banned users.
                     users = globalSQL.getStringList("SELECT uuid FROM moderation WHERE end_time>" + Time.currentTime() + " AND type='ban'");

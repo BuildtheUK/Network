@@ -4,13 +4,13 @@ import lombok.extern.java.Log;
 import net.bteuk.network.Network;
 import net.bteuk.network.api.RoleAPI;
 import net.bteuk.network.api.entity.Role;
-import net.bteuk.network.lib.dto.ChatMessage;
-import net.bteuk.network.lib.dto.DirectMessage;
-import net.bteuk.network.lib.dto.DiscordRole;
-import net.bteuk.network.lib.dto.TabPlayer;
-import net.bteuk.network.lib.dto.UserUpdate;
-import net.bteuk.network.lib.enums.ChatChannels;
-import net.bteuk.network.lib.utils.ChatUtils;
+import org.btuk.network.lib.dto.ChatMessage;
+import org.btuk.network.lib.dto.DirectMessage;
+import org.btuk.network.lib.dto.DiscordRole;
+import org.btuk.network.lib.dto.TabPlayer;
+import org.btuk.network.lib.dto.UserUpdate;
+import org.btuk.network.lib.enums.ChatChannels;
+import org.btuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.socket.MessageSender;
 import net.bteuk.network.sql.PlotSQL;
 import net.kyori.adventure.text.Component;
@@ -31,7 +31,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static net.bteuk.network.lib.enums.ChatChannels.GLOBAL;
+import static org.btuk.network.lib.enums.ChatChannels.GLOBAL;
 
 @Log
 public final class Roles implements RoleAPI {

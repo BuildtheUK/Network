@@ -2,7 +2,6 @@ package net.bteuk.network.gui.staff;
 
 import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.NetworkRefreshableGui;
-import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.regions.Region;
 import net.bteuk.network.regions.RegionManager;
 import net.bteuk.network.regions.RegionStatus;
@@ -11,6 +10,7 @@ import net.bteuk.network.utils.Utils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.Material;
 
 public class ManageRegion extends NetworkRefreshableGui {
