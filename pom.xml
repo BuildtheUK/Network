@@ -24,7 +24,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <paper.api.version>1.21.10-R0.1-SNAPSHOT</paper.api.version>
+        <paper.api.version>[26.2.build,)</paper.api.version>
 
         <btuk.proxy.version>d80e385b58</btuk.proxy.version>
         <btuk.lib.version>main-36b0421e66-1</btuk.lib.version>
