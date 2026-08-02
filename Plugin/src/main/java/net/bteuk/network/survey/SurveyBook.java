@@ -1,7 +1,6 @@
 package net.bteuk.network.survey;
 
 import lombok.Getter;
-import org.btuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.utils.NetworkUser;
 import net.kyori.adventure.inventory.Book;
@@ -10,7 +9,9 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.btuk.network.lib.utils.ChatUtils;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -106,7 +107,7 @@ public class SurveyBook {
         page1 = page1.appendNewline();
         page1 = appendPageChangeOption(page1, false, true, 1);
 
-        this.books[0] = Book.book(Component.text(""), ChatUtils.line(user.player.getName()), page1);
+        this.books[0] = Book.book(Component.text(""), ChatUtils.line(user.player.getName()), Collections.singleton(page1));
 
         // Page 2 Question 1 answers
         Component page2 = Component.empty();
@@ -121,7 +122,7 @@ public class SurveyBook {
         page2 = appendOptionYesNo("From a Friend", page2, SurveyAnswerOption.Q1_FRIEND, survey.bFoundViaFriend, !survey.bFoundViaFriend);
         page2 = appendPageChangeOption(page2, true, true, 2);
 
-        this.books[1] = Book.book(Component.text(""), ChatUtils.line(user.player.getName()), page2);
+        this.books[1] = Book.book(Component.text(""), ChatUtils.line(user.player.getName()), Collections.singleton(page2));
 
         // Page 3 Question 2 - Which medium
         Component page3 = Component.empty();
@@ -140,7 +141,7 @@ public class SurveyBook {
         page3 = page3.appendNewline();
         page3 = appendPageChangeOption(page3, true, true, 3);
 
-        this.books[2] = Book.book(Component.text(""), ChatUtils.line(user.player.getName()), page3);
+        this.books[2] = Book.book(Component.text(""), ChatUtils.line(user.player.getName()), Collections.singleton(page3));
 
         // Page 4 Question 2 answers
         Component page4 = Component.empty();
@@ -154,7 +155,7 @@ public class SurveyBook {
         page4 = appendOptionYesNo("Physical Newspaper", page4, SurveyAnswerOption.Q2_NEWSPAPER, survey.bPhysicalNewspaper, !survey.bPhysicalNewspaper);
         page4 = appendPageChangeOption(page4, true, true, 4);
 
-        this.books[3] = Book.book(Component.text(""), ChatUtils.line(user.player.getName()), page4);
+        this.books[3] = Book.book(Component.text(""), ChatUtils.line(user.player.getName()), Collections.singleton(page4));
 
         // Page 5 Question 3 Which socials
         Component page5 = Component.empty();
@@ -176,7 +177,7 @@ public class SurveyBook {
         page5 = page5.appendNewline();
         page5 = appendPageChangeOption(page5, true, false, 5);
 
-        this.books[4] = Book.book(Component.text(""), ChatUtils.line(user.player.getName()), page5);
+        this.books[4] = Book.book(Component.text(""), ChatUtils.line(user.player.getName()), Collections.singleton(page5));
     }
 
     private Component appendOptionYesNo(String optionName, Component component, SurveyAnswerOption option, boolean bYSelected, boolean bNSelected) {

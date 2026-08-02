@@ -176,7 +176,8 @@ public class PlotInfo extends NetworkRefreshableGui {
                         // Generate link to google maps.
                         Component message = Component.text("Click here to open the plot in Google Maps", NamedTextColor.GREEN);
                         message = message.clickEvent(ClickEvent.clickEvent(ClickEvent.Action.OPEN_URL,
-                                "https://www" + ".google.com/maps/@?api=1&map_action=map&basemap=satellite&zoom=21&center=" + coords[1] + "," + coords[0]));
+                                ClickEvent.Payload.string(
+                                        "https://www" + ".google.com/maps/@?api=1&map_action=map&basemap=satellite&zoom=21&center=" + coords[1] + "," + coords[0])));
 
                         u.player.sendMessage(message);
                         u.player.closeInventory();
