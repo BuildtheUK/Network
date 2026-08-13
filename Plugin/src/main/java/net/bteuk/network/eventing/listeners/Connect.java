@@ -198,6 +198,10 @@ public class Connect implements Listener {
         // Block the default connect message, this will be sent by the proxy.
         e.joinMessage(null);
 
+        // Ensure the player is hidden from the tab list; the proxy will handle adding the player back in the correct way.
+        tabManager.hidePlayersFromTabList(e.getPlayer());
+        tabManager.hidePlayerInTabList(e.getPlayer());
+
         // Determine the chat channels to which this user has access.
         Set<String> channels = NetworkUser.getChannels(e.getPlayer());
 

@@ -1,18 +1,14 @@
 package net.bteuk.network.utils;
 
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
-import com.comphenix.protocol.events.PacketContainer;
 import lombok.extern.java.Log;
 import net.bteuk.network.Network;
 import net.bteuk.network.api.ServerAPI;
 import net.bteuk.network.api.entity.NetworkPlayer;
 import net.bteuk.network.core.Constants;
+import net.bteuk.network.socket.MessageSender;
 import org.btuk.network.lib.dto.SwitchServerEvent;
 import org.btuk.network.lib.dto.UserDisconnect;
 import org.btuk.network.lib.utils.ChatUtils;
-import net.bteuk.network.socket.MessageSender;
 import org.bukkit.entity.Player;
 
 import java.util.Optional;
@@ -90,15 +86,6 @@ public class SwitchServer implements ServerAPI {
     }
 
     public static void switchToExternalServer(Player player) {
-
-        ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
-
-        PacketContainer serverTransfer = new PacketContainer(PacketType.Play.Server.TRANSFER);
-        serverTransfer.getStrings()
-                .write(0, "bteuk.net");
-        serverTransfer.getIntegers()
-                .write(0, 25565);
-
-        protocolManager.sendServerPacket(player, serverTransfer);
+        player.transfer("btuk.org", 25565);
     }
 }
