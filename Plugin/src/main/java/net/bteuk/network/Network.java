@@ -348,7 +348,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         }
 
         // Enable tab.
-        TabManager tab = new TabManager(this, constants, roleAPI);
+        TabManager tabManager = new TabManager(this, constants, roleAPI);
 
         Nightvision nightvision = new Nightvision(this);
 
@@ -368,7 +368,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
         // Setup connect, this handles all connections to the server.
         // Listener and manager of server connections.
-        Connect connect = new Connect(this, constants, tab, roleAPI, networkGuiManager, nightvision, eventAPI, regionManager, messageSender);
+        Connect connect = new Connect(this, constants, tabManager, roleAPI, networkGuiManager, nightvision, eventAPI, regionManager, messageSender);
 
         Teleport teleport = new Teleport(this, previousLocationTracker, eventAPI, serverAPI, constants, messageSender);
         commandManager.registerCommand(teleport);
@@ -377,7 +377,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         commandManager.registerCommand(new TpDeny(this, messageSender));
 
         // Set up socket listening - used for sending messages cross-server on multi-server setups
-        NetworkSocketHandler socketHandler = new NetworkSocketHandler(this, chat, tab, connect, constants, teleport);
+        NetworkSocketHandler socketHandler = new NetworkSocketHandler(this, chat, tabManager, connect, constants, teleport);
 
         // If running in standalone mode, set up the proxy logic locally.
         if (constants.standalone()) {
@@ -587,12 +587,12 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         NetworkCoreServerManager serverManager = new NetworkCoreServerManager(this);
 
         NetworkChatHandler chatHandler = new NetworkChatHandler(socketHandler);
-        NetworkTabManager tabManager = new NetworkTabManager(getServer(), proxyController.getConfig(), proxyController.getCoreUserManager(), chatHandler, scheduler);
+        NetworkTabManager standaloneTabManager = new NetworkTabManager(getServer(), roleAPI, constants, proxyController.getConfig(), proxyController.getCoreUserManager(), chatHandler, scheduler);
 
         // Set up the local socket handler.
         Consumer<ProxySocketHandler> socketInitializer = messageSender.setupStandaloneOutputSocket();
 
-        proxyController.start(chatHandler, scheduler, serverManager, playerManager, tabManager, socketInitializer);
+        proxyController.start(chatHandler, scheduler, serverManager, playerManager, standaloneTabManager, socketInitializer);
     }
 
     @Override

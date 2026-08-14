@@ -1,5 +1,6 @@
 package net.bteuk.network;
 
+import lombok.Getter;
 import lombok.extern.java.Log;
 import net.bteuk.network.api.entity.Role;
 import net.bteuk.network.core.Constants;
@@ -28,6 +29,7 @@ public class TabManager {
     private final Constants constants;
     private final Roles roles;
     private final Map<String, Team> teams = new HashMap<>();
+    @Getter
     private Scoreboard scoreboard;
 
     public TabManager(Network instance, Constants constants, Roles roles) {
@@ -77,7 +79,9 @@ public class TabManager {
     }
 
     public void onPlayerJoin(Player player) {
-        player.setScoreboard(scoreboard);
+        if (!instance.isStandalone()) {
+            player.setScoreboard(scoreboard);
+        }
     }
 
     /**
