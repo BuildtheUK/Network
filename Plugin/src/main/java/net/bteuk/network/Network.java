@@ -17,6 +17,7 @@ import net.bteuk.network.commands.Buildings;
 import net.bteuk.network.commands.Clear;
 import net.bteuk.network.commands.Demote;
 import net.bteuk.network.commands.Discord;
+import net.bteuk.network.commands.DisplayClickableLink;
 import net.bteuk.network.commands.Focus;
 import net.bteuk.network.commands.Gamemode;
 import net.bteuk.network.commands.Hat;
@@ -30,7 +31,6 @@ import net.bteuk.network.commands.Nightvision;
 import net.bteuk.network.commands.Phead;
 import net.bteuk.network.commands.Plot;
 import net.bteuk.network.commands.Pmute;
-import net.bteuk.network.commands.ProgressMap;
 import net.bteuk.network.commands.Promote;
 import net.bteuk.network.commands.Ptime;
 import net.bteuk.network.commands.Punmute;
@@ -462,9 +462,17 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         if (constants.skullsEnabled()) {
             commandManager.registerCommand(new Hdb());
         }
-        if (constants.progressMap()) {
-            commandManager.registerCommand(new ProgressMap(constants));
+
+        if (constants.progressMapLink() != null) {
+            commandManager.registerCommand(new DisplayClickableLink("progressmap", "Sends a link of the progress map", "Click to view our progress map.",
+                    constants.progressMapLink(), "progress"));
         }
+
+        if (constants.websiteLink() != null) {
+            commandManager.registerCommand(new DisplayClickableLink("website", "Sends a link of the website", "Click to view our website.",
+                    constants.progressMapLink()));
+        }
+
         if (constants.tips()) {
             commandManager.registerCommand(new TipsToggle(this));
         }

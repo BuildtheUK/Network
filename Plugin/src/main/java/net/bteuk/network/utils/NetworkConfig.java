@@ -197,11 +197,7 @@ public class NetworkConfig {
 
         boolean announcePromotions = config.getBoolean("chat.announce_promotions");
 
-        String discordLink = config.getString("discord", Strings.EMPTY);
-
         boolean skullsEnabled = config.getBoolean("skulls_plugin_enabled");
-
-        String progressMapLink = config.getString("ProgressMap.Link", Strings.EMPTY);
 
         String chatSocketOutputIP = config.getString("chat.socket.output.IP");
         int chatSocketOutputPort = config.getInt("chat.socket.output.port");
@@ -211,9 +207,6 @@ public class NetworkConfig {
 
         boolean regionStaffRequestAlways = config.getBoolean("regions.staff_request.always");
         int regionStaffRequestRadius = config.getInt("regions.staff_request.radius", 0);
-
-        int progressMapID = config.getInt("ProgressMap.ProgressMapID");
-        String mapHubAPIKey = config.getString("ProgressMap.MapHubAPIKey");
 
         int navigationRadius = config.getInt("navigation_radius", 200);
 
@@ -230,12 +223,16 @@ public class NetworkConfig {
 
         boolean UKSurvey = config.getBoolean("UKSurvey_enabled");
 
+        String discordLink = config.getString("links.discord", null);
+        String websiteLink = config.getString("links.website", null);
+        String progressMapLink = config.getString("links.progressmap", null);
+
         log.info("Loaded constants from config.");
         return new Constants(serverName, serverType, standalone, regionsEnabled, regionInactivity, tpllEnabled, tpllRequiredPermission, maxY, minY, earthWorld, staffChat, tips,
-                tutorials, llEnabled, progressMap, progression, announceOverallLevelUps, announceSeasonalLevelUps, sidebarEnabled, sidebarTitle, sidebarTextList, motdEnabled,
-                motdText, minrankGeneration, minrankRegionClaim, minrankZoneJoin, plotSystemEnabled, moderationEnabled, warpsEnabled, homesEnabled, announcePromotions, discordLink,
-                skullsEnabled, progressMapLink, chatSocketOutputIP,
-                chatSocketOutputPort, chatSocketInputPort, tipsFrequency, regionStaffRequestAlways, regionStaffRequestRadius, progressMapID, mapHubAPIKey, navigationRadius,
-                compulsoryTutorial, afkTime, mapEnabled, mapServer, mapLocation, spawnLocation, UKSurvey);
+                tutorials, llEnabled, progression, announceOverallLevelUps, announceSeasonalLevelUps, sidebarEnabled, sidebarTitle, sidebarTextList, motdEnabled,
+                motdText, minrankGeneration, minrankRegionClaim, minrankZoneJoin, plotSystemEnabled, moderationEnabled, warpsEnabled, homesEnabled, announcePromotions,
+                skullsEnabled, chatSocketOutputIP,
+                chatSocketOutputPort, chatSocketInputPort, tipsFrequency, regionStaffRequestAlways, regionStaffRequestRadius, navigationRadius,
+                compulsoryTutorial, afkTime, mapEnabled, mapServer, mapLocation, spawnLocation, UKSurvey, discordLink, websiteLink, progressMapLink);
     }
 }
