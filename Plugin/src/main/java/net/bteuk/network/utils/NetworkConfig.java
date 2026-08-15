@@ -57,6 +57,9 @@ public class NetworkConfig {
             // Get old config values, these are needed to add them back after updating.
             Map<String, Object> values = config.getValues(true);
 
+            // Migrate the values if necessary.
+            migrateConfig(values, ConfigVersion.parse(version), ConfigVersion.parse(latestVersion()));
+
             // Generate a new config file from the default config.
             // Copy any values that can be reused.
             // Delete the current config and set the new one.
@@ -96,6 +99,29 @@ public class NetworkConfig {
             log.info("Updated config to version " + config.getString("version"));
         } else {
             log.info("The config is up to date!");
+        }
+    }
+
+    /**
+     * Migrates configuration values based on defined migration rules.
+     *
+     * @param values          the current configuration values
+     * @param previousVersion the version of the config before the update
+     * @param currentVersion  the version of the config after the update
+     */
+    private void migrateConfig(Map<String, Object> values, ConfigVersion previousVersion, ConfigVersion currentVersion) {
+        for (ConfigMigration migration : ConfigMigration.values()) {
+            // Check if the migration should be executed.
+            // The migration is executed if the previous version is before the migration version,
+            // and the current version is at or after the migration version.
+            if (previousVersion.compareTo(migration.getVersion()) < 0 && currentVersion.compareTo(migration.getVersion()) >= 0) {
+                // If the old key exists, migrate it to the new key.
+                if (values.containsKey(migration.getOldKey())) {
+                    Object value = values.remove(migration.getOldKey());
+                    values.put(migration.getNewKey(), value);
+                    log.info("Migrated config key '" + migration.getOldKey() + "' to '" + migration.getNewKey() + "' (migration version " + migration.getVersion() + ")");
+                }
+            }
         }
     }
 

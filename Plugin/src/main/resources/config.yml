@@ -63,15 +63,6 @@ tutorials:
     password: password
     name: TeachingTutorials
 
-# Progress Map
-# Enable if you have a MapHub progress map
-ProgressMap:
-  enabled: false
-  MapHubAPIKey: insert_api_key_here
-  ProgressMapID: insert_map_id_here
-  #A web link to the progress map
-  Link: insert_link_to_map_here
-
 # Chat Settings
 chat:
   # The socket configuration is only necessary if running the server as part of a network
@@ -133,9 +124,6 @@ ll_enabled: true
 # Time before the player is set to AFK (minutes).
 afk: 5
 
-# Discord link
-discord: 'https://discord.gg/5m56EgEVW6'
-
 # Enables warps and the explore-menu.
 warps_enabled: true
 
@@ -180,3 +168,9 @@ minrank_publicjoin: Jr.Builder
 
 # Whether the UK Survey is enabled
 UKSurvey_enabled: false
+
+# Links
+links:
+  website: 'https://btuk.org'
+  discord: 'https://discord.gg/5m56EgEVW6'
+  progress_map: 'https://progress.buildtheuk.org/'
