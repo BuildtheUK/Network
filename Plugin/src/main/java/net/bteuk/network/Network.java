@@ -470,7 +470,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
         if (constants.websiteLink() != null) {
             commandManager.registerCommand(new DisplayClickableLink("website", "Sends a link of the website", "Click to view our website.",
-                    constants.progressMapLink()));
+                    constants.websiteLink()));
         }
 
         if (constants.tips()) {

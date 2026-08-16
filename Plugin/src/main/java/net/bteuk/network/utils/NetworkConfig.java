@@ -225,7 +225,7 @@ public class NetworkConfig {
 
         String discordLink = config.getString("links.discord", null);
         String websiteLink = config.getString("links.website", null);
-        String progressMapLink = config.getString("links.progressmap", null);
+        String progressMapLink = config.getString("links.progress_map", null);
 
         log.info("Loaded constants from config.");
         return new Constants(serverName, serverType, standalone, regionsEnabled, regionInactivity, tpllEnabled, tpllRequiredPermission, maxY, minY, earthWorld, staffChat, tips,
