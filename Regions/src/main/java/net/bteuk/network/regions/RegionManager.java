@@ -13,10 +13,6 @@ import net.bteuk.network.api.WorldGuardAPI;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.ServerType;
 import net.bteuk.network.core.Time;
-import org.btuk.network.lib.dto.ChatMessage;
-import org.btuk.network.lib.dto.DirectMessage;
-import org.btuk.network.lib.enums.ChatChannels;
-import org.btuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.papercore.LocationAdapter;
 import net.bteuk.network.regions.listener.RegionMoveListener;
 import net.bteuk.network.regions.listener.RegionTeleportListener;
@@ -25,6 +21,10 @@ import net.bteuk.network.regions.listener.ServerQuitListener;
 import net.bteuk.network.regions.sql.RegionSQL;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.btuk.network.lib.dto.ChatMessage;
+import org.btuk.network.lib.dto.DirectMessage;
+import org.btuk.network.lib.enums.ChatChannels;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -234,7 +234,7 @@ public class RegionManager {
             regionSQL.update("UPDATE region_logs SET end_time=" + Time.currentTime() + " WHERE region='" + region.regionName() + "' AND uuid='" + uuid + "';");
 
             // Leave region in worldGuard.
-            worldGuard.addMember(region.regionName(), uuid, constants.earthWorld());
+            worldGuard.addMember(region.regionName(), uuid, constants.earthDimension());
         }
 
         // Set region to plot.
@@ -322,7 +322,7 @@ public class RegionManager {
 
     // Set the region to default.
     public void setDefault(Region region, String removeRole) {
-        worldGuard.removeGroup(region.regionName(), removeRole, constants.earthWorld());
+        worldGuard.removeGroup(region.regionName(), removeRole, constants.earthDimension());
         regionSQL.update("UPDATE regions SET status='default' WHERE region='" + region.regionName() + "';");
     }
 
@@ -348,7 +348,7 @@ public class RegionManager {
         removeMembers(region, "The region %s is now open, you no longer need to claim it to build here.", true);
 
         // Set open.
-        worldGuard.addGroup(region.regionName(), "jrbuilder", constants.earthWorld());
+        worldGuard.addGroup(region.regionName(), "jrbuilder", constants.earthDimension());
         regionSQL.update("UPDATE regions SET status='open' WHERE region='" + region.regionName() + "';");
     }
 
@@ -380,7 +380,7 @@ public class RegionManager {
     private void createWorldGuardRegion(Region region) {
         // Create region in worldguard.
         worldGuard.createRegion(region.regionName(), Integer.parseInt(region.regionName().split(",")[0]) * 512, Integer.parseInt(region.regionName().split(",")[1]) * 512,
-                Integer.parseInt(region.regionName().split(",")[0]) * 512 + 511, Integer.parseInt(region.regionName().split(",")[1]) * 512 + 511, constants.earthWorld());
+                Integer.parseInt(region.regionName().split(",")[0]) * 512 + 511, Integer.parseInt(region.regionName().split(",")[1]) * 512 + 511, constants.earthDimension());
     }
 
     // Check if this region has any requests.
@@ -569,7 +569,7 @@ public class RegionManager {
             regionSQL.update("INSERT INTO region_logs(region,uuid,start_time) VALUES('" + region.regionName() + "','" + player.getUniqueId() + "'," + Time.currentTime() + ");");
 
             // Join region in worldGuard.
-            worldGuard.addMember(region.regionName(), player.getUniqueId().toString(), player.getWorld().getName());
+            worldGuard.addMember(region.regionName(), player.getUniqueId().toString(), player.getWorld().key().asMinimalString());
 
             player.sendMessage(ChatUtils.success("You have joined the region ").append(Component.text(region.regionName(), NamedTextColor.DARK_AQUA))
                     .append(ChatUtils.success(" as a member.")));
@@ -609,7 +609,7 @@ public class RegionManager {
                     "INSERT INTO region_logs(region,uuid,is_owner,start_time) VALUES" + "('" + region.regionName() + "','" + player.getUniqueId() + "',1," + Time.currentTime() + ");");
 
             // Join region in worldGuard.
-            worldGuard.addMember(region.regionName(), player.getUniqueId().toString(), player.getWorld().getName());
+            worldGuard.addMember(region.regionName(), player.getUniqueId().toString(), player.getWorld().key().asMinimalString());
 
             player.sendMessage(ChatUtils.success("You have joined the region ").append(Component.text(region.regionName(), NamedTextColor.DARK_AQUA))
                     .append(ChatUtils.success(" as the owner.")));
@@ -630,7 +630,7 @@ public class RegionManager {
             regionSQL.update("INSERT INTO region_logs(region,uuid,start_time) VALUES('" + region.regionName() + "','" + uuid + "'," + Time.currentTime() + ");");
 
             // Join region in worldGuard.
-            worldGuard.addMember(region.regionName(), uuid, constants.earthWorld());
+            worldGuard.addMember(region.regionName(), uuid, constants.earthDimension());
 
             // Send message to user.
             DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), uuid, "server",
@@ -665,7 +665,7 @@ public class RegionManager {
             regionSQL.update("INSERT INTO region_logs(region,uuid,is_owner,start_time) VALUES" + "('" + region.regionName() + "','" + uuid + "',1," + Time.currentTime() + ");");
 
             // Join region in worldGuard.
-            worldGuard.addMember(region.regionName(), uuid, constants.earthWorld());
+            worldGuard.addMember(region.regionName(), uuid, constants.earthDimension());
 
             DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), uuid, "server",
                     ChatUtils.success("You have joined the region %s as the owner.", region.regionName()), true);
@@ -692,7 +692,7 @@ public class RegionManager {
             regionSQL.update("UPDATE region_logs SET end_time=" + Time.currentTime() + " WHERE region='" + region.regionName() + "' AND uuid='" + uuid + "';");
 
             // Leave region in worldGuard.
-            worldGuard.removeMember(region.regionName(), uuid, constants.earthWorld());
+            worldGuard.removeMember(region.regionName(), uuid, constants.earthDimension());
         } else {
 
             eventAPI.createEvent(uuid, globalSQL.getString("SELECT name " + "FROM server_data WHERE type='EARTH';"), "region leave " + region.regionName(), message);

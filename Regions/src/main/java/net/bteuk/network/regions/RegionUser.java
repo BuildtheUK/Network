@@ -34,7 +34,7 @@ public class RegionUser {
     public RegionUser(Player player, Constants constants, RegionManager regionManager, PlotAPI plotAPI) {
         this.player = player;
 
-        boolean bOnEarth = (constants.serverType() == EARTH && player.getWorld().getName().equals(constants.earthWorld()));
+        boolean bOnEarth = (constants.serverType() == EARTH && player.getWorld().key().asMinimalString().equals(constants.earthDimension()));
         boolean bOnPlot = constants.plotSystemEnabled() && (constants.serverType() == PLOT || constants.standalone());
 
         // Check if they are in the earth world
@@ -45,9 +45,9 @@ public class RegionUser {
 
         } else if (bOnPlot) {
             // Check if the player is in a buildable plot world and apply coordinate transform if true.
-            if (plotAPI.hasLocation(player.getLocation().getWorld().getName())) {
-                this.deltaX = -plotAPI.getXTransform(player.getLocation().getWorld().getName());
-                this.deltaZ = -plotAPI.getZTransform(player.getLocation().getWorld().getName());
+            if (plotAPI.hasLocation(player.getLocation().getWorld().key().asMinimalString())) {
+                this.deltaX = -plotAPI.getXTransform(player.getLocation().getWorld().key().asMinimalString());
+                this.deltaZ = -plotAPI.getZTransform(player.getLocation().getWorld().key().asMinimalString());
 
                 trackedRegion = regionManager.getRegion(player.getLocation().getX(), player.getLocation().getZ(), deltaX, deltaZ);
             }

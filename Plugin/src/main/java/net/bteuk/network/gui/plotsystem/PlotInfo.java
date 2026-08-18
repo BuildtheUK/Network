@@ -175,9 +175,8 @@ public class PlotInfo extends NetworkRefreshableGui {
 
                         // Generate link to google maps.
                         Component message = Component.text("Click here to open the plot in Google Maps", NamedTextColor.GREEN);
-                        message = message.clickEvent(ClickEvent.clickEvent(ClickEvent.Action.OPEN_URL,
-                                ClickEvent.Payload.string(
-                                        "https://www" + ".google.com/maps/@?api=1&map_action=map&basemap=satellite&zoom=21&center=" + coords[1] + "," + coords[0])));
+                        message = message.clickEvent(
+                                ClickEvent.openUrl("https://www.google.com/maps/@?api=1&map_action=map&basemap=satellite&zoom=21&center=" + coords[1] + "," + coords[0]));
 
                         u.player.sendMessage(message);
                         u.player.closeInventory();
@@ -211,7 +210,7 @@ public class PlotInfo extends NetworkRefreshableGui {
             });
 
             setItem(19, Utils.createItem(Material.OAK_BOAT, 1, Utils.title("Invite Members"), Utils.line("Invite a new member to your plot."),
-                    Utils.line("You can only invite online users.")), (NetworkUser u) -> {
+                    Utils.line("n only invite online users.")), (NetworkUser u) -> {
 
                 String currentRole = roleAPI.getBuilderRole(u.getUuid()).join();
                 String nextRole = PromotionRoles.getNewRole(plotDifficulty, currentRole);
@@ -576,7 +575,7 @@ public class PlotInfo extends NetworkRefreshableGui {
         boolean switchServer = constants.serverType() != ServerType.EARTH;
 
         eventAPI.createTeleportEvent(switchServer, user.player.getUniqueId().toString(),
-                "teleport " + constants.earthWorld() + " " + x + " " + z + " " + user.player.getLocation().getYaw() + " " + user.player.getLocation().getPitch(),
+                "teleport " + constants.earthDimension() + " " + x + " " + z + " " + user.player.getLocation().getYaw() + " " + user.player.getLocation().getPitch(),
                 PlainTextComponentSerializer.plainText().serialize(teleportMessage), LocationAdapter.adapt(user.player.getLocation()));
 
         // Switch to Earth server is necessary.

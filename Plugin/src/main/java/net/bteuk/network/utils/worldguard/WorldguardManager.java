@@ -40,7 +40,7 @@ public class WorldguardManager {
 
         if (regionManager == null) {
             throw new RegionManagerNotFoundException(String.format("No region manager found for World %s",
-                    world.getName()));
+                    world.key().asMinimalString()));
         }
         return regionManager;
     }

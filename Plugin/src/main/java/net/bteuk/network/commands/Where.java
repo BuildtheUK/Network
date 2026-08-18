@@ -2,17 +2,16 @@ package net.bteuk.network.commands;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import lombok.extern.java.Log;
-import net.bteuk.network.api.NetworkAPI;
 import net.bteuk.network.api.PlotAPI;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.ServerType;
-import org.btuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.sql.PlotSQL;
 import net.buildtheearth.terraminusminus.generator.EarthGeneratorSettings;
 import net.buildtheearth.terraminusminus.projection.OutOfProjectionBoundsException;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,9 +45,9 @@ public class Where extends AbstractCommand {
             return;
         }
 
-        boolean bPlotWorld = (constants.serverType() == PLOT || constants.standalone()) && plotAPI.hasLocation(player.getWorld().getName());
+        boolean bPlotWorld = (constants.serverType() == PLOT || constants.standalone()) && plotAPI.hasLocation(player.getWorld().key().asMinimalString());
 
-        if (!bPlotWorld && !(constants.serverType() == ServerType.EARTH && player.getWorld().getName().equals(constants.earthWorld()))) {
+        if (!bPlotWorld && !(constants.serverType() == ServerType.EARTH && player.getWorld().key().asMinimalString().equals(constants.earthDimension()))) {
             player.sendMessage(ChatUtils.error("This world does not support coordinates."));
             return;
         }
@@ -59,8 +58,8 @@ public class Where extends AbstractCommand {
             int deltaZ = 0;
             if (bPlotWorld) {
                 // Get negative coordinate transform of new location.
-                deltaX = -plotSQL.getInt("SELECT xTransform FROM location_data WHERE name='" + player.getWorld().getName() + "';");
-                deltaZ = -plotSQL.getInt("SELECT zTransform FROM location_data WHERE name='" + player.getWorld().getName() + "';");
+                deltaX = -plotSQL.getInt("SELECT xTransform FROM location_data WHERE name='" + player.getWorld().key().asMinimalString() + "';");
+                deltaZ = -plotSQL.getInt("SELECT zTransform FROM location_data WHERE name='" + player.getWorld().key().asMinimalString() + "';");
             }
 
             double[] coords = bteGeneratorSettings.projection().toGeo(player.getLocation().getX() + deltaX,

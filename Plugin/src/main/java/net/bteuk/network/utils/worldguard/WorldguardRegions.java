@@ -22,7 +22,7 @@ public class WorldguardRegions {
 
         if (buildRegions == null) {
 
-            throw new RegionManagerNotFoundException("RegionManager for world " + world.getName() + " is null!");
+            throw new RegionManagerNotFoundException("RegionManager for world " + world.key().asMinimalString() + " is null!");
         }
 
         // Get the region to remove the outlines.

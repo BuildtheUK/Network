@@ -157,8 +157,6 @@ public class NetworkConfig {
 
         boolean llEnabled = config.getBoolean("ll_enabled");
 
-        boolean progressMap = config.getBoolean("ProgressMap.enabled");
-
         boolean progression = config.getBoolean("progression.enabled");
         boolean announceOverallLevelUps = config.getBoolean("progression.announce_level-ups.overall");
         boolean announceSeasonalLevelUps = config.getBoolean("progression.announce_level-ups.seasonal");
@@ -181,7 +179,7 @@ public class NetworkConfig {
         boolean motdEnabled = config.getBoolean("motd.enabled");
         String motdText = config.getString("motd.text", "");
 
-        String earthWorld = config.getString("regions.earth_world", "earth");
+        String earthDimension = config.getString("regions.earth_dimension", "overworld");
 
         String minrankGeneration = config.getString("minrank_generation", "Jr.Builder");
         String minrankRegionClaim = config.getString("minrank_regionclaim", "Jr.Builder");
@@ -228,11 +226,10 @@ public class NetworkConfig {
         String progressMapLink = config.getString("links.progress_map", null);
 
         log.info("Loaded constants from config.");
-        return new Constants(serverName, serverType, standalone, regionsEnabled, regionInactivity, tpllEnabled, tpllRequiredPermission, maxY, minY, earthWorld, staffChat, tips,
+        return new Constants(serverName, serverType, standalone, regionsEnabled, regionInactivity, tpllEnabled, tpllRequiredPermission, maxY, minY, staffChat, tips,
                 tutorials, llEnabled, progression, announceOverallLevelUps, announceSeasonalLevelUps, sidebarEnabled, sidebarTitle, sidebarTextList, motdEnabled,
                 motdText, minrankGeneration, minrankRegionClaim, minrankZoneJoin, plotSystemEnabled, moderationEnabled, warpsEnabled, homesEnabled, announcePromotions,
-                skullsEnabled, chatSocketOutputIP,
-                chatSocketOutputPort, chatSocketInputPort, tipsFrequency, regionStaffRequestAlways, regionStaffRequestRadius, navigationRadius,
-                compulsoryTutorial, afkTime, mapEnabled, mapServer, mapLocation, spawnLocation, UKSurvey, discordLink, websiteLink, progressMapLink);
+                skullsEnabled, chatSocketOutputIP, chatSocketOutputPort, chatSocketInputPort, tipsFrequency, regionStaffRequestAlways, regionStaffRequestRadius, navigationRadius,
+                compulsoryTutorial, afkTime, mapEnabled, mapServer, mapLocation, spawnLocation, UKSurvey, discordLink, websiteLink, progressMapLink, earthDimension);
     }
 }

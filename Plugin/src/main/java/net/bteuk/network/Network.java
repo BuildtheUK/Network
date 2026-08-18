@@ -271,6 +271,17 @@ public final class Network extends JavaPlugin implements NetworkAPI {
             return;
         }
 
+        // If the database contains worlds that have the same name as the world container and no dimensions have this name, rename them to 'overworld'; this is due to the new
+        // dimension storage method introduced with Minecraft 26.1.
+        String worldFolderName = getServer().getWorldContainer().getName();
+        if (getServer().getWorlds().stream().noneMatch(world -> world.key().asMinimalString().equals(worldFolderName))) {
+            int count = globalSQL.getInt("SELECT COUNT(1) FROM coordinates WHERE world='" + worldFolderName + "' AND server='" + constants.serverName() + "'");
+            if (count > 0) {
+                log.warning("Database contains " + count + " coordinates for world '" + worldFolderName + "' on server '" + constants.serverName() + "', renaming to 'overworld'");
+                globalSQL.update("UPDATE coordinates SET world='overworld' WHERE world='" + worldFolderName + "' AND server='" + constants.serverName() + "'");
+            }
+        }
+
         // Setup tutorials DB connection and connect
         if (constants.tutorials()) {
             // Initialise the DBConnection object
@@ -595,7 +606,8 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         NetworkCoreServerManager serverManager = new NetworkCoreServerManager(this);
 
         NetworkChatHandler chatHandler = new NetworkChatHandler(socketHandler);
-        NetworkTabManager standaloneTabManager = new NetworkTabManager(getServer(), roleAPI, constants, proxyController.getConfig(), proxyController.getCoreUserManager(), chatHandler, scheduler);
+        NetworkTabManager standaloneTabManager = new NetworkTabManager(getServer(), roleAPI, constants, proxyController.getConfig(), proxyController.getCoreUserManager(),
+                chatHandler, scheduler);
 
         // Set up the local socket handler.
         Consumer<ProxySocketHandler> socketInitializer = messageSender.setupStandaloneOutputSocket();

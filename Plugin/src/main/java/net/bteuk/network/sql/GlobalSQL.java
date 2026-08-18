@@ -75,7 +75,7 @@ public class GlobalSQL extends AbstractSQL {
     // Add new coordinate to database and return the id.
     public int addCoordinate(Location l) {
 
-        return addCoordinate(constants.serverName(), l.getWorld().getName(), l.getX(), l.getY(), l.getZ(), l.getYaw(), l.getPitch());
+        return addCoordinate(constants.serverName(), l.getWorld().key().asMinimalString(), l.getX(), l.getY(), l.getZ(), l.getYaw(), l.getPitch());
     }
 
     // Add new coordinate to database and return the id.
@@ -89,7 +89,7 @@ public class GlobalSQL extends AbstractSQL {
 
     // Add new coordinate to database and return the id.
     public int addCoordinate(String server, Location l) {
-        return addCoordinate(server, l.getWorld().getName(), l.getX(), l.getY(), l.getZ(), l.getYaw(), l.getPitch());
+        return addCoordinate(server, l.getWorld().key().asMinimalString(), l.getX(), l.getY(), l.getZ(), l.getYaw(), l.getPitch());
     }
 
     // Add new coordinate using values, rather than location.
@@ -131,7 +131,7 @@ public class GlobalSQL extends AbstractSQL {
                 Connection conn = conn(); PreparedStatement statement = conn.prepareStatement("UPDATE coordinates SET server=?, world=?, x=?, y=?, z=?, yaw=?, pitch=? WHERE id=?;")
         ) {
             statement.setString(1, server);
-            statement.setString(2, l.getWorld().getName());
+            statement.setString(2, l.getWorld().key().asMinimalString());
             statement.setDouble(3, l.getX());
             statement.setDouble(4, l.getY());
             statement.setDouble(5, l.getZ());

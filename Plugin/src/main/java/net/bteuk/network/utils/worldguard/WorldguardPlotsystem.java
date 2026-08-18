@@ -44,8 +44,8 @@ public class WorldguardPlotsystem {
         List<BlockVector2> newVector = new ArrayList<>();
 
         // Get the negative coordinate transform.
-        int xTransform = -plotAPI.getXTransform(world.getName());
-        int zTransform = -plotAPI.getZTransform(world.getName());
+        int xTransform = -plotAPI.getXTransform(world.key().asMinimalString());
+        int zTransform = -plotAPI.getZTransform(world.key().asMinimalString());
 
         // Apply to transform to each coordinate.
         vector.forEach(bv -> newVector.add(BlockVector2.at(bv.x() + xTransform, bv.z() + zTransform)));

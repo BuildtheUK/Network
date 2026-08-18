@@ -2,7 +2,6 @@ package net.bteuk.network.gui.regions;
 
 import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.NetworkRefreshableGui;
-import org.btuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.papercore.LocationAdapter;
 import net.bteuk.network.papercore.PlayerAdapter;
 import net.bteuk.network.regions.RegionManager;
@@ -14,6 +13,7 @@ import net.bteuk.network.utils.Utils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -132,7 +132,7 @@ public class ReviewRegionRequest extends NetworkRefreshableGui {
                         u.player.closeInventory();
 
                         // Create teleport event.
-                        provider.eventAPI().createTeleportEvent(true, u.player.getUniqueId().toString(), "teleport " + provider.constants().earthWorld() + " " + l.getX() + " " + l.getZ() + " " + l.getYaw() + " " + l.getPitch(),
+                        provider.eventAPI().createTeleportEvent(true, u.player.getUniqueId().toString(), "teleport " + provider.constants().earthDimension() + " " + l.getX() + " " + l.getZ() + " " + l.getYaw() + " " + l.getPitch(),
                                 LocationAdapter.adapt(u.player.getLocation()));
 
                         // Switch server.

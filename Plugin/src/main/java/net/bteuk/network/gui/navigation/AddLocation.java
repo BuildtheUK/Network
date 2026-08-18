@@ -199,7 +199,7 @@ public class AddLocation extends NetworkRefreshableGui {
                 // If server is plotsystem add the necessary coordinate transformation.
                 if (constants.serverType() == ServerType.PLOT) {
 
-                    String worldName = u.player.getLocation().getWorld().getName();
+                    String worldName = u.player.getLocation().getWorld().key().asMinimalString();
 
                     // If location exists.
                     if (provider.plotAPI().hasLocation(worldName)) {
@@ -252,7 +252,7 @@ public class AddLocation extends NetworkRefreshableGui {
                             // If the server is the plot system, add the necessary coordinate transformation.
                             if (constants.serverType() == ServerType.PLOT) {
 
-                                String worldName = u.player.getLocation().getWorld().getName();
+                                String worldName = u.player.getLocation().getWorld().key().asMinimalString();
 
                                 // If location exists.
                                 if (provider.plotSQL().hasRow("SELECT name FROM location_data WHERE " + "name='" + worldName + "';")) {

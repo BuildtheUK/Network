@@ -43,7 +43,7 @@ public class RegionTeleportListener extends AbstractMoveListener implements List
             return;
         }
 
-        log.info("Previous player world: " + e.getFrom().getName());
+        log.info("Previous player world: " + e.getFrom().key().asMinimalString());
         RegionUser regionUser = optionalRegionUser.get();
         log.info("Previous player deltas: (" + regionUser.getDeltaX() + "," + regionUser.getDeltaZ() + ")");
 
@@ -51,9 +51,9 @@ public class RegionTeleportListener extends AbstractMoveListener implements List
         if (constants.serverType() == ServerType.PLOT || constants.standalone()) {
 
             log.info("Updating player deltas because in plotsystem or standalone");
-            String szWorldName = e.getPlayer().getWorld().getName();
+            String szWorldName = e.getPlayer().getWorld().key().asMinimalString();
             log.info("New world: " + szWorldName);
-            if (!szWorldName.equals(constants.earthWorld())) {
+            if (!szWorldName.equals(constants.earthDimension())) {
                 int deltaX = -plotAPI.getXTransform(szWorldName);
                 int deltaZ = -plotAPI.getZTransform(szWorldName);
 
@@ -80,7 +80,7 @@ public class RegionTeleportListener extends AbstractMoveListener implements List
         RegionUser regionUser = optionalRegionUser.get();
 
         // If plot world, get transformation
-        String szNewWorld = e.getTo().getWorld().getName();
+        String szNewWorld = e.getTo().getWorld().key().asMinimalString();
         int addX = 0;
         int addZ = 0;
         if (plotAPI.hasLocation(szNewWorld)) {

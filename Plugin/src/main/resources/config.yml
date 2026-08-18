@@ -95,11 +95,12 @@ tpll:
 
 # Enable regions and cross-server teleport.
 # Regions must be enabled for cross-server teleport to function (if standalone=false).
-# Earth world must be specified on all servers as it is used to determine cross-server tpll to the earth server.
+# Earth dimension must be specified on all servers as it is used to determine cross-server tpll to the earth server.
 # To make sure the player is teleported to the correct world.
 regions:
   enabled: true
-  earth_world: earth
+  # The dimension name of the earth, by default, it is overworld.
+  earth_dimension: overworld
 
   # Number of days a region owner can be inactive before they are demoted to member.
   # If the region has no other members, then the owner does not get demoted by the region becomes 'inactive'.

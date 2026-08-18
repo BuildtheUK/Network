@@ -8,7 +8,6 @@ import net.bteuk.network.api.ServerAPI;
 import net.bteuk.network.commands.AbstractCommand;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.Time;
-import org.btuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.papercore.LocationAdapter;
 import net.bteuk.network.papercore.PlayerAdapter;
 import net.bteuk.network.regions.Region;
@@ -27,6 +26,7 @@ import net.buildtheearth.terraminusminus.util.geo.CoordinateParseUtils;
 import net.buildtheearth.terraminusminus.util.geo.LatLng;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -313,7 +313,7 @@ public class Tpll extends AbstractCommand {
             String location = plotSQL.getString("SELECT location FROM regions WHERE region='" + region.regionName() + "';");
             l.setWorld(Bukkit.getWorld(location));
         } else {
-            l.setWorld(Bukkit.getWorld(constants.earthWorld()));
+            l.setWorld(Bukkit.getWorld(constants.earthDimension()));
         }
     }
 
