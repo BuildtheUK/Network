@@ -26,6 +26,7 @@ import net.kyori.adventure.inventory.Book;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -259,7 +260,7 @@ public class Lobby {
         } catch (Exception e) {
             instance.getLogger().warning("Spawn location could not be set!");
             // Set default spawn.
-            spawn = new Location(WorldUtils.getWorlds().getFirst(), 0.0, 65.0, 0.0, 0, 0);
+            spawn = new Location(Bukkit.getWorlds().getFirst(), 0.0, 65.0, 0.0, 0, 0);
         }
     }
 
