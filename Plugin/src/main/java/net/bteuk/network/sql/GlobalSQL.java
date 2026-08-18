@@ -6,11 +6,11 @@ import net.bteuk.network.building_counter.Building;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.Time;
 import net.bteuk.network.core.sql.AbstractSQL;
+import net.bteuk.network.papercore.WorldUtils;
 import net.bteuk.network.survey.Survey;
 import net.bteuk.network.utils.Coordinate;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.btuk.network.lib.dto.DirectMessage;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
 import javax.sql.DataSource;
@@ -182,7 +182,7 @@ public class GlobalSQL extends AbstractSQL {
         ) {
             ArrayList<Building> buildings = new ArrayList<>();
             while (results.next()) {
-                Location temp = new Location(Bukkit.getWorld(results.getString("world")), results.getDouble("x"), results.getDouble("y"), results.getDouble("z"),
+                Location temp = new Location(WorldUtils.getWorld(results.getString("world")), results.getDouble("x"), results.getDouble("y"), results.getDouble("z"),
                         results.getFloat("yaw"), results.getFloat("pitch"));
                 buildings.add(new Building(results.getInt("building_id"), temp, results.getString("player_id"), results.getInt("coordinate_id"),
                         results.getObject("time_added", LocalDateTime.class), results.getBoolean("is_public"), results.getBoolean("player_built"), results.getDouble("lat"),
@@ -205,7 +205,7 @@ public class GlobalSQL extends AbstractSQL {
         ) {
 
             results.next();
-            return (new Location(Bukkit.getWorld(results.getString("world")), results.getDouble("x"), results.getDouble("y"), results.getDouble("z"), results.getFloat("yaw"),
+            return (new Location(WorldUtils.getWorld(results.getString("world")), results.getDouble("x"), results.getDouble("y"), results.getDouble("z"), results.getFloat("yaw"),
                     results.getFloat("pitch")));
         } catch (SQLException sql) {
             log.log(Level.SEVERE, "Failed to fetch location for coordinate " + coordinateID, sql);

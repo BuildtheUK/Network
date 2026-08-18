@@ -7,6 +7,7 @@ import net.bteuk.network.api.SQLAPI;
 import net.bteuk.network.api.ServerAPI;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.papercore.PlayerAdapter;
+import net.bteuk.network.papercore.WorldUtils;
 import net.bteuk.network.regions.Region;
 import net.bteuk.network.regions.RegionManager;
 import net.bteuk.network.regions.RegionStatus;
@@ -99,7 +100,7 @@ public class RegionMoveListener extends AbstractMoveListener implements Listener
                             trueNewX = trueNewX + plotAPI.getXTransform(szLocation);
                             trueNewZ = trueNewZ + plotAPI.getZTransform(szLocation);
                         }
-                        newLocation.setWorld(Bukkit.getWorld(world));
+                        newLocation.setWorld(WorldUtils.getWorld(world));
                         newLocation.setX(trueNewX);
                         newLocation.setZ(trueNewZ);
                         e.setTo(newLocation);

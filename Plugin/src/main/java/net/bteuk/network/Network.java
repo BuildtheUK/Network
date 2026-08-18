@@ -271,9 +271,11 @@ public final class Network extends JavaPlugin implements NetworkAPI {
             return;
         }
 
-        // If the database contains worlds that have the same name as the world container and no dimensions have this name, rename them to 'overworld'; this is due to the new
+        // If the database contains worlds that have the same name as the level directory and no dimensions have this name, rename them to 'overworld'; this is due to the new
         // dimension storage method introduced with Minecraft 26.1.
-        String worldFolderName = getServer().getWorldContainer().getName();
+        String worldFolderName = getServer().getLevelDirectory().getFileName().toFile().getName();
+        log.info(worldFolderName);
+        log.info(getServer().getWorlds().stream().map(world -> world.key().asMinimalString()).collect(Collectors.joining()));
         if (getServer().getWorlds().stream().noneMatch(world -> world.key().asMinimalString().equals(worldFolderName))) {
             int count = globalSQL.getInt("SELECT COUNT(1) FROM coordinates WHERE world='" + worldFolderName + "' AND server='" + constants.serverName() + "'");
             if (count > 0) {

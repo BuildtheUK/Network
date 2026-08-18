@@ -20,12 +20,12 @@ import net.bteuk.network.api.ServerAPI;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.eventing.events.EventManager;
 import net.bteuk.network.gui.GuiProvider;
+import net.bteuk.network.papercore.WorldUtils;
 import net.bteuk.network.utils.NetworkUser;
 import net.kyori.adventure.inventory.Book;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -215,7 +215,7 @@ public class Lobby {
             return;
         }
 
-        World world = Bukkit.getWorld(worldName);
+        World world = WorldUtils.getWorld(worldName);
 
         if (world == null) {
             instance.getLogger().warning("Lobby world is null, rules lectern can not be set.");
@@ -254,12 +254,12 @@ public class Lobby {
     public void setSpawn() {
 
         try {
-            spawn = new Location(Bukkit.getWorld(Objects.requireNonNull(constants.spawnLocation().world())), constants.spawnLocation().x(), constants.spawnLocation().y(),
+            spawn = new Location(WorldUtils.getWorld(Objects.requireNonNull(constants.spawnLocation().world())), constants.spawnLocation().x(), constants.spawnLocation().y(),
                     constants.spawnLocation().z(), constants.spawnLocation().yaw(), constants.spawnLocation().pitch());
         } catch (Exception e) {
             instance.getLogger().warning("Spawn location could not be set!");
             // Set default spawn.
-            spawn = new Location(Bukkit.getWorlds().getFirst(), 0.0, 65.0, 0.0, 0, 0);
+            spawn = new Location(WorldUtils.getWorlds().getFirst(), 0.0, 65.0, 0.0, 0, 0);
         }
     }
 

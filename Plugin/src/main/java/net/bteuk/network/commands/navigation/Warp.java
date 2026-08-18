@@ -9,13 +9,13 @@ import net.bteuk.network.api.entity.NetworkLocation;
 import net.bteuk.network.commands.AbstractCommand;
 import net.bteuk.network.commands.tabcompleters.LocationSelector;
 import net.bteuk.network.core.Constants;
-import org.btuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.papercore.LocationAdapter;
 import net.bteuk.network.papercore.PlayerAdapter;
+import net.bteuk.network.papercore.WorldUtils;
 import net.bteuk.network.sql.GlobalSQL;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.Bukkit;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -82,7 +82,7 @@ public class Warp extends AbstractCommand {
 
                     // Add coordinate transformation.
                     l = new Location(
-                            Bukkit.getWorld(worldName),
+                            WorldUtils.getWorld(worldName),
                             l.getX() + plotAPI.getXTransform(worldName),
                             l.getY(),
                             l.getZ() + plotAPI.getZTransform(worldName),

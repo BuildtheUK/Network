@@ -2,7 +2,7 @@ package net.bteuk.network.utils;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.bukkit.Bukkit;
+import net.bteuk.network.papercore.WorldUtils;
 import org.bukkit.Location;
 import org.bukkit.World;
 
@@ -39,7 +39,7 @@ public class Coordinate {
      * @return the location
      */
     public Location getLocation() {
-        World world = Bukkit.getWorld(getWorld());
+        World world = WorldUtils.getWorld(getWorld());
         if (world != null) {
             return new Location(world, getX(), getY(), getZ(), getYaw(), getPitch());
         }

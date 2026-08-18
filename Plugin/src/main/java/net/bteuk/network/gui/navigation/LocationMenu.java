@@ -4,6 +4,7 @@ import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.papercore.LocationAdapter;
 import net.bteuk.network.papercore.PlayerAdapter;
+import net.bteuk.network.papercore.WorldUtils;
 import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.sql.PlotSQL;
 import net.bteuk.network.utils.NetworkUser;
@@ -13,7 +14,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.btuk.network.lib.utils.ChatUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 
@@ -144,7 +144,7 @@ public class LocationMenu extends NetworkRefreshableGui {
                                 if (plotSQL.hasRow("SELECT name FROM location_data WHERE " + "name='" + worldName + "';")) {
 
                                     // Add coordinate transformation.
-                                    l = new Location(Bukkit.getWorld(worldName),
+                                    l = new Location(WorldUtils.getWorld(worldName),
                                             l.getX() + plotSQL.getInt("SELECT xTransform " + "FROM location_data WHERE name='" + worldName + "';"), l.getY(),
                                             l.getZ() + plotSQL.getInt("SELECT zTransform " + "FROM location_data WHERE name='" + worldName + "';"), l.getYaw(), l.getPitch());
                                 }

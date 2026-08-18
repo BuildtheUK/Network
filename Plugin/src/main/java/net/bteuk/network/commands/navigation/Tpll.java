@@ -10,6 +10,7 @@ import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.Time;
 import net.bteuk.network.papercore.LocationAdapter;
 import net.bteuk.network.papercore.PlayerAdapter;
+import net.bteuk.network.papercore.WorldUtils;
 import net.bteuk.network.regions.Region;
 import net.bteuk.network.regions.RegionManager;
 import net.bteuk.network.sql.GlobalSQL;
@@ -311,9 +312,9 @@ public class Tpll extends AbstractCommand {
         // Check if the region is on the plot server.
         if (regionManager.isPlot(region)) {
             String location = plotSQL.getString("SELECT location FROM regions WHERE region='" + region.regionName() + "';");
-            l.setWorld(Bukkit.getWorld(location));
+            l.setWorld(WorldUtils.getWorld(location));
         } else {
-            l.setWorld(Bukkit.getWorld(constants.earthDimension()));
+            l.setWorld(WorldUtils.getWorld(constants.earthDimension()));
         }
     }
 

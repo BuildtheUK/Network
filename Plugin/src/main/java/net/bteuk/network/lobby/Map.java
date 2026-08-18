@@ -12,6 +12,7 @@ import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.navigation.LocationMenu;
 import net.bteuk.network.papercore.LocationAdapter;
 import net.bteuk.network.papercore.PlayerAdapter;
+import net.bteuk.network.papercore.WorldUtils;
 import net.bteuk.network.utils.Holograms;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.enums.Category;
@@ -118,13 +119,13 @@ public class Map extends AbstractReloadableComponent {
         mapLocation = new Location(null, constants.mapLocation().x(), constants.mapLocation().y(), constants.mapLocation().z(), constants.mapLocation().yaw(),
                 constants.mapLocation().pitch());
         if (Objects.equals(constants.serverName(), server)) {
-            if (constants.mapLocation().world() == null || Bukkit.getWorld(constants.mapLocation().world()) == null) {
+            if (constants.mapLocation().world() == null || WorldUtils.getWorld(constants.mapLocation().world()) == null) {
                 setEnabled(false);
                 log.warning("The map world does not exist on this server, disabling the map.");
                 return;
             }
             // Set the world, the coordinates have already been set.
-            mapLocation.setWorld(Bukkit.getWorld(constants.mapLocation().world()));
+            mapLocation.setWorld(WorldUtils.getWorld(constants.mapLocation().world()));
 
             // Register the hologram click event.
             hologramClickEvent = new HologramClickEvent(instance, this);
