@@ -4,12 +4,10 @@ import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.bteuk.network.Network;
 import net.bteuk.network.building_counter.Building;
 import net.bteuk.network.building_counter.ConfirmationListener;
-import net.bteuk.network.commands.tabcompleters.FixedArgSelector;
 import net.bteuk.network.commands.tabcompleters.TabCompleterTree;
 import net.bteuk.network.commands.tabcompleters.TreeTabCompleter;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.ServerType;
-import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.sql.PlotSQL;
 import net.buildtheearth.terraminusminus.generator.EarthGeneratorSettings;
 import net.buildtheearth.terraminusminus.projection.OutOfProjectionBoundsException;
@@ -18,7 +16,7 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
-import org.apache.maven.model.Build;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -426,10 +424,10 @@ public class Buildings extends AbstractCommand {
         try {
             int deltaX = 0;
             int deltaZ = 0;
-            if (constants.serverType() == PLOT && plotSQL.hasRow("SELECT name FROM location_data WHERE name='" + player.getWorld().getName() + "';")) {
+            if (constants.serverType() == PLOT && plotSQL.hasRow("SELECT name FROM location_data WHERE name='" + player.getWorld().key().asMinimalString() + "';")) {
                 // Get negative coordinate transform of new location.
-                deltaX = -plotSQL.getInt("SELECT xTransform FROM location_data WHERE name='" + player.getWorld().getName() + "';");
-                deltaZ = -plotSQL.getInt("SELECT zTransform FROM location_data WHERE name='" + player.getWorld().getName() + "';");
+                deltaX = -plotSQL.getInt("SELECT xTransform FROM location_data WHERE name='" + player.getWorld().key().asMinimalString() + "';");
+                deltaZ = -plotSQL.getInt("SELECT zTransform FROM location_data WHERE name='" + player.getWorld().key().asMinimalString() + "';");
             }
             double[] coords = bteGeneratorSettings.projection().toGeo(player.getLocation().getX() + deltaX,
                     player.getLocation().getZ() + deltaZ);
@@ -444,10 +442,10 @@ public class Buildings extends AbstractCommand {
         try {
             int deltaX = 0;
             int deltaZ = 0;
-            if (constants.serverType() == PLOT && plotSQL.hasRow("SELECT name FROM location_data WHERE name='" + player.getWorld().getName() + "';")) {
+            if (constants.serverType() == PLOT && plotSQL.hasRow("SELECT name FROM location_data WHERE name='" + player.getWorld().key().asMinimalString() + "';")) {
                 // Get negative coordinate transform of new location.
-                deltaX = -plotSQL.getInt("SELECT xTransform FROM location_data WHERE name='" + player.getWorld().getName() + "';");
-                deltaZ = -plotSQL.getInt("SELECT zTransform FROM location_data WHERE name='" + player.getWorld().getName() + "';");
+                deltaX = -plotSQL.getInt("SELECT xTransform FROM location_data WHERE name='" + player.getWorld().key().asMinimalString() + "';");
+                deltaZ = -plotSQL.getInt("SELECT zTransform FROM location_data WHERE name='" + player.getWorld().key().asMinimalString() + "';");
             }
             double[] coords = bteGeneratorSettings.projection().toGeo(l.getX() + deltaX,
                     l.getZ() + deltaZ);
@@ -546,9 +544,9 @@ public class Buildings extends AbstractCommand {
         List<Location> heightBuildingsAdded = new ArrayList<Location>();
         int deltaX = 0;
         int deltaZ = 0;
-        if (constants.serverType() == PLOT && plotSQL.hasRow("SELECT name FROM location_data WHERE name='" + player.getWorld().getName() + "';")) {
-            deltaX = -plotSQL.getInt("SELECT xTransform FROM location_data WHERE name='" + player.getWorld().getName() + "';");
-            deltaZ = -plotSQL.getInt("SELECT zTransform FROM location_data WHERE name='" + player.getWorld().getName() + "';");
+        if (constants.serverType() == PLOT && plotSQL.hasRow("SELECT name FROM location_data WHERE name='" + player.getWorld().key().asMinimalString() + "';")) {
+            deltaX = -plotSQL.getInt("SELECT xTransform FROM location_data WHERE name='" + player.getWorld().key().asMinimalString() + "';");
+            deltaZ = -plotSQL.getInt("SELECT zTransform FROM location_data WHERE name='" + player.getWorld().key().asMinimalString() + "';");
         }
         for (Building building : nearbyBuildings) {
             Location loc;

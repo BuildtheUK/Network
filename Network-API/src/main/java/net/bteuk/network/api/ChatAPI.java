@@ -1,9 +1,9 @@
 package net.bteuk.network.api;
 
-import net.bteuk.network.lib.dto.ChatMessage;
-import net.bteuk.network.lib.dto.DirectMessage;
-import net.bteuk.network.lib.dto.DiscordDirectMessage;
-import net.bteuk.network.lib.dto.PlotMessage;
+import org.btuk.network.lib.dto.ChatMessage;
+import org.btuk.network.lib.dto.DirectMessage;
+import org.btuk.network.lib.dto.DiscordDirectMessage;
+import org.btuk.network.lib.dto.PlotMessage;
 
 public interface ChatAPI {
 

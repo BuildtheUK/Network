@@ -9,6 +9,7 @@ import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import lombok.extern.java.Log;
 import net.bteuk.network.api.WorldGuardAPI;
+import net.bteuk.network.papercore.WorldUtils;
 import org.bukkit.World;
 
 import java.util.UUID;
@@ -152,7 +153,7 @@ public class WorldGuard implements WorldGuardAPI {
         // Get an instance of WorldGuard.
         com.sk89q.worldguard.WorldGuard wg = com.sk89q.worldguard.WorldGuard.getInstance();
 
-        World bukkitWorld = org.bukkit.Bukkit.getWorld(world);
+        World bukkitWorld = WorldUtils.getWorld(world);
 
         if (bukkitWorld == null) {
             log.warning("World " + world + " does not exist!");

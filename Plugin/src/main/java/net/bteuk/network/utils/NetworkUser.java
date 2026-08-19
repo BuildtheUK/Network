@@ -9,10 +9,10 @@ import net.bteuk.network.commands.Nightvision;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.Time;
 import net.bteuk.network.eventing.events.EventManager;
-import net.bteuk.network.lib.dto.FocusEvent;
-import net.bteuk.network.lib.dto.UserConnectReply;
-import net.bteuk.network.lib.dto.UserDisconnect;
-import net.bteuk.network.lib.utils.ChatUtils;
+import org.btuk.network.lib.dto.FocusEvent;
+import org.btuk.network.lib.dto.UserConnectReply;
+import org.btuk.network.lib.dto.UserDisconnect;
+import org.btuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.regions.RegionUser;
 import net.bteuk.network.socket.MessageSender;
 import net.kyori.adventure.text.Component;
@@ -25,9 +25,9 @@ import org.bukkit.inventory.ItemStack;
 import java.util.HashSet;
 import java.util.Set;
 
-import static net.bteuk.network.lib.enums.ChatChannels.GLOBAL;
-import static net.bteuk.network.lib.enums.ChatChannels.REVIEWER;
-import static net.bteuk.network.lib.enums.ChatChannels.STAFF;
+import static org.btuk.network.lib.enums.ChatChannels.GLOBAL;
+import static org.btuk.network.lib.enums.ChatChannels.REVIEWER;
+import static org.btuk.network.lib.enums.ChatChannels.STAFF;
 
 public class NetworkUser {
 

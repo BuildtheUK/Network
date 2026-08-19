@@ -9,11 +9,6 @@ import net.bteuk.network.commands.Nightvision;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.Time;
 import net.bteuk.network.eventing.events.EventManager;
-import net.bteuk.network.lib.dto.TabPlayer;
-import net.bteuk.network.lib.dto.UserConnectReply;
-import net.bteuk.network.lib.dto.UserConnectRequest;
-import net.bteuk.network.lib.dto.UserDisconnect;
-import net.bteuk.network.lib.dto.UserRemove;
 import net.bteuk.network.regions.RegionManager;
 import net.bteuk.network.regions.RegionUser;
 import net.bteuk.network.socket.MessageSender;
@@ -25,6 +20,11 @@ import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.btuk.minecraft.gui.GuiManager;
+import org.btuk.network.lib.dto.TabPlayer;
+import org.btuk.network.lib.dto.UserConnectReply;
+import org.btuk.network.lib.dto.UserConnectRequest;
+import org.btuk.network.lib.dto.UserDisconnect;
+import org.btuk.network.lib.dto.UserRemove;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -197,6 +197,10 @@ public class Connect implements Listener {
     private void networkJoinEvent(PlayerJoinEvent e) {
         // Block the default connect message, this will be sent by the proxy.
         e.joinMessage(null);
+
+        // Ensure the player is hidden from the tab list; the proxy will handle adding the player back in the correct way.
+        tabManager.hidePlayersFromTabList(e.getPlayer());
+        tabManager.hidePlayerInTabList(e.getPlayer());
 
         // Determine the chat channels to which this user has access.
         Set<String> channels = NetworkUser.getChannels(e.getPlayer());

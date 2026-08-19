@@ -9,7 +9,6 @@ import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.ServerType;
 import net.bteuk.network.gui.navigation.ExploreGui;
 import net.bteuk.network.gui.tutorials.TutorialsGui;
-import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.lobby.Lobby;
 import net.bteuk.network.papercore.LocationAdapter;
 import net.bteuk.network.papercore.PlayerAdapter;
@@ -21,6 +20,7 @@ import net.bteuk.network.utils.Utils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.Material;
 import org.bukkit.potion.PotionEffectType;
 

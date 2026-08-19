@@ -8,9 +8,9 @@ import net.bteuk.network.api.ServerAPI;
 import net.bteuk.network.commands.AbstractCommand;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.Time;
-import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.papercore.LocationAdapter;
 import net.bteuk.network.papercore.PlayerAdapter;
+import net.bteuk.network.papercore.WorldUtils;
 import net.bteuk.network.regions.Region;
 import net.bteuk.network.regions.RegionManager;
 import net.bteuk.network.sql.GlobalSQL;
@@ -27,6 +27,7 @@ import net.buildtheearth.terraminusminus.util.geo.CoordinateParseUtils;
 import net.buildtheearth.terraminusminus.util.geo.LatLng;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -311,9 +312,9 @@ public class Tpll extends AbstractCommand {
         // Check if the region is on the plot server.
         if (regionManager.isPlot(region)) {
             String location = plotSQL.getString("SELECT location FROM regions WHERE region='" + region.regionName() + "';");
-            l.setWorld(Bukkit.getWorld(location));
+            l.setWorld(WorldUtils.getWorld(location));
         } else {
-            l.setWorld(Bukkit.getWorld(constants.earthWorld()));
+            l.setWorld(WorldUtils.getWorld(constants.earthDimension()));
         }
     }
 

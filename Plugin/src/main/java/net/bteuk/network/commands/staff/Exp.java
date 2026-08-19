@@ -3,7 +3,7 @@
 // import io.papermc.paper.command.brigadier.CommandSourceStack;
 // import net.bteuk.network.Network;
 // import net.bteuk.network.commands.AbstractCommand;
-// import net.bteuk.network.lib.utils.ChatUtils;
+// import org.btuk.network.lib.utils.ChatUtils;
 // import net.bteuk.network.utils.progression.Progression;
 // import org.bukkit.command.CommandSender;
 // import org.bukkit.entity.Player;

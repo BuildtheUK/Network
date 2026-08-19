@@ -57,6 +57,9 @@ public class NetworkConfig {
             // Get old config values, these are needed to add them back after updating.
             Map<String, Object> values = config.getValues(true);
 
+            // Migrate the values if necessary.
+            migrateConfig(values, ConfigVersion.parse(version), ConfigVersion.parse(latestVersion()));
+
             // Generate a new config file from the default config.
             // Copy any values that can be reused.
             // Delete the current config and set the new one.
@@ -99,6 +102,29 @@ public class NetworkConfig {
         }
     }
 
+    /**
+     * Migrates configuration values based on defined migration rules.
+     *
+     * @param values          the current configuration values
+     * @param previousVersion the version of the config before the update
+     * @param currentVersion  the version of the config after the update
+     */
+    private void migrateConfig(Map<String, Object> values, ConfigVersion previousVersion, ConfigVersion currentVersion) {
+        for (ConfigMigration migration : ConfigMigration.values()) {
+            // Check if the migration should be executed.
+            // The migration is executed if the previous version is before the migration version,
+            // and the current version is at or after the migration version.
+            if (previousVersion.compareTo(migration.getVersion()) < 0 && currentVersion.compareTo(migration.getVersion()) >= 0) {
+                // If the old key exists, migrate it to the new key.
+                if (values.containsKey(migration.getOldKey())) {
+                    Object value = values.remove(migration.getOldKey());
+                    values.put(migration.getNewKey(), value);
+                    log.info("Migrated config key '" + migration.getOldKey() + "' to '" + migration.getNewKey() + "' (migration version " + migration.getVersion() + ")");
+                }
+            }
+        }
+    }
+
     public net.bteuk.network.core.Constants getConstants() {
         log.info("Loading constants from config...");
 
@@ -131,8 +157,6 @@ public class NetworkConfig {
 
         boolean llEnabled = config.getBoolean("ll_enabled");
 
-        boolean progressMap = config.getBoolean("ProgressMap.enabled");
-
         boolean progression = config.getBoolean("progression.enabled");
         boolean announceOverallLevelUps = config.getBoolean("progression.announce_level-ups.overall");
         boolean announceSeasonalLevelUps = config.getBoolean("progression.announce_level-ups.seasonal");
@@ -155,7 +179,7 @@ public class NetworkConfig {
         boolean motdEnabled = config.getBoolean("motd.enabled");
         String motdText = config.getString("motd.text", "");
 
-        String earthWorld = config.getString("regions.earth_world", "earth");
+        String earthDimension = config.getString("regions.earth_dimension", "overworld");
 
         String minrankGeneration = config.getString("minrank_generation", "Jr.Builder");
         String minrankRegionClaim = config.getString("minrank_regionclaim", "Jr.Builder");
@@ -171,11 +195,7 @@ public class NetworkConfig {
 
         boolean announcePromotions = config.getBoolean("chat.announce_promotions");
 
-        String discordLink = config.getString("discord", Strings.EMPTY);
-
         boolean skullsEnabled = config.getBoolean("skulls_plugin_enabled");
-
-        String progressMapLink = config.getString("ProgressMap.Link", Strings.EMPTY);
 
         String chatSocketOutputIP = config.getString("chat.socket.output.IP");
         int chatSocketOutputPort = config.getInt("chat.socket.output.port");
@@ -185,9 +205,6 @@ public class NetworkConfig {
 
         boolean regionStaffRequestAlways = config.getBoolean("regions.staff_request.always");
         int regionStaffRequestRadius = config.getInt("regions.staff_request.radius", 0);
-
-        int progressMapID = config.getInt("ProgressMap.ProgressMapID");
-        String mapHubAPIKey = config.getString("ProgressMap.MapHubAPIKey");
 
         int navigationRadius = config.getInt("navigation_radius", 200);
 
@@ -204,12 +221,15 @@ public class NetworkConfig {
 
         boolean UKSurvey = config.getBoolean("UKSurvey_enabled");
 
+        String discordLink = config.getString("links.discord", null);
+        String websiteLink = config.getString("links.website", null);
+        String progressMapLink = config.getString("links.progress_map", null);
+
         log.info("Loaded constants from config.");
-        return new Constants(serverName, serverType, standalone, regionsEnabled, regionInactivity, tpllEnabled, tpllRequiredPermission, maxY, minY, earthWorld, staffChat, tips,
-                tutorials, llEnabled, progressMap, progression, announceOverallLevelUps, announceSeasonalLevelUps, sidebarEnabled, sidebarTitle, sidebarTextList, motdEnabled,
-                motdText, minrankGeneration, minrankRegionClaim, minrankZoneJoin, plotSystemEnabled, moderationEnabled, warpsEnabled, homesEnabled, announcePromotions, discordLink,
-                skullsEnabled, progressMapLink, chatSocketOutputIP,
-                chatSocketOutputPort, chatSocketInputPort, tipsFrequency, regionStaffRequestAlways, regionStaffRequestRadius, progressMapID, mapHubAPIKey, navigationRadius,
-                compulsoryTutorial, afkTime, mapEnabled, mapServer, mapLocation, spawnLocation, UKSurvey);
+        return new Constants(serverName, serverType, standalone, regionsEnabled, regionInactivity, tpllEnabled, tpllRequiredPermission, maxY, minY, staffChat, tips,
+                tutorials, llEnabled, progression, announceOverallLevelUps, announceSeasonalLevelUps, sidebarEnabled, sidebarTitle, sidebarTextList, motdEnabled,
+                motdText, minrankGeneration, minrankRegionClaim, minrankZoneJoin, plotSystemEnabled, moderationEnabled, warpsEnabled, homesEnabled, announcePromotions,
+                skullsEnabled, chatSocketOutputIP, chatSocketOutputPort, chatSocketInputPort, tipsFrequency, regionStaffRequestAlways, regionStaffRequestRadius, navigationRadius,
+                compulsoryTutorial, afkTime, mapEnabled, mapServer, mapLocation, spawnLocation, UKSurvey, discordLink, websiteLink, progressMapLink, earthDimension);
     }
 }

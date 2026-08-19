@@ -6,7 +6,7 @@ import net.bteuk.network.CustomChat;
 import net.bteuk.network.commands.AbstractCommand;
 import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.staff.StaffGui;
-import net.bteuk.network.lib.utils.ChatUtils;
+import org.btuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.NetworkUser;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
@@ -14,8 +14,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-import static net.bteuk.network.lib.enums.ChatChannels.GLOBAL;
-import static net.bteuk.network.lib.enums.ChatChannels.STAFF;
+import static org.btuk.network.lib.enums.ChatChannels.GLOBAL;
+import static org.btuk.network.lib.enums.ChatChannels.STAFF;
 
 @Log
 public class Staff extends AbstractCommand {

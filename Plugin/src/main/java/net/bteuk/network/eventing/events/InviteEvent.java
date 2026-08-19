@@ -3,12 +3,12 @@ package net.bteuk.network.eventing.events;
 import net.bteuk.network.api.PlotAPI;
 import net.bteuk.network.api.SQLAPI;
 import net.bteuk.network.api.entity.Event;
-import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.regions.Region;
 import net.bteuk.network.regions.RegionManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 

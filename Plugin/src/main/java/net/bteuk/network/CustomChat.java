@@ -4,15 +4,6 @@ import lombok.extern.java.Log;
 import net.bteuk.network.api.ChatAPI;
 import net.bteuk.network.api.entity.Role;
 import net.bteuk.network.core.Constants;
-import net.bteuk.network.lib.dto.ChatMessage;
-import net.bteuk.network.lib.dto.DirectMessage;
-import net.bteuk.network.lib.dto.DiscordDirectMessage;
-import net.bteuk.network.lib.dto.DiscordLinking;
-import net.bteuk.network.lib.dto.DiscordRole;
-import net.bteuk.network.lib.dto.PlotMessage;
-import net.bteuk.network.lib.dto.UserUpdate;
-import net.bteuk.network.lib.enums.ChatChannels;
-import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.socket.MessageSender;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Roles;
@@ -21,9 +12,18 @@ import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.btuk.network.lib.dto.ChatMessage;
+import org.btuk.network.lib.dto.DirectMessage;
+import org.btuk.network.lib.dto.DiscordDirectMessage;
+import org.btuk.network.lib.dto.DiscordLinking;
+import org.btuk.network.lib.dto.DiscordRole;
+import org.btuk.network.lib.dto.PlotMessage;
+import org.btuk.network.lib.dto.UserUpdate;
+import org.btuk.network.lib.enums.ChatChannels;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.entity.Player;
 
-import static net.bteuk.network.lib.enums.ChatChannels.STAFF;
+import static org.btuk.network.lib.enums.ChatChannels.STAFF;
 
 @Log
 public class CustomChat implements ChatAPI {

@@ -1,7 +1,7 @@
 package net.bteuk.network.commands.tabcompleters;
 
 import net.bteuk.network.Network;
-import net.bteuk.network.lib.dto.OnlineUser;
+import org.btuk.network.lib.dto.OnlineUser;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +37,7 @@ public class PlayerSelector extends AbstractTabCompleter {
     @Override
     public @NotNull Collection<String> onTabComplete(@NotNull CommandSender sender, @NotNull String[] args) {
         // Get an array of online players, excluding yourself.
-        List<String> names = instance.getOnlineUsers().stream().map(OnlineUser::getName).collect(Collectors.toList());
+        List<String> names = instance.getOnlineUsers().values().stream().map(OnlineUser::getName).collect(Collectors.toList());
         if (excludeSelf && (sender instanceof Player p)) {
             names.remove(p.getName());
         }

@@ -3,7 +3,7 @@ package net.bteuk.network.commands;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.bteuk.network.commands.tabcompleters.FixedArgSelector;
 import net.bteuk.network.exceptions.InvalidFormatException;
-import net.bteuk.network.lib.utils.ChatUtils;
+import org.btuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.enums.TimesOfDay;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;

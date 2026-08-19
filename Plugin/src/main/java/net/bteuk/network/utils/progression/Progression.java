@@ -1,9 +1,9 @@
 // package net.bteuk.network.utils.progression;
 //
 // import net.bteuk.network.Network;
-// import net.bteuk.network.lib.dto.ChatMessage;
-// import net.bteuk.network.lib.enums.ChatChannels;
-// import net.bteuk.network.lib.utils.ChatUtils;
+// import org.btuk.network.lib.dto.ChatMessage;
+// import org.btuk.network.lib.enums.ChatChannels;
+// import org.btuk.network.lib.utils.ChatUtils;
 // import net.bteuk.network.utils.NetworkUser;
 // import net.kyori.adventure.text.Component;
 // import net.kyori.adventure.text.format.NamedTextColor;

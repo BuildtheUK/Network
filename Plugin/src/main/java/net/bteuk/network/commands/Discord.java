@@ -7,33 +7,30 @@ import net.bteuk.network.api.entity.Role;
 import net.bteuk.network.commands.tabcompleters.FixedArgSelector;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.Time;
-import net.bteuk.network.lib.dto.DiscordLinking;
-import net.bteuk.network.lib.dto.DiscordRole;
-import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.socket.MessageSender;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Roles;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.event.ClickEvent;
+import org.btuk.network.lib.dto.DiscordLinking;
+import org.btuk.network.lib.dto.DiscordRole;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
 import java.util.Arrays;
-import java.util.Objects;
 
 @Log
-public class Discord extends AbstractCommand {
+public class Discord extends DisplayClickableLink {
 
     private final Network instance;
     private final Roles roles;
-    private final Constants constants;
     private final MessageSender messageSender;
 
     public Discord(Network instance, Roles roles, Constants constants, MessageSender messageSender) {
+        super("discord", "Sends a link of the discord server", "Click to join our discord server.",
+                constants.discordLink());
         this.instance = instance;
         this.roles = roles;
-        this.constants = constants;
         this.messageSender = messageSender;
         setTabCompleter(new FixedArgSelector(Arrays.asList("link", "unlink"), 0));
     }
@@ -112,18 +109,6 @@ public class Discord extends AbstractCommand {
             }
         }
 
-        Component discord = ChatUtils.success("Join our discord: " + constants.discordLink());
-        discord = discord.clickEvent(ClickEvent.openUrl(Objects.requireNonNull(constants.discordLink())));
-        stack.getSender().sendMessage(discord);
-    }
-
-    @Override
-    public String getLabel() {
-        return "discord";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Sends a link to our discord server.";
+        sendClickableLink(stack.getSender());
     }
 }

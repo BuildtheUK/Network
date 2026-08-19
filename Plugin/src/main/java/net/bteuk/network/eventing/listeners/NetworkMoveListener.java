@@ -4,7 +4,7 @@ import lombok.extern.java.Log;
 import net.bteuk.network.Network;
 import net.bteuk.network.commands.Afk;
 import net.bteuk.network.core.Time;
-import net.bteuk.network.lib.utils.ChatUtils;
+import org.btuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.NetworkUser;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;

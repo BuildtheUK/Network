@@ -6,11 +6,11 @@ import net.bteuk.network.building_counter.Building;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.Time;
 import net.bteuk.network.core.sql.AbstractSQL;
-import net.bteuk.network.lib.dto.DirectMessage;
+import net.bteuk.network.papercore.WorldUtils;
 import net.bteuk.network.survey.Survey;
 import net.bteuk.network.utils.Coordinate;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
-import org.bukkit.Bukkit;
+import org.btuk.network.lib.dto.DirectMessage;
 import org.bukkit.Location;
 
 import javax.sql.DataSource;
@@ -75,7 +75,7 @@ public class GlobalSQL extends AbstractSQL {
     // Add new coordinate to database and return the id.
     public int addCoordinate(Location l) {
 
-        return addCoordinate(constants.serverName(), l.getWorld().getName(), l.getX(), l.getY(), l.getZ(), l.getYaw(), l.getPitch());
+        return addCoordinate(constants.serverName(), l.getWorld().key().asMinimalString(), l.getX(), l.getY(), l.getZ(), l.getYaw(), l.getPitch());
     }
 
     // Add new coordinate to database and return the id.
@@ -89,7 +89,7 @@ public class GlobalSQL extends AbstractSQL {
 
     // Add new coordinate to database and return the id.
     public int addCoordinate(String server, Location l) {
-        return addCoordinate(server, l.getWorld().getName(), l.getX(), l.getY(), l.getZ(), l.getYaw(), l.getPitch());
+        return addCoordinate(server, l.getWorld().key().asMinimalString(), l.getX(), l.getY(), l.getZ(), l.getYaw(), l.getPitch());
     }
 
     // Add new coordinate using values, rather than location.
@@ -131,7 +131,7 @@ public class GlobalSQL extends AbstractSQL {
                 Connection conn = conn(); PreparedStatement statement = conn.prepareStatement("UPDATE coordinates SET server=?, world=?, x=?, y=?, z=?, yaw=?, pitch=? WHERE id=?;")
         ) {
             statement.setString(1, server);
-            statement.setString(2, l.getWorld().getName());
+            statement.setString(2, l.getWorld().key().asMinimalString());
             statement.setDouble(3, l.getX());
             statement.setDouble(4, l.getY());
             statement.setDouble(5, l.getZ());
@@ -182,7 +182,7 @@ public class GlobalSQL extends AbstractSQL {
         ) {
             ArrayList<Building> buildings = new ArrayList<>();
             while (results.next()) {
-                Location temp = new Location(Bukkit.getWorld(results.getString("world")), results.getDouble("x"), results.getDouble("y"), results.getDouble("z"),
+                Location temp = new Location(WorldUtils.getWorld(results.getString("world")), results.getDouble("x"), results.getDouble("y"), results.getDouble("z"),
                         results.getFloat("yaw"), results.getFloat("pitch"));
                 buildings.add(new Building(results.getInt("building_id"), temp, results.getString("player_id"), results.getInt("coordinate_id"),
                         results.getObject("time_added", LocalDateTime.class), results.getBoolean("is_public"), results.getBoolean("player_built"), results.getDouble("lat"),
@@ -205,7 +205,7 @@ public class GlobalSQL extends AbstractSQL {
         ) {
 
             results.next();
-            return (new Location(Bukkit.getWorld(results.getString("world")), results.getDouble("x"), results.getDouble("y"), results.getDouble("z"), results.getFloat("yaw"),
+            return (new Location(WorldUtils.getWorld(results.getString("world")), results.getDouble("x"), results.getDouble("y"), results.getDouble("z"), results.getFloat("yaw"),
                     results.getFloat("pitch")));
         } catch (SQLException sql) {
             log.log(Level.SEVERE, "Failed to fetch location for coordinate " + coordinateID, sql);

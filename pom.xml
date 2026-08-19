@@ -18,21 +18,26 @@
     </modules>
 
     <properties>
-        <java-version>21</java-version>
+        <java-version>25</java-version>
         <maven.compiler.release>${java-version}</maven.compiler.release>
+        <maven.compiler.version>3.15.0</maven.compiler.version>
+
+        <junit.version>5.11.2</junit.version>
+        <maven.shade.version>3.6.2</maven.shade.version>
+        <maven.surefire.version>3.5.1</maven.surefire.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <paper.api.version>1.21.10-R0.1-SNAPSHOT</paper.api.version>
+        <paper.api.version>[26.2.build,)</paper.api.version>
 
-        <bteuk.proxy.version>develop-2c95cc659b-1</bteuk.proxy.version>
-        <bteuk.lib.version>main-36b0421e66-1</bteuk.lib.version>
-        <bteuk.networklib.version>955372d721</bteuk.networklib.version>
+        <btuk.proxy.version>develop-2749ad3406-1</btuk.proxy.version>
+        <btuk.lib.version>main-36b0421e66-1</btuk.lib.version>
+        <btuk.networklib.version>5dee061bcb</btuk.networklib.version>
 
-        <kyori.version>4.26.1</kyori.version>
+        <kyori.version>5.2.0</kyori.version>
 
-        <lombok.version>1.18.34</lombok.version>
+        <lombok.version>1.18.46</lombok.version>
 
         <caffeine.version>3.2.3</caffeine.version>
     </properties>
@@ -95,24 +100,29 @@
             <dependency>
                 <groupId>com.github.BuildtheUK.BTUKLib</groupId>
                 <artifactId>Minecraft</artifactId>
-                <version>${bteuk.lib.version}</version>
+                <version>${btuk.lib.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>com.github.BTEUK</groupId>
+                <groupId>com.github.BuildtheUK</groupId>
                 <artifactId>NetworkLib</artifactId>
-                <version>${bteuk.networklib.version}</version>
+                <version>${btuk.networklib.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>com.github.BuildtheUK.Proxy</groupId>
+                <artifactId>app</artifactId>
+                <version>${btuk.proxy.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.BuildtheUK.Proxy</groupId>
                 <artifactId>core</artifactId>
-                <version>${bteuk.proxy.version}</version>
+                <version>${btuk.proxy.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.github.BuildtheUK.Proxy</groupId>
                 <artifactId>database</artifactId>
-                <version>${bteuk.proxy.version}</version>
+                <version>${btuk.proxy.version}</version>
             </dependency>
 
             <dependency>
@@ -148,7 +158,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
+                <version>${maven.compiler.version}</version>
                 <configuration>
                     <annotationProcessorPaths>
                         <path>
