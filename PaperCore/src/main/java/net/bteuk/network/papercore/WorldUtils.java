@@ -21,14 +21,14 @@ public class WorldUtils {
         if (!dimension.equals(lowerCaseDimension)) {
             log.warning("Dimension key must be lowercase: " + dimension);
         }
-        NamespacedKey key = NamespacedKey.fromString(dimension);
+        NamespacedKey key = NamespacedKey.fromString(lowerCaseDimension);
         if (key == null) {
-            log.severe("Invalid dimension: " + dimension);
+            log.severe("Invalid dimension: " + lowerCaseDimension);
             return null;
         }
         World world = Bukkit.getWorld(key);
         if (world == null) {
-            log.severe("Invalid world: " + dimension);
+            log.severe("Invalid world: " + lowerCaseDimension);
             return null;
         }
         return world;
