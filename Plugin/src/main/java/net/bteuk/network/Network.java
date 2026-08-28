@@ -114,6 +114,7 @@ import org.btuk.network.lib.dto.OnlineUser;
 import org.btuk.network.lib.dto.OnlineUserAdd;
 import org.btuk.network.lib.dto.OnlineUserRemove;
 import org.btuk.network.lib.dto.OnlineUsersReply;
+import org.btuk.network.lib.dto.ProxyStart;
 import org.btuk.network.lib.dto.ServerStartup;
 import org.btuk.proxy.app.ProxyController;
 import org.btuk.proxy.core.socket.ProxySocketHandler;
@@ -163,6 +164,9 @@ public final class Network extends JavaPlugin implements NetworkAPI {
     // List of users connected to the network.
     @Getter
     private Map<UUID, OnlineUser> onlineUsers;
+
+    @Getter
+    private TabManager tabManager;
 
     private Map<UUID, NetworkUser> networkUsers;
     // SQL
@@ -359,7 +363,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         }
 
         // Enable tab.
-        TabManager tabManager = new TabManager(this, constants, roleAPI);
+        tabManager = new TabManager(this, constants, roleAPI);
 
         Nightvision nightvision = new Nightvision(this);
 
@@ -428,7 +432,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
         if (constants.tpllEnabled()) {
             TerraConfig.reducedConsoleMessages = true;
-            tpll = new Tpll(this, constants.tpllRequiresPermission(), regionManager, constants, plotSQL, eventAPI, serverAPI, back, globalSQL, previousLocationTracker);
+            tpll = new Tpll(this, constants.tpllRequiresPermission(), regionManager, constants, plotSQL, eventAPI, serverAPI, globalSQL, previousLocationTracker);
             commandManager.registerCommand(tpll);
         }
 
@@ -665,23 +669,39 @@ public final class Network extends JavaPlugin implements NetworkAPI {
     }
 
     public void addUser(NetworkUser u) {
+        log.info("Adding user " + u.player.getName());
         networkUsers.put(u.player.getUniqueId(), u);
+        log.info("All users: " + networkUsers.values().stream().map(user -> user.player.getName()).toList());
     }
 
     public void removeUser(NetworkUser u) {
+        log.info("Removing user " + u.player.getName());
         networkUsers.remove(u.player.getUniqueId());
+        log.info("All users: " + networkUsers.values().stream().map(user -> user.player.getName()).toList());
     }
 
     public void handleOnlineUsersReply(OnlineUsersReply onlineUsersReply) {
+        onlineUsers.clear();
         onlineUsers.putAll(onlineUsersReply.getOnlineUsers().stream().collect(Collectors.toMap(onlineUser -> UUID.fromString(onlineUser.getUuid()), onlineUser -> onlineUser)));
+        log.info("All online users: " + onlineUsers.values().stream().map(OnlineUser::getName).toList());
+    }
+
+    public void handleProxyStart(ProxyStart proxyStart) {
+        log.info("Proxy has started, clearing online users.");
+        onlineUsers.clear();
+        tabManager.clearTeams();
     }
 
     public void handleOnlineUserAdd(OnlineUserAdd onlineUserAdd) {
+        log.info("Adding online user " + onlineUserAdd.getUser().getName() + " to server " + onlineUserAdd.getUser().getServer());
         onlineUsers.put(UUID.fromString(onlineUserAdd.getUser().getUuid()), onlineUserAdd.getUser());
+        log.info("All online users: " + onlineUsers.values().stream().map(OnlineUser::getName).toList());
     }
 
     public void handleOnlineUserRemove(OnlineUserRemove onlineUserRemove) {
-        onlineUsers.remove(UUID.fromString(onlineUserRemove.getUuid()));
+        OnlineUser user = onlineUsers.remove(UUID.fromString(onlineUserRemove.getUuid()));
+        log.info("Removing online user " + user.getName() + " from server " + user.getServer());
+        log.info("All online users: " + onlineUsers.values().stream().map(OnlineUser::getName).toList());
     }
 
     public boolean isOnlineOnNetwork(String uuid) {

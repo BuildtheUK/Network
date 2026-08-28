@@ -165,4 +165,16 @@ public class TabManager {
             }
         });
     }
+
+    /**
+     * Clear all players from all teams.
+     */
+    public void clearTeams() {
+        // Run this task synchronously.
+        instance.getServer().getScheduler().runTask(instance, () -> {
+            for (Team team : teams.values()) {
+                team.removeEntries(team.getEntries());
+            }
+        });
+    }
 }

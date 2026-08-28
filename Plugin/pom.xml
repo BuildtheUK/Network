@@ -98,6 +98,13 @@
                                         <include>**</include>
                                     </includes>
                                 </filter>
+
+                                <filter>
+                                    <artifact>net.buildtheearth.terraminusminus:terraminusminus-core</artifact>
+                                    <includes>
+                                        <include>**</include>
+                                    </includes>
+                                </filter>
                             </filters>
 
                             <relocations>
@@ -112,6 +119,10 @@
                                 <relocation>
                                     <pattern>com.github.benmanes.caffeine</pattern>
                                     <shadedPattern>net.bteuk.network.shaded.caffeine</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>io.netty</pattern>
+                                    <shadedPattern>net.bteuk.network.shaded.netty</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>

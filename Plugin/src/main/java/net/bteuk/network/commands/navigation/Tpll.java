@@ -51,11 +51,10 @@ public class Tpll extends AbstractCommand {
     private final PlotSQL plotSQL;
     private final EventAPI eventAPI;
     private final ServerAPI serverAPI;
-    private final Back back;
     private final GlobalSQL globalSQL;
     private final PreviousLocationTracker previousLocationTracker;
 
-    public Tpll(Network instance, boolean requiresPermission, RegionManager regionManager, Constants constants, PlotSQL plotSQL, EventAPI eventAPI, ServerAPI serverAPI, Back back,
+    public Tpll(Network instance, boolean requiresPermission, RegionManager regionManager, Constants constants, PlotSQL plotSQL, EventAPI eventAPI, ServerAPI serverAPI,
                 GlobalSQL globalSQL, PreviousLocationTracker previousLocationTracker) {
         this.instance = instance;
         this.requiresPermission = requiresPermission;
@@ -64,7 +63,6 @@ public class Tpll extends AbstractCommand {
         this.plotSQL = plotSQL;
         this.eventAPI = eventAPI;
         this.serverAPI = serverAPI;
-        this.back = back;
         this.globalSQL = globalSQL;
         this.previousLocationTracker = previousLocationTracker;
     }
@@ -327,32 +325,38 @@ public class Tpll extends AbstractCommand {
      * @return {@link CompletableFuture<Double>} the completableFuture that will give the altitude
      */
     private CompletableFuture<Double> getAltitude(Player p, TpllFormat format, Location l) {
-        CompletableFuture<Double> altFuture;
-        if (!PaperLib.isChunkGenerated(l)) {
-            p.sendMessage(ChatUtils.success("Location is generating, please wait a moment..."));
 
-            // If the altitude was not specified, get it from the data.
-            if (Double.isNaN(format.getAltitude())) {
-                try {
-                    altFuture = new GeneratorDatasets(bteGeneratorSettings).<IScalarDataset>getCustom(EarthGeneratorPipelines.KEY_DATASET_HEIGHTS)
-                            .getAsync(format.getCoordinates().getLng(), format.getCoordinates().getLat()).thenApply(a -> a + 1.0d);
-                } catch (OutOfProjectionBoundsException e) { // out of bounds, notify user
-                    p.sendMessage(ChatUtils.error("These coordinates are out of the projection bounds."));
-                    return null;
-                }
-            } else {
-                altFuture = CompletableFuture.completedFuture(format.getAltitude());
-            }
-        } else {
-
-            // If the altitude was not specified, get it from the data.
-            if (Double.isNaN(format.getAltitude())) {
-                altFuture = CompletableFuture.completedFuture((double) Utils.getHighestYAt(constants, l.getWorld(), l.getBlockX(), l.getBlockZ()));
-            } else {
-                altFuture = CompletableFuture.completedFuture(format.getAltitude());
-            }
+        // If the altitude was specified, return it.
+        if (!Double.isNaN(format.getAltitude())) {
+            return CompletableFuture.completedFuture(format.getAltitude());
         }
-        return altFuture;
+
+        // Get altitude from the dataset, this is used if the chunk is not yet generated,
+        // or if we fail to get the altitude from the world safely.
+        CompletableFuture<Double> datasetAltFuture;
+        try {
+            datasetAltFuture = new GeneratorDatasets(bteGeneratorSettings).<IScalarDataset>getCustom(EarthGeneratorPipelines.KEY_DATASET_HEIGHTS)
+                    .getAsync(format.getCoordinates().getLng(), format.getCoordinates().getLat()).thenApply(a -> a + 1.0d);
+        } catch (OutOfProjectionBoundsException e) { // out of bounds, notify user
+            p.sendMessage(ChatUtils.error("These coordinates are out of the projection bounds."));
+            return null;
+        }
+
+        // If the chunk is generated, get it from the world.
+        // We use gen=false to avoid a deadlock if the chunk is currently being generated.
+        // If the chunk is not loaded, we fall back to the dataset altitude.
+        if (PaperLib.isChunkGenerated(l)) {
+            return l.getWorld().getChunkAtAsync(l.getBlockX() >> 4, l.getBlockZ() >> 4, false).thenCompose(chunk -> {
+                if (chunk != null) {
+                    return CompletableFuture.completedFuture((double) Utils.getHighestYAt(l.getWorld(), l.getBlockX(), l.getBlockZ()));
+                } else {
+                    return datasetAltFuture;
+                }
+            });
+        } else {
+            p.sendMessage(ChatUtils.success("Location is generating, please wait a moment..."));
+            return datasetAltFuture;
+        }
     }
 
     /**
@@ -399,3 +403,4 @@ public class Tpll extends AbstractCommand {
         return "Teleport to coordinates";
     }
 }
+

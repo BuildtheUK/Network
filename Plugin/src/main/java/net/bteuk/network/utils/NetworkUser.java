@@ -9,14 +9,14 @@ import net.bteuk.network.commands.Nightvision;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.Time;
 import net.bteuk.network.eventing.events.EventManager;
-import org.btuk.network.lib.dto.FocusEvent;
-import org.btuk.network.lib.dto.UserConnectReply;
-import org.btuk.network.lib.dto.UserDisconnect;
-import org.btuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.regions.RegionUser;
 import net.bteuk.network.socket.MessageSender;
 import net.kyori.adventure.text.Component;
 import org.btuk.minecraft.gui.Gui;
+import org.btuk.network.lib.dto.FocusEvent;
+import org.btuk.network.lib.dto.UserConnectReply;
+import org.btuk.network.lib.dto.UserDisconnect;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -323,4 +323,20 @@ public class NetworkUser {
         });
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o instanceof NetworkUser other) {
+            return player.getUniqueId().equals(other.player.getUniqueId());
+        }
+
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return player.getUniqueId().hashCode();
+    }
 }

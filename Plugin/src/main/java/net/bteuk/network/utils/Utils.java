@@ -2,12 +2,11 @@ package net.bteuk.network.utils;
 
 import com.destroystokyo.paper.profile.PlayerProfile;
 import net.bteuk.network.Network;
-import net.bteuk.network.core.Constants;
-import org.btuk.network.lib.utils.ChatUtils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -227,15 +226,8 @@ public class Utils {
         return item;
     }
 
-    public static int getHighestYAt(Constants constants, World w, int x, int z) {
-
-        for (int i = (constants.maxY() - 1); i >= constants.minY(); i--) {
-            if (w.getBlockAt(x, i, z).getType() != Material.AIR) {
-                return i + 1;
-            }
-        }
-        // Return 65 as the default y.
-        return 65;
+    public static int getHighestYAt(World w, int x, int z) {
+        return w.getHighestBlockYAt(x, z, org.bukkit.HeightMap.WORLD_SURFACE) + 1;
     }
 
     /**
@@ -321,3 +313,4 @@ public class Utils {
         // itemStack.addItemFlags(ItemFlag.HIDE_ENCHANTS);
     }
 }
+

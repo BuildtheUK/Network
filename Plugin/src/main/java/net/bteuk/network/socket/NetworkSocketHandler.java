@@ -14,6 +14,7 @@ import org.btuk.network.lib.dto.DiscordLinking;
 import org.btuk.network.lib.dto.OnlineUserAdd;
 import org.btuk.network.lib.dto.OnlineUserRemove;
 import org.btuk.network.lib.dto.OnlineUsersReply;
+import org.btuk.network.lib.dto.ProxyStart;
 import org.btuk.network.lib.dto.TeleportEvent;
 import org.btuk.network.lib.dto.UserConnectReply;
 import org.btuk.network.lib.dto.UserRemove;
@@ -69,6 +70,7 @@ public class NetworkSocketHandler implements SocketHandler {
             case OnlineUserAdd onlineUserAdd -> instance.handleOnlineUserAdd(onlineUserAdd);
             case OnlineUserRemove onlineUserRemove -> instance.handleOnlineUserRemove(onlineUserRemove);
             case TeleportEvent teleportEvent -> teleport.handleTeleportEvent(teleportEvent);
+            case ProxyStart proxyStart -> instance.handleProxyStart(proxyStart);
             default -> log.warning(String.format("Socket object has an unrecognised type %s",
                     abstractTransferObject.getClass().getTypeName()));
         }

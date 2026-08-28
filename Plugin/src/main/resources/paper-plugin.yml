@@ -24,4 +24,4 @@ dependencies:
     Terraplusminus:
       load: BEFORE
       required: false
-      join-classpath: true
+      join-classpath: false
