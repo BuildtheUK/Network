@@ -3,7 +3,6 @@ package net.bteuk.network.gui.staff;
 import net.bteuk.network.core.Time;
 import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.NetworkRefreshableGui;
-import org.btuk.network.lib.dto.OnlineUser;
 import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
@@ -11,8 +10,11 @@ import net.bteuk.network.utils.enums.ModerationType;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.btuk.network.lib.dto.OnlineUser;
 import org.bukkit.Material;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
@@ -38,9 +40,11 @@ public class SelectUser extends NetworkRefreshableGui {
         // Select all the players to show in the menu depending on the ModerationType.
         switch (type) {
 
-            case BAN, MUTE, KICK ->
-                // Get online users.
-                    users = provider.instance().getOnlineUsers().values().stream().map(OnlineUser::getUuid).toList();
+            case BAN, MUTE, KICK -> {
+                // Create a copy of the online users to ensure it is not concurrently modified by someone joining/leaving the network.
+                Collection<OnlineUser> onlineUsers = new ArrayList<>(provider.instance().getOnlineUsers().values());
+                users = onlineUsers.stream().map(OnlineUser::getUuid).toList();
+            }
             case UNBAN ->
                 // Get banned users.
                     users = globalSQL.getStringList("SELECT uuid FROM moderation WHERE end_time>" + Time.currentTime() + " AND type='ban'");

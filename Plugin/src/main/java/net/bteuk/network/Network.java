@@ -134,11 +134,11 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -335,8 +335,8 @@ public final class Network extends JavaPlugin implements NetworkAPI {
     public void enablePlugin() {
 
         // Create the user lists.
-        networkUsers = new HashMap<UUID, NetworkUser>();
-        onlineUsers = new HashMap<UUID, OnlineUser>();
+        networkUsers = new ConcurrentHashMap<>();
+        onlineUsers = new ConcurrentHashMap<>();
 
         // Set up the message sender.
         MessageSender messageSender = new MessageSender(constants);

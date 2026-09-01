@@ -48,9 +48,9 @@
             <url>https://repo.papermc.io/repository/maven-public/</url>
         </repository>
         <repository>
-            <id>smyler-releases</id>
-            <name>Smyler's maven repository</name>
-            <url>https://maven.smyler.net/releases</url>
+            <id>reposilite-repository-releases</id>
+            <name>BuildTheEarth</name>
+            <url>https://maven.buildtheearth.net/releases</url>
         </repository>
         <repository>
             <id>sonatype</id>

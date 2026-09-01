@@ -51,7 +51,6 @@ public class NetworkUser {
     @Setter
     private boolean switching;
     // If the player is afk.
-    @Setter
     @Getter
     private boolean afk;
     public long last_movement;
@@ -321,6 +320,10 @@ public class NetworkUser {
                 player.showPlayer(instance, serverPlayer);
             }
         });
+    }
+
+    public void setAfk(boolean afk) {
+        this.afk = afk;
     }
 
     @Override

@@ -77,7 +77,7 @@ public class RegionMoveListener extends AbstractMoveListener implements Listener
                 Region newRegion = regionManager.getRegion(x, z);
 
                 // Check if the new region is on this server or not. If it is, check whether it is on the same world.
-                if (!regionManager.getServer(regionUser.getTrackedRegion()).equals(regionManager.getServer(newRegion))) {
+                if (!constants.serverName().equals(regionManager.getServer(newRegion))) {
 
                     switchServer(regionUser, newRegion, e.getTo());
                     e.setCancelled(true);

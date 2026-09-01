@@ -5,7 +5,6 @@ import net.bteuk.network.core.Constants;
 import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.gui.regions.ReviewRegionRequests;
-import org.btuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.papercore.PlayerAdapter;
 import net.bteuk.network.regions.RegionUser;
 import net.bteuk.network.utils.NetworkUser;
@@ -13,9 +12,9 @@ import net.bteuk.network.utils.Utils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.Material;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -164,18 +163,15 @@ public class StaffGui extends NetworkRefreshableGui {
 
             setItem(21, Utils.createItem(Material.WRITABLE_BOOK, 1, Utils.title("Review Plot"), Utils.line("Click to review a submitted plot,"),
                     Utils.line("if multiple select a plot."), plotReviewMessage), (NetworkUser user) -> {
-                // Get an arraylist of submitted plots.
-                // Order them by submitted time, so the oldest submissions are reviewed first.
-                List<SubmittedPlot> submittedPlots = provider.plotSQL().getReviewablePlots(user.player.getUniqueId().toString(), isArchitect, isReviewer);
-                submittedPlots.sort(Comparator.comparingLong(SubmittedPlot::submitTime));
 
+                List<SubmittedPlot> submittedPlots = PlotReviewGui.getSubmittedPlots(user, provider.plotSQL());
                 if (submittedPlots.isEmpty()) {
                     user.player.sendMessage(ChatUtils.error("There are currently no submitted plots that you can review."));
                 } else if (submittedPlots.size() == 1) {
                     PlotReviewGui.reviewPlot(provider, submittedPlots.getFirst(), user);
                 } else {
                     this.delete();
-                    user.staffGui = new PlotReviewGui(provider, submittedPlots);
+                    user.staffGui = new PlotReviewGui(provider, user, submittedPlots);
                     user.staffGui.open(user.player);
                 }
             });
