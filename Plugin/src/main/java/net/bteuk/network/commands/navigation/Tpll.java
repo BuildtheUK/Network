@@ -18,11 +18,10 @@ import net.bteuk.network.sql.PlotSQL;
 import net.bteuk.network.utils.Statistics;
 import net.bteuk.network.utils.TpllFormat;
 import net.bteuk.network.utils.Utils;
-import net.buildtheearth.terraminusminus.dataset.IScalarDataset;
-import net.buildtheearth.terraminusminus.generator.EarthGeneratorPipelines;
+import net.buildtheearth.terraminusminus.generator.CachedChunkData;
+import net.buildtheearth.terraminusminus.generator.ChunkDataLoader;
 import net.buildtheearth.terraminusminus.generator.EarthGeneratorSettings;
-import net.buildtheearth.terraminusminus.generator.GeneratorDatasets;
-import net.buildtheearth.terraminusminus.projection.OutOfProjectionBoundsException;
+import net.buildtheearth.terraminusminus.substitutes.ChunkPos;
 import net.buildtheearth.terraminusminus.util.geo.CoordinateParseUtils;
 import net.buildtheearth.terraminusminus.util.geo.LatLng;
 import net.kyori.adventure.text.Component;
@@ -41,7 +40,8 @@ import java.util.concurrent.CompletableFuture;
 
 public class Tpll extends AbstractCommand {
 
-    public static final EarthGeneratorSettings bteGeneratorSettings = EarthGeneratorSettings.parse(EarthGeneratorSettings.BTE_DEFAULT_SETTINGS);
+    public static final EarthGeneratorSettings BTE_GENERATOR_SETTINGS = EarthGeneratorSettings.parse(EarthGeneratorSettings.BTE_DEFAULT_SETTINGS);
+    private static final ChunkDataLoader CHUNK_DATA_LOADER = new ChunkDataLoader(BTE_GENERATOR_SETTINGS);
     private static final DecimalFormat DECIMAL_FORMATTER = new DecimalFormat("##.#####");
     private static final Component USAGE = ChatUtils.error("/tpll <latitude> <longitude> [altitude]");
     private final Network instance;
@@ -218,7 +218,7 @@ public class Tpll extends AbstractCommand {
         double[] proj;
 
         try {
-            proj = bteGeneratorSettings.projection().fromGeo(format.getCoordinates().getLng(), format.getCoordinates().getLat());
+            proj = BTE_GENERATOR_SETTINGS.projection().fromGeo(format.getCoordinates().getLng(), format.getCoordinates().getLat());
         } catch (Exception e) {
             p.sendMessage(USAGE);
             return;
@@ -333,14 +333,19 @@ public class Tpll extends AbstractCommand {
 
         // Get altitude from the dataset, this is used if the chunk is not yet generated,
         // or if we fail to get the altitude from the world safely.
-        CompletableFuture<Double> datasetAltFuture;
-        try {
-            datasetAltFuture = new GeneratorDatasets(bteGeneratorSettings).<IScalarDataset>getCustom(EarthGeneratorPipelines.KEY_DATASET_HEIGHTS)
-                    .getAsync(format.getCoordinates().getLng(), format.getCoordinates().getLat()).thenApply(a -> a + 1.0d);
-        } catch (OutOfProjectionBoundsException e) { // out of bounds, notify user
-            p.sendMessage(ChatUtils.error("These coordinates are out of the projection bounds."));
-            return null;
-        }
+        int roundedX = l.getBlockX();
+        int roundedZ = l.getBlockZ();
+        int chunkX = ChunkPos.blockToCube(roundedX);
+        int chunkZ = ChunkPos.blockToCube(roundedZ);
+
+        CompletableFuture<Double> datasetAltFuture = CHUNK_DATA_LOADER.load(new ChunkPos(chunkX, chunkZ))
+                .thenApply(terraData -> {
+                    double height = terraData.surfaceHeight(roundedX - ChunkPos.cubeToMinBlock(chunkX), roundedZ - ChunkPos.cubeToMinBlock(chunkZ));
+                    if (height == CachedChunkData.BLANK_HEIGHT) {
+                        return 0.0d;
+                    }
+                    return height + 1.0d;
+                });
 
         // If the chunk is generated, get it from the world.
         // We use gen=false to avoid a deadlock if the chunk is currently being generated.

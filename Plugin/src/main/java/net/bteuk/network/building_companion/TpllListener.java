@@ -55,7 +55,7 @@ public class TpllListener implements Listener {
             double[] proj;
 
             try {
-                proj = Tpll.bteGeneratorSettings.projection().fromGeo(format.getCoordinates().getLng(),
+                proj = Tpll.BTE_GENERATOR_SETTINGS.projection().fromGeo(format.getCoordinates().getLng(),
                         format.getCoordinates().getLat());
             } catch (Exception ex) {
                 // No coordinates were parsed, return.
