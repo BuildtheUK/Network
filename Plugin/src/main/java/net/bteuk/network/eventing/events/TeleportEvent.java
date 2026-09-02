@@ -1,6 +1,5 @@
 package net.bteuk.network.eventing.events;
 
-import io.papermc.lib.PaperLib;
 import lombok.extern.java.Log;
 import net.bteuk.network.api.EventAPI;
 import net.bteuk.network.api.PlotAPI;
@@ -212,12 +211,12 @@ public class TeleportEvent implements Event {
                 Location l = new Location(world, x, y, z, yaw, pitch);
 
                 // If the terrain has not been generated, let the player know it could take a while.
-                if (!PaperLib.isChunkGenerated(l)) {
+                if (!world.isChunkGenerated((int) x >> 4, (int) z >> 4)) {
                     ChatUtils.success("Location is generating, please wait a moment...");
                 }
 
                 // Teleport player.
-                PaperLib.teleportAsync(p, l);
+                p.teleportAsync(l);
 
                 // If custom message is set, send that to player, else send default message.
                 if (message == null) {

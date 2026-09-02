@@ -1,6 +1,5 @@
 package net.bteuk.network.commands.navigation;
 
-import io.papermc.lib.PaperLib;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.bteuk.network.Network;
 import net.bteuk.network.api.EventAPI;
@@ -37,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 public class Tpll extends AbstractCommand {
 
@@ -347,21 +347,29 @@ public class Tpll extends AbstractCommand {
                     return height + 1.0d;
                 });
 
+        CompletableFuture<Double> altFuture;
+
+        // Check if the chunk is generated.
+        boolean isGenerated = l.getWorld().isChunkGenerated(l.getBlockX() >> 4, l.getBlockZ() >> 4);
+
         // If the chunk is generated, get it from the world.
         // We use gen=false to avoid a deadlock if the chunk is currently being generated.
         // If the chunk is not loaded, we fall back to the dataset altitude.
-        if (PaperLib.isChunkGenerated(l)) {
-            return l.getWorld().getChunkAtAsync(l.getBlockX() >> 4, l.getBlockZ() >> 4, false).thenCompose(chunk -> {
+        if (isGenerated) {
+            altFuture = l.getWorld().getChunkAtAsync(l.getBlockX() >> 4, l.getBlockZ() >> 4, false).thenCompose(chunk -> {
                 if (chunk != null) {
                     return CompletableFuture.completedFuture((double) Utils.getHighestYAt(l.getWorld(), l.getBlockX(), l.getBlockZ()));
                 } else {
+                    Bukkit.getScheduler().runTask(instance, () -> p.sendMessage(ChatUtils.success("Location is generating, please wait a moment...")));
                     return datasetAltFuture;
                 }
             });
         } else {
-            p.sendMessage(ChatUtils.success("Location is generating, please wait a moment..."));
-            return datasetAltFuture;
+            Bukkit.getScheduler().runTask(instance, () -> p.sendMessage(ChatUtils.success("Location is generating, please wait a moment...")));
+            altFuture = datasetAltFuture;
         }
+
+        return altFuture.orTimeout(30, TimeUnit.SECONDS);
     }
 
     /**
@@ -391,11 +399,19 @@ public class Tpll extends AbstractCommand {
             Statistics.addTpll(globalSQL, p.getUniqueId().toString(), Time.getDate(Time.currentTime()));
 
             // Teleport player.
-            PaperLib.teleportAsync(p, l);
-
-            p.sendMessage(ChatUtils.success("Teleported to ").append(Component.text(DECIMAL_FORMATTER.format(format.getCoordinates().getLat()), NamedTextColor.DARK_AQUA))
-                    .append(ChatUtils.success(", ")).append(Component.text(DECIMAL_FORMATTER.format(format.getCoordinates().getLng()), NamedTextColor.DARK_AQUA)));
-        }));
+            p.teleportAsync(l).whenComplete((success, ex) -> {
+                if (ex == null && success) {
+                    Bukkit.getScheduler().runTask(instance, () -> p.sendMessage(
+                            ChatUtils.success("Teleported to ").append(Component.text(DECIMAL_FORMATTER.format(format.getCoordinates().getLat()), NamedTextColor.DARK_AQUA))
+                                    .append(ChatUtils.success(", ")).append(Component.text(DECIMAL_FORMATTER.format(format.getCoordinates().getLng()), NamedTextColor.DARK_AQUA))));
+                } else {
+                    Bukkit.getScheduler().runTask(instance, () -> p.sendMessage(ChatUtils.error("An error occurred while teleporting, please try again.")));
+                }
+            });
+        })).exceptionally(_ -> {
+            Bukkit.getScheduler().runTask(instance, () -> p.sendMessage(ChatUtils.error("An error occurred while fetching altitude data, please try again.")));
+            return null;
+        });
     }
 
     @Override

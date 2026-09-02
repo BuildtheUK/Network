@@ -1,7 +1,6 @@
 package net.bteuk.network.lobby;
 
 import eu.decentsoftware.holograms.api.holograms.Hologram;
-import io.papermc.lib.PaperLib;
 import lombok.extern.java.Log;
 import net.bteuk.network.CommandManager;
 import net.bteuk.network.Network;
@@ -170,7 +169,7 @@ public class Map extends AbstractReloadableComponent {
     protected void teleport(Player p) {
         // If the map is on this server teleport the player directly, else switch server first.
         if (Objects.equals(constants.serverName(), server)) {
-            PaperLib.teleportAsync(p, mapLocation);
+            p.teleportAsync(mapLocation);
         } else {
             // Create teleport event.
             eventAPI.createTeleportEvent(true, p.getUniqueId().toString(),

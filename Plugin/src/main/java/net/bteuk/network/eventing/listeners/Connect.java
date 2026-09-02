@@ -32,6 +32,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.util.Vector;
 
 import java.util.Set;
 import java.util.UUID;
@@ -39,6 +40,8 @@ import java.util.UUID;
 // This class deals with players joining and leaving the network.
 @Log
 public class Connect implements Listener {
+
+    private static final Vector ZERO_VELOCITY = new Vector(0, 0, 0);
 
     private final Network instance;
     private final Constants constants;
@@ -197,6 +200,9 @@ public class Connect implements Listener {
     private void networkJoinEvent(PlayerJoinEvent e) {
         // Block the default connect message, this will be sent by the proxy.
         e.joinMessage(null);
+
+        // Block player velocity that may have been saved from the previous session.
+        e.getPlayer().setVelocity(ZERO_VELOCITY);
 
         // Ensure the player is hidden from the tab list; the proxy will handle adding the player back in the correct way.
         tabManager.hidePlayersFromTabList(e.getPlayer());
