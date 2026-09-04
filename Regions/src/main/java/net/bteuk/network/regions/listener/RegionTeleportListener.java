@@ -9,6 +9,7 @@ import net.bteuk.network.regions.RegionManager;
 import net.bteuk.network.regions.RegionUser;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
@@ -32,7 +33,7 @@ public class RegionTeleportListener extends AbstractMoveListener implements List
         this.plotAPI = plotAPI;
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerWorldChange(PlayerChangedWorldEvent e) {
 
         log.info("Player World Change Detected");
@@ -67,7 +68,7 @@ public class RegionTeleportListener extends AbstractMoveListener implements List
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerTeleport(PlayerTeleportEvent e) {
 
         log.fine("Player Teleport Event detected via " + e.getCause().name() + ". Attempting region switch");

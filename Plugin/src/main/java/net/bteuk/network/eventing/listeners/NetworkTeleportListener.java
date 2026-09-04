@@ -2,8 +2,8 @@ package net.bteuk.network.eventing.listeners;
 
 import lombok.extern.java.Log;
 import net.bteuk.network.Network;
-import org.btuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.NetworkUser;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -43,10 +43,8 @@ public class NetworkTeleportListener implements Listener {
         Player p = e.getPlayer();
         NetworkUser u = instance.getUser(p);
 
-        // If u is null, cancel.
+        // If u is null, cancel; this could be the case when teleporting before the user instance has been created.
         if (u == null) {
-            log.severe("User " + p.getName() + " can not be found!");
-            p.sendMessage(ChatUtils.error("User can not be found, please relog!"));
             e.setCancelled(true);
             return;
         }

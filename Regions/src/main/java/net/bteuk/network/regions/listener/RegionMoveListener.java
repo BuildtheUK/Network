@@ -71,7 +71,7 @@ public class RegionMoveListener extends AbstractMoveListener implements Listener
             // Check if the player has moved to another region.
             if (!regionUser.getTrackedRegion().equals(x, z)) {
 
-                log.info(e.getPlayer().getName() + " is moving across a region border");
+                log.info(e.getPlayer().getName() + " is moving across a region border at coordinates " + e.getTo().getX() + "," + e.getTo().getZ());
 
                 // Get the new region.
                 Region newRegion = regionManager.getRegion(x, z);
