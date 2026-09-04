@@ -95,7 +95,7 @@ public class Connect implements Listener {
             if (constants.regionsEnabled()) {
                 regionUser = regionManager.getUserByPlayer(player).orElse(null);
             }
-            NetworkUser user = new NetworkUser(player, reply, instance, constants, roles, nightvision, eventManager, regionUser, messageSender);
+            NetworkUser user = new NetworkUser(player, reply, instance, constants, roles, nightvision, regionUser, messageSender);
             instance.addUser(user);
 
             // Hide this player for all players in focus mode.
@@ -115,6 +115,9 @@ public class Connect implements Listener {
                 Component componentMessage = miniMessage.deserialize(rawMessage);
                 player.sendMessage(componentMessage);
             }
+
+            // Run all their join events.
+            user.runEvents(eventManager);
 
             // Send offline messages to the player.
             reply.getMessages().forEach(player::sendMessage);

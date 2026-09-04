@@ -17,7 +17,6 @@ import org.btuk.network.lib.dto.FocusEvent;
 import org.btuk.network.lib.dto.UserConnectReply;
 import org.btuk.network.lib.dto.UserDisconnect;
 import org.btuk.network.lib.utils.ChatUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -102,7 +101,7 @@ public class NetworkUser {
 
     private final RegionUser regionUser;
 
-    public NetworkUser(Player player, UserConnectReply reply, Network instance, Constants constants, Roles roles, Nightvision nightvision, EventManager eventManager,
+    public NetworkUser(Player player, UserConnectReply reply, Network instance, Constants constants, Roles roles, Nightvision nightvision,
                        RegionUser regionUser, MessageSender messageSender) {
 
         this.instance = instance;
@@ -147,8 +146,6 @@ public class NetworkUser {
                 }
             }
         }
-
-        runEvents(eventManager);
 
         // Give the player nightvision if enabled or remove it if disabled.
         if (nightvisionEnabled) {
@@ -202,29 +199,26 @@ public class NetworkUser {
         );
     }
 
-    private void runEvents(EventManager eventManager) {
+    public void runEvents(EventManager eventManager) {
 
-        // Check if the player has any join events, if try run them.
-        // Delay by 1 second for all plugins to run their join events.
-        Bukkit.getScheduler().scheduleSyncDelayedTask(instance, () -> {
-            if (instance.getGlobalSQL().hasRow("SELECT uuid FROM join_events WHERE uuid='" + player.getUniqueId() + "';")) {
+        // Check if the player has any join events, try run them.
+        if (instance.getGlobalSQL().hasRow("SELECT uuid FROM join_events WHERE uuid='" + player.getUniqueId() + "';")) {
 
-                // Get the event from the database.
-                String event = instance.getGlobalSQL().getString("SELECT event FROM join_events WHERE uuid='" + player.getUniqueId() + "';");
+            // Get the event from the database.
+            String event = instance.getGlobalSQL().getString("SELECT event FROM join_events WHERE uuid='" + player.getUniqueId() + "';");
 
-                // Get message.
-                String message = instance.getGlobalSQL().getString("SELECT message FROM join_events WHERE uuid='" + player.getUniqueId() + "';");
+            // Get message.
+            String message = instance.getGlobalSQL().getString("SELECT message FROM join_events WHERE uuid='" + player.getUniqueId() + "';");
 
-                // Split the event by word.
-                String[] aEvent = event.split(" ");
+            // Split the event by word.
+            String[] aEvent = event.split(" ");
 
-                // Clear the events.
-                instance.getGlobalSQL().update("DELETE FROM join_events WHERE uuid='" + player.getUniqueId() + "';");
+            // Clear the events.
+            instance.getGlobalSQL().update("DELETE FROM join_events WHERE uuid='" + player.getUniqueId() + "';");
 
-                // Send the event to the event handler.
-                eventManager.event(player.getUniqueId().toString(), aEvent, message);
-            }
-        }, 20L);
+            // Send the event to the event handler.
+            eventManager.event(player.getUniqueId().toString(), aEvent, message);
+        }
     }
 
     /**
