@@ -33,7 +33,7 @@
 
         <btuk.proxy.version>develop-2749ad3406-1</btuk.proxy.version>
         <btuk.lib.version>main-36b0421e66-1</btuk.lib.version>
-        <btuk.networklib.version>f79a2324a1</btuk.networklib.version>
+        <btuk.networklib.version>de181bb095</btuk.networklib.version>
 
         <kyori.version>5.2.0</kyori.version>
 

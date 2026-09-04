@@ -514,7 +514,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         commandManager.registerCommand(new Me());
 
         Navigator navigator = new Navigator(this, networkGuiManager, constants, globalSQL, regionSQL, regionManager, plotSQL, plotAPI, lobby, back, eventAPI, serverAPI,
-                nightvision, roleAPI, tutorialsDBConnection, chat, moderation, previousLocationTracker);
+                nightvision, roleAPI, tutorialsDBConnection, chat, moderation, previousLocationTracker, messageSender);
         commandManager.registerCommand(navigator);
         new PlayerInteract(this, navigator);
 
