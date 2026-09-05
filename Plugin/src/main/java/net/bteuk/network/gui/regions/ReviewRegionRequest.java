@@ -50,7 +50,7 @@ public class ReviewRegionRequest extends NetworkRefreshableGui {
 
     @Override
     protected void loadData() {
-        String roleId = roles.getBuilderRole(request.region).join();
+        String roleId = roles.getBuilderRole(request.uuid).join();
         this.role = roles.getRoleById(roleId);
     }
 
