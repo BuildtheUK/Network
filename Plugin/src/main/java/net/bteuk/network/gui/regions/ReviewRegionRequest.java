@@ -64,7 +64,7 @@ public class ReviewRegionRequest extends NetworkRefreshableGui {
         setItem(11, Utils.createItem(Material.LIME_CONCRETE, 1, Utils.title("Accept Request"), Utils.line("The user will be able to build in this region.")),
                 (NetworkUser user) -> {
                     // Send the event to the proxy, it will handle the routing the correct server.
-                    RegionRequestEvent event = new RegionRequestEvent(request.region, request.uuid, staff, ApprovalAction.ACCEPT, null);
+                    RegionRequestEvent event = new RegionRequestEvent(request.region, user.getUuid(), request.uuid, staff, ApprovalAction.ACCEPT, null);
                     messageSender.sendSocketMessage(event);
 
                     // Return to the request menu.
@@ -81,7 +81,7 @@ public class ReviewRegionRequest extends NetworkRefreshableGui {
                             }
 
                             chatEvent.setCancelled(true);
-                            RegionRequestEvent event = new RegionRequestEvent(request.region, request.uuid, true, ApprovalAction.REJECT,
+                            RegionRequestEvent event = new RegionRequestEvent(request.region, user.getUuid(), request.uuid, true, ApprovalAction.REJECT,
                                     PlainTextComponentSerializer.plainText().serialize(chatEvent.message()));
                             messageSender.sendSocketMessage(event);
 
@@ -93,7 +93,7 @@ public class ReviewRegionRequest extends NetworkRefreshableGui {
                         user.player.closeInventory();
                         user.sendMessage(ChatUtils.error("Please write a reason for denying the request in chat, the first message will be used."));
                     } else {
-                        RegionRequestEvent event = new RegionRequestEvent(request.region, request.uuid, false, ApprovalAction.REJECT, null);
+                        RegionRequestEvent event = new RegionRequestEvent(request.region, user.getUuid(), request.uuid, false, ApprovalAction.REJECT, null);
                         messageSender.sendSocketMessage(event);
 
                         // Return to the request menu.

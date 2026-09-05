@@ -7,5 +7,10 @@ import org.btuk.network.lib.dto.AbstractTransferObject;
  */
 public interface ProxyEvent<T extends AbstractTransferObject> {
 
+    /**
+     * Handle the event.
+     *
+     * @param event The event to handle.
+     */
     void event(T event);
 }

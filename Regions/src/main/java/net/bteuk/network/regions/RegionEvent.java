@@ -111,36 +111,36 @@ public class RegionEvent implements Event, ProxyEvent<RegionRequestEvent> {
 
     @Override
     public void event(RegionRequestEvent event) {
-        handleRegionRequest(event.getApprovalAction(), event.getRegionName(), event.getUuid(), event.isStaffReview(), event.getReason());
+        handleRegionRequest(event.getApprovalAction(), event.getRegionName(), event.getReviewerUuid(), event.getRequesterUuid(), event.isStaffReview(), event.getReason());
     }
 
-    private void handleRegionRequest(ApprovalAction action, String regionName, String uuid, boolean staffReview, String reason) {
+    private void handleRegionRequest(ApprovalAction action, String regionName, String reviewerUuid, String requesterUuid, boolean staffReview, String reason) {
         Region region = regionManager.getRegion(regionName);
         if (action == ApprovalAction.ACCEPT) {
 
-            // If no uuid was specified, all requests must be accepted for the region.
-            if (uuid == null) {
+            // If no requester uuid was specified, all requests must be accepted for the region.
+            if (requesterUuid == null) {
                 regionManager.acceptRequests(region);
                 return;
             }
 
             RegionManager.RequestType requestType = staffReview ? RegionManager.RequestType.STAFF : RegionManager.RequestType.OWNER;
-            regionManager.acceptRequest(region, uuid, requestType);
+            regionManager.acceptRequest(region, requesterUuid, requestType);
 
             // Send feedback to the user who accepted the request.
-            DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), uuid, "server",
+            DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), reviewerUuid, "server",
                     ChatUtils.success("Accepted region request for %s in the region %s.",
-                            globalSQL.getString("SELECT name FROM player_data " + "WHERE uuid='" + uuid + "';"), regionName), true);
+                            globalSQL.getString("SELECT name FROM player_data " + "WHERE uuid='" + requesterUuid + "';"), regionName), true);
             chatAPI.sendDirectMessage(directMessage);
 
         } else if (action == ApprovalAction.REJECT) {
 
-            regionManager.denyRequest(region, uuid, reason);
+            regionManager.denyRequest(region, requesterUuid, reason);
 
             // Send feedback to the user who denied the request.
-            DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), uuid, "server",
+            DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), reviewerUuid, "server",
                     ChatUtils.success("Denied region request for %s in the region %s.",
-                            globalSQL.getString("SELECT name FROM player_data " + "WHERE uuid='" + uuid + "';"), regionName), true);
+                            globalSQL.getString("SELECT name FROM player_data " + "WHERE uuid='" + requesterUuid + "';"), regionName), true);
             chatAPI.sendDirectMessage(directMessage);
         }
     }
