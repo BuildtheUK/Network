@@ -4,7 +4,6 @@ import com.sk89q.worldedit.math.BlockVector2;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedPolygonalRegion;
 import net.bteuk.network.api.PlotAPI;
-import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.math.Point;
 import net.bteuk.network.exceptions.RegionManagerNotFoundException;
 import net.bteuk.network.exceptions.RegionNotFoundException;
@@ -21,11 +20,9 @@ import java.util.List;
 public class WorldguardPlotsystem {
 
     private final PlotAPI plotAPI;
-    private final Constants constants;
 
-    public WorldguardPlotsystem(PlotAPI plotAPI, Constants constants) {
+    public WorldguardPlotsystem(PlotAPI plotAPI) {
         this.plotAPI = plotAPI;
-        this.constants = constants;
     }
 
     /**
@@ -44,8 +41,8 @@ public class WorldguardPlotsystem {
         List<BlockVector2> newVector = new ArrayList<>();
 
         // Get the negative coordinate transform.
-        int xTransform = -plotAPI.getXTransform(world.getName());
-        int zTransform = -plotAPI.getZTransform(world.getName());
+        int xTransform = -plotAPI.getXTransform(world.key().asMinimalString());
+        int zTransform = -plotAPI.getZTransform(world.key().asMinimalString());
 
         // Apply to transform to each coordinate.
         vector.forEach(bv -> newVector.add(BlockVector2.at(bv.x() + xTransform, bv.z() + zTransform)));
@@ -77,6 +74,6 @@ public class WorldguardPlotsystem {
 
         double[] averagePoint = Point.getAveragePoint(region.getPoints().stream().map(blockVector2 -> new double[]{blockVector2.x(), blockVector2.z()}).toList());
 
-        return (new Location(world, averagePoint[0], Utils.getHighestYAt(constants, world, (int) averagePoint[0], (int) averagePoint[1]), averagePoint[1]));
+        return (new Location(world, averagePoint[0], Utils.getHighestYAt(world, (int) averagePoint[0], (int) averagePoint[1]), averagePoint[1]));
     }
 }

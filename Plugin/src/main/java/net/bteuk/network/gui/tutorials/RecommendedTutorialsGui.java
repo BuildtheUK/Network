@@ -2,7 +2,7 @@ package net.bteuk.network.gui.tutorials;
 
 import lombok.extern.java.Log;
 import net.bteuk.network.gui.GuiProvider;
-import net.bteuk.network.lib.utils.ChatUtils;
+import org.btuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.TutorialRecommendation;
 import net.bteuk.network.utils.Utils;

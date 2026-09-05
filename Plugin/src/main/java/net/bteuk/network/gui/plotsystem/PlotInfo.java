@@ -5,7 +5,9 @@ import net.bteuk.network.api.EventAPI;
 import net.bteuk.network.api.PlotAPI;
 import net.bteuk.network.api.ServerAPI;
 import net.bteuk.network.api.entity.NetworkLocation;
+import net.bteuk.network.api.entity.Role;
 import net.bteuk.network.api.plotsystem.PlotStatus;
+import net.bteuk.network.api.plotsystem.PromotionRoles;
 import net.bteuk.network.api.plotsystem.ReviewFeedback;
 import net.bteuk.network.api.plotsystem.SubmittedStatus;
 import net.bteuk.network.core.Constants;
@@ -14,7 +16,6 @@ import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.InviteMembers;
 import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.gui.tutorials.RecommendedTutorialsGui;
-import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.papercore.LocationAdapter;
 import net.bteuk.network.papercore.PlayerAdapter;
 import net.bteuk.network.regions.RegionType;
@@ -22,6 +23,7 @@ import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.sql.PlotSQL;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.PlotValues;
+import net.bteuk.network.utils.Roles;
 import net.bteuk.network.utils.Utils;
 import net.buildtheearth.terraminusminus.generator.EarthGeneratorSettings;
 import net.buildtheearth.terraminusminus.projection.OutOfProjectionBoundsException;
@@ -30,6 +32,7 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 
@@ -47,6 +50,7 @@ public class PlotInfo extends NetworkRefreshableGui {
     private final Constants constants;
     private final EventAPI eventAPI;
     private final ServerAPI serverAPI;
+    private final Roles roleAPI;
 
     private String plot_owner;
 
@@ -66,6 +70,7 @@ public class PlotInfo extends NetworkRefreshableGui {
         this.constants = provider.constants();
         this.eventAPI = provider.eventAPI();
         this.serverAPI = provider.serverAPI();
+        this.roleAPI = provider.roles();
     }
 
     public void createGui() {
@@ -92,6 +97,8 @@ public class PlotInfo extends NetworkRefreshableGui {
             return;
         }
 
+        int plotDifficulty = plotSQL.getInt("SELECT difficulty FROM plot_data " + "WHERE id=" + plotID + ";");
+
         // Return
         setItem(26, Utils.createItem(Material.SPRUCE_DOOR, 1, Utils.title("Return"), Utils.line("Open the plot menu.")), (NetworkUser u) -> {
 
@@ -109,7 +116,7 @@ public class PlotInfo extends NetworkRefreshableGui {
         });
 
         // Plot Info
-        setItem(4, Utils.createItem(Material.BOOK, 1, Utils.title("Plot " + plotID), createPlotInfo(status)));
+        setItem(4, Utils.createItem(Material.BOOK, 1, Utils.title("Plot " + plotID), createPlotInfo(status, plotDifficulty)));
 
         // Plot Teleport (Always in slot 24).
         setItem(24, Utils.createItem(Material.ENDER_PEARL, 1, Utils.title("Teleport to Plot"), Utils.line("Click to teleport to this plot.")), (NetworkUser u) -> {
@@ -168,8 +175,8 @@ public class PlotInfo extends NetworkRefreshableGui {
 
                         // Generate link to google maps.
                         Component message = Component.text("Click here to open the plot in Google Maps", NamedTextColor.GREEN);
-                        message = message.clickEvent(ClickEvent.clickEvent(ClickEvent.Action.OPEN_URL,
-                                "https://www" + ".google.com/maps/@?api=1&map_action=map&basemap=satellite&zoom=21&center=" + coords[1] + "," + coords[0]));
+                        message = message.clickEvent(
+                                ClickEvent.openUrl("https://www.google.com/maps/@?api=1&map_action=map&basemap=satellite&zoom=21&center=" + coords[1] + "," + coords[0]));
 
                         u.player.sendMessage(message);
                         u.player.closeInventory();
@@ -203,14 +210,25 @@ public class PlotInfo extends NetworkRefreshableGui {
             });
 
             setItem(19, Utils.createItem(Material.OAK_BOAT, 1, Utils.title("Invite Members"), Utils.line("Invite a new member to your plot."),
-                    Utils.line("You can only invite online users.")), (NetworkUser u) -> {
+                    Utils.line("n only invite online users.")), (NetworkUser u) -> {
 
-                // Delete this gui.
-                this.delete();
+                String currentRole = roleAPI.getBuilderRole(u.getUuid()).join();
+                String nextRole = PromotionRoles.getNewRole(plotDifficulty, currentRole);
 
-                // Switch back to the plot invite menu.
-                u.mainGui = new InviteMembers(provider, plotID, RegionType.PLOT);
-                u.mainGui.open(u.player);
+                if (nextRole != null) {
+                    Role role = roleAPI.getRoleById(nextRole);
+                    Component roleName = role == null ? ChatUtils.error(nextRole) : role.getColouredRoleName();
+                    u.player.sendMessage(ChatUtils.error("You must be at least %s to invite members to this plot.", roleName));
+                    u.player.closeInventory();
+                } else {
+
+                    // Delete this gui.
+                    this.delete();
+
+                    // Switch back to the plot invite menu.
+                    u.mainGui = new InviteMembers(provider, plotID, RegionType.PLOT);
+                    u.mainGui.open(u.player);
+                }
             });
 
             if (status == PlotStatus.CLAIMED) {
@@ -478,7 +496,7 @@ public class PlotInfo extends NetworkRefreshableGui {
         }
     }
 
-    private Component[] createPlotInfo(PlotStatus status) {
+    private Component[] createPlotInfo(PlotStatus status, int plotDifficulty) {
         List<Component> info = new ArrayList<>();
         if (status == PlotStatus.CLAIMED || status == PlotStatus.SUBMITTED) {
             info.add(Utils.line("Plot Owner: ").append(Component.text(globalSQL.getString(
@@ -497,7 +515,7 @@ public class PlotInfo extends NetworkRefreshableGui {
 
         // Add size and difficulty stats.
         info.add(Utils.line("Difficulty: ")
-                .append(Component.text(PlotValues.difficultyName(plotSQL.getInt("SELECT difficulty FROM plot_data " + "WHERE id=" + plotID + ";")), NamedTextColor.GRAY)));
+                .append(Component.text(PlotValues.difficultyName(plotDifficulty), NamedTextColor.GRAY)));
         info.add(Utils.line("Size: ").append(Component.text(PlotValues.sizeName(plotSQL.getInt("SELECT size FROM plot_data WHERE id=" + plotID + ";")), NamedTextColor.GRAY)));
 
         // If accepted, add a disclaimer that the actual plot may have changed since it was accepted.
@@ -557,7 +575,7 @@ public class PlotInfo extends NetworkRefreshableGui {
         boolean switchServer = constants.serverType() != ServerType.EARTH;
 
         eventAPI.createTeleportEvent(switchServer, user.player.getUniqueId().toString(),
-                "teleport " + constants.earthWorld() + " " + x + " " + z + " " + user.player.getLocation().getYaw() + " " + user.player.getLocation().getPitch(),
+                "teleport " + constants.earthDimension() + " " + x + " " + z + " " + user.player.getLocation().getYaw() + " " + user.player.getLocation().getPitch(),
                 PlainTextComponentSerializer.plainText().serialize(teleportMessage), LocationAdapter.adapt(user.player.getLocation()));
 
         // Switch to Earth server is necessary.

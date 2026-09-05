@@ -1,17 +1,10 @@
 package net.bteuk.network.proxy;
 
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
-import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.wrappers.EnumWrappers;
-import com.comphenix.protocol.wrappers.PlayerInfoData;
-import com.comphenix.protocol.wrappers.WrappedChatComponent;
-import com.comphenix.protocol.wrappers.WrappedGameProfile;
-import com.comphenix.protocol.wrappers.WrappedSignedProperty;
-import net.bteuk.network.lib.dto.TabPlayer;
+import net.bteuk.network.api.entity.Role;
+import net.bteuk.network.core.Constants;
+import net.bteuk.network.utils.Roles;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import org.btuk.network.lib.dto.TabPlayer;
 import org.btuk.proxy.core.chat.ChatHandler;
 import org.btuk.proxy.core.config.Config;
 import org.btuk.proxy.core.player.Player;
@@ -20,93 +13,115 @@ import org.btuk.proxy.core.tab.AbstractTabManager;
 import org.btuk.proxy.core.user.CoreUserManager;
 import org.btuk.proxy.core.user.User;
 import org.bukkit.Server;
+import org.bukkit.scoreboard.Criteria;
+import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.Nullable;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
-
-import static com.comphenix.protocol.wrappers.EnumWrappers.PlayerInfoAction.ADD_PLAYER;
-import static com.comphenix.protocol.wrappers.EnumWrappers.PlayerInfoAction.UPDATE_DISPLAY_NAME;
-import static com.comphenix.protocol.wrappers.EnumWrappers.PlayerInfoAction.UPDATE_LATENCY;
-import static com.comphenix.protocol.wrappers.EnumWrappers.PlayerInfoAction.UPDATE_LISTED;
 
 public class NetworkTabManager extends AbstractTabManager {
 
-    private final ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
+    private static final char[] ALPHABET = "abcdefghijklmnopqrstuvwxyz".toCharArray();
 
     private final Server server;
+    private final Roles roles;
+    private final Constants constants;
 
-    public NetworkTabManager(Server server, Config config, CoreUserManager coreUserManager, ChatHandler chatHandler, Scheduler scheduler) {
+    private final Map<UUID, Scoreboard> scoreboards;
+    private final Map<String, String> sortKeys;
+
+    public NetworkTabManager(Server server, Roles roles, Constants constants, Config config, CoreUserManager coreUserManager, ChatHandler chatHandler, Scheduler scheduler) {
         super(config, coreUserManager, chatHandler, scheduler);
         this.server = server;
+        this.roles = roles;
+        this.constants = constants;
+
+        this.scoreboards = new HashMap<>();
+        this.sortKeys = new HashMap<>();
+
+        initSortKeys();
+    }
+
+    private void initSortKeys() {
+        int i = 0;
+        int j = 0;
+        for (Role role : roles.getRoles()) {
+            sortKeys.put(role.getId(), String.valueOf(ALPHABET[i]) + ALPHABET[j]);
+            if (j == 25) {
+                i++;
+                j = 0;
+            } else {
+                j++;
+            }
+        }
     }
 
     @Override
     protected void addPlayerToTabList(Player player, User user, TabPlayer tabPlayer) {
-        org.bukkit.entity.Player bukkitPlayer = resolveBukkitPlayer(player.getUniqueId().toString());
+        org.bukkit.entity.Player bukkitPlayer = resolveBukkitPlayer(tabPlayer.getUuid());
         if (bukkitPlayer == null || !bukkitPlayer.isOnline()) {
             return;
         }
-        sendPlayerInfoAddOrFullUpdate(bukkitPlayer, List.of(toFakeInfoData(user, tabPlayer)));
+
+        // Set the player list name to empty globally, so the team prefix is used for the entire name.
+        bukkitPlayer.playerListName(Component.empty());
+
+        for (org.bukkit.entity.Player onlinePlayer : server.getOnlinePlayers()) {
+            // Update the scoreboard for the online player.
+            User viewerUser = coreUserManager.getUserByUuid(onlinePlayer.getUniqueId().toString());
+            if (viewerUser != null) {
+                updatePlayerInScoreboard(getScoreboard(onlinePlayer), viewerUser, tabPlayer);
+            }
+            onlinePlayer.listPlayer(bukkitPlayer);
+        }
     }
 
     @Override
     protected void removePlayerFromTabList(Player player, TabPlayer tabPlayer) {
-        org.bukkit.entity.Player bukkitPlayer = resolveBukkitPlayer(player.getUniqueId().toString());
-        if (bukkitPlayer == null || !bukkitPlayer.isOnline()) {
-            return;
+        // Remove the scoreboard if the player leaving is the owner of the scoreboard.
+        scoreboards.remove(UUID.fromString(tabPlayer.getUuid()));
+
+        for (org.bukkit.entity.Player onlinePlayer : server.getOnlinePlayers()) {
+            Scoreboard sb = scoreboards.get(onlinePlayer.getUniqueId());
+            if (sb != null) {
+                Team team = sb.getEntryTeam(tabPlayer.getName());
+                if (team != null) {
+                    team.unregister();
+                }
+            }
         }
-        UUID fakeUuid = fakeUuidForRealUuid(tabPlayer.getUuid());
-        sendPlayerInfoRemove(bukkitPlayer, List.of(fakeUuid));
     }
 
     @Override
     protected void updatePlayerPing(String name, int ping) {
-        Optional<TabPlayer> tabPlayer = tabPlayers.stream().filter(player -> player.getName().equals(name)).findFirst();
-        User user = coreUserManager.getUserByName(name);
-        if (user == null) {
-            return;
-        }
-        List<PlayerInfoData> updates = tabPlayer.stream().map(player -> toFakeInfoData(user, player)).toList();
-        broadcastPlayerInfoUpdate(updates, EnumSet.of(UPDATE_LATENCY));
+        // Do nothing in standalone mode ping real players are shown in tab, their ping is already correct.
     }
 
     @Override
     protected void updatePlayerDisplayName(String name, TabPlayer updated) {
-        User user = coreUserManager.getUserByName(name);
-        if (user == null) {
-            return;
+        // Update the display name in all scoreboards.
+        for (org.bukkit.entity.Player onlinePlayer : server.getOnlinePlayers()) {
+            User viewerUser = coreUserManager.getUserByUuid(onlinePlayer.getUniqueId().toString());
+            if (viewerUser != null) {
+                updatePlayerInScoreboard(getScoreboard(onlinePlayer), viewerUser, updated);
+            }
         }
-        List<PlayerInfoData> updates = List.of(toFakeInfoData(user, updated));
-        broadcastPlayerInfoUpdate(updates, EnumSet.of(UPDATE_DISPLAY_NAME));
     }
 
     @Override
     protected int findPingForPlayer(String uuid) {
-        org.bukkit.entity.Player bukkitPlayer = server.getPlayer(UUID.fromString(uuid));
-        if (bukkitPlayer == null || !bukkitPlayer.isOnline()) {
-            return -1;
-        } else {
-            return bukkitPlayer.getPing();
-        }
+        org.bukkit.entity.Player player = resolveBukkitPlayer(uuid);
+        return player != null ? player.getPing() : -1;
     }
 
     @Override
     protected void updatePing() {
-        List<PlayerInfoData> all = tabPlayers.stream().map(player -> {
-            player.setPing(findPingForPlayer(player.getUuid()));
-            User user = coreUserManager.getUserByUuid(player.getUuid());
-            if (user == null) {
-                return null;
-            }
-            return toFakeInfoData(user, player);
-        }).filter(Objects::nonNull).toList();
-        broadcastPlayerInfoUpdate(all, EnumSet.of(UPDATE_LATENCY));
+        // Do nothing in standalone mode ping real players are shown in tab, their ping is already correct.
     }
 
     /**
@@ -119,15 +134,12 @@ public class NetworkTabManager extends AbstractTabManager {
     @Override
     public void updatePlayerInTablistOfPlayer(User user, User userToUpdate) {
         org.bukkit.entity.Player bukkitPlayer = resolveBukkitPlayer(user.getUuid());
-        if (bukkitPlayer == null || !bukkitPlayer.isOnline()) {
-            return;
+        if (bukkitPlayer != null) {
+            TabPlayer tabPlayerToUpdate = findTabPlayerByUuid(userToUpdate.getUuid());
+            if (tabPlayerToUpdate != null) {
+                updatePlayerInScoreboard(getScoreboard(bukkitPlayer), user, tabPlayerToUpdate);
+            }
         }
-        TabPlayer tabPlayer = findTabPlayerByUuid(userToUpdate.getUuid());
-        if (tabPlayer == null) {
-            return;
-        }
-        // Update just that one entry in just that one viewer
-        sendPlayerInfoAddOrFullUpdate(bukkitPlayer, List.of(toFakeInfoData(userToUpdate, tabPlayer)));
     }
 
     /**
@@ -137,84 +149,72 @@ public class NetworkTabManager extends AbstractTabManager {
      */
     @Override
     public void sendTablist(User user) {
-        org.bukkit.entity.Player bukkitPlayer = resolveBukkitPlayer(user.getUuid());
-        if (bukkitPlayer == null || !bukkitPlayer.isOnline()) {
+        org.bukkit.entity.Player player = resolveBukkitPlayer(user.getUuid());
+        if (player == null || !player.isOnline()) {
             return;
         }
-        List<PlayerInfoData> allInfo = tabPlayers.stream().map(player -> {
-            User tabUser = coreUserManager.getUserByUuid(player.getUuid());
-            if (tabUser == null) {
-                return null;
+
+        // Set the scoreboard for the player.
+        player.setScoreboard(getScoreboard(player));
+
+        // Send header and footer.
+        player.sendPlayerListHeaderAndFooter(HEADER, FOOTER);
+
+        for (org.bukkit.entity.Player onlinePlayer : server.getOnlinePlayers()) {
+            // Ensure the other player has an empty list name.
+            onlinePlayer.playerListName(Component.empty());
+
+            // Add the other player to this player's scoreboard.
+            TabPlayer tabPlayer = findTabPlayerByUuid(onlinePlayer.getUniqueId().toString());
+            if (tabPlayer != null) {
+                updatePlayerInScoreboard(player.getScoreboard(), user, tabPlayer);
             }
-            return toFakeInfoData(tabUser, player);
-        }).filter(Objects::nonNull).toList();
-        sendPlayerInfoAddOrFullUpdate(bukkitPlayer, allInfo);
-        server.sendPlayerListHeaderAndFooter(HEADER, FOOTER);
-    }
-
-    private void broadcastPlayerInfoUpdate(List<PlayerInfoData> infoData, EnumSet<com.comphenix.protocol.wrappers.EnumWrappers.PlayerInfoAction> actions) {
-        if (infoData == null || infoData.isEmpty()) return;
-
-        for (org.bukkit.entity.Player viewer : server.getOnlinePlayers()) {
-            sendPlayerInfoUpdate(viewer, infoData, actions);
+            player.listPlayer(onlinePlayer);
         }
     }
 
-    private void sendPlayerInfoAddOrFullUpdate(org.bukkit.entity.Player player, List<PlayerInfoData> infoData) {
-        sendPlayerInfoUpdate(player, infoData, EnumSet.of(ADD_PLAYER, UPDATE_LISTED, UPDATE_LATENCY, UPDATE_DISPLAY_NAME));
+    private void updatePlayerInScoreboard(Scoreboard sb, User viewer, TabPlayer target) {
+        String teamName = getTeamName(target);
+        Team team = sb.getTeam(teamName);
+
+        // If the player was in a different team, remove them first.
+        Team oldTeam = sb.getEntryTeam(target.getName());
+        if (oldTeam != null && !oldTeam.getName().equals(teamName)) {
+            oldTeam.unregister();
+        }
+
+        if (team == null) {
+            team = sb.registerNewTeam(teamName);
+            team.addEntry(target.getName());
+        }
+
+        // Apply the formatted name as the prefix.
+        team.prefix(formattedName(viewer, target));
     }
 
-    private void sendPlayerInfoUpdate(org.bukkit.entity.Player viewer,
-                                      List<PlayerInfoData> infoData,
-                                      EnumSet<com.comphenix.protocol.wrappers.EnumWrappers.PlayerInfoAction> actions) {
-        PacketContainer packet = protocolManager.createPacket(PacketType.Play.Server.PLAYER_INFO);
-        packet.getPlayerInfoActions().write(0, actions);
-        packet.getPlayerInfoDataLists().write(1, infoData);
-
-        protocolManager.sendServerPacket(viewer, packet);
+    private String getTeamName(TabPlayer tabPlayer) {
+        String sortKey = sortKeys.getOrDefault(tabPlayer.getPrimaryGroup(), "zz");
+        // Team name is sortKey + first 14 chars of UUID to ensure uniqueness and sorting.
+        return sortKey + tabPlayer.getUuid().substring(0, 10);
     }
 
-    private void sendPlayerInfoRemove(org.bukkit.entity.Player viewer, List<UUID> uuids) {
-        PacketContainer packet = protocolManager.createPacket(PacketType.Play.Server.PLAYER_INFO_REMOVE);
-        packet.getUUIDLists().write(0, uuids);
-        protocolManager.sendServerPacket(viewer, packet);
-    }
+    private Scoreboard getScoreboard(org.bukkit.entity.Player player) {
+        return scoreboards.computeIfAbsent(player.getUniqueId(), uuid -> {
+            Scoreboard sb = server.getScoreboardManager().getNewScoreboard();
 
-    private PlayerInfoData toFakeInfoData(User user, TabPlayer tabPlayer) {
-        String realUuid = tabPlayer.getUuid();
-        UUID fakeUuid = fakeUuidForRealUuid(realUuid);
-        org.bukkit.entity.Player bukkitPlayer = resolveBukkitPlayer(user.getUuid());
-
-        WrappedGameProfile profile = new WrappedGameProfile(fakeUuid, null);
-        getSignedTextures(bukkitPlayer).ifPresent(textures -> {
-            profile.getProperties().put("textures", textures);
+            // Set sidebar if enabled.
+            if (constants.sidebarEnabled()) {
+                Objective objective = sb.registerNewObjective("sidebar", Criteria.DUMMY,
+                        Component.text(constants.sidebarTitle()));
+                objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+                int score = constants.sidebarContent().size();
+                for (String sidebarText : constants.sidebarContent()) {
+                    score--;
+                    objective.getScore(sidebarText).setScore(score);
+                }
+            }
+            return sb;
         });
-        EnumWrappers.NativeGameMode gameMode = EnumWrappers.NativeGameMode.CREATIVE;
-
-        Component displayName = formattedName(user, tabPlayer);
-        WrappedChatComponent wrappedDisplayName = toWrappedChat(displayName);
-
-        return new PlayerInfoData(fakeUuid, tabPlayer.getPing(), true, gameMode, profile, wrappedDisplayName);
-    }
-
-    private static Optional<WrappedSignedProperty> getSignedTextures(org.bukkit.entity.Player player) {
-        WrappedGameProfile profile = WrappedGameProfile.fromPlayer(player);
-
-        Collection<WrappedSignedProperty> textures = profile.getProperties().get("textures");
-        if (textures.isEmpty()) {
-            return Optional.empty();
-        }
-
-        return Optional.of(textures.iterator().next());
-    }
-
-    private UUID fakeUuidForRealUuid(String realUuidString) {
-        return UUID.nameUUIDFromBytes(("network-tab:" + realUuidString).getBytes(StandardCharsets.UTF_8));
-    }
-
-    private static WrappedChatComponent toWrappedChat(Component component) {
-        String json = GsonComponentSerializer.gson().serialize(component);
-        return WrappedChatComponent.fromJson(json);
     }
 
     private @Nullable org.bukkit.entity.Player resolveBukkitPlayer(String uuid) {

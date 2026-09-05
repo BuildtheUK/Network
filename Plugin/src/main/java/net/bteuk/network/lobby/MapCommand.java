@@ -4,9 +4,9 @@ import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.bteuk.network.commands.AbstractCommand;
 import net.bteuk.network.commands.tabcompleters.LocationAndSubcategorySelector;
 import net.bteuk.network.core.Constants;
-import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.sql.GlobalSQL;
 import net.kyori.adventure.text.Component;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 

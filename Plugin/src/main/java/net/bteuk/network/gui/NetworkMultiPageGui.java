@@ -10,24 +10,25 @@ import org.bukkit.Material;
  */
 public abstract class NetworkMultiPageGui extends NetworkRefreshableGui {
 
-    private final int buttonCount;
-
     private final int buttonsPerPage;
 
     private int page = 1;
 
-    public NetworkMultiPageGui(GuiProvider provider, int size, Component title, int buttonCount) {
+    public NetworkMultiPageGui(GuiProvider provider, int size, Component title) {
         super(provider, size, title);
-        this.buttonCount = buttonCount;
 
         this.buttonsPerPage = ((size / 9) - 2) * 7;
     }
+
+    protected abstract int getButtonCount();
 
     protected abstract void createPageButton(int slot, int index);
 
     protected abstract void addAdditionalButtons();
 
     protected void createGui() {
+
+        int buttonCount = getButtonCount();
 
         // Make a button for each plot.
         for (int slot = 10, index = buttonsPerPage * (page - 1);

@@ -23,6 +23,5 @@ To use this plugin it is necessary to have a Velocity Proxy that is running the 
 ## Dependencies
 - [WorldGuard](https://enginehub.org/worldguard)
 - [WorldEdit](https://enginehub.org/worldedit) or [FAWE](https://www.spigotmc.org/resources/fastasyncworldedit.13932/)
-- [Protocollib](https://www.spigotmc.org/resources/protocollib.1997/)
 ## PlotSystem
 The Network plugin is the backbone of the [PlotSystem](https://github.com/BTEUK/Plotsystem), it adds the GUIs and cross-server compatibility that make the PlotSystem function on a multi-server Network.

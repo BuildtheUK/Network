@@ -13,7 +13,6 @@ import net.bteuk.network.gui.plotsystem.PlotsystemLocations;
 import net.bteuk.network.gui.plotsystem.ZoneMenu;
 import net.bteuk.network.gui.regions.RegionInfo;
 import net.bteuk.network.gui.regions.RegionMenu;
-import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.papercore.LocationAdapter;
 import net.bteuk.network.papercore.PlayerAdapter;
 import net.bteuk.network.regions.Region;
@@ -26,6 +25,7 @@ import net.bteuk.network.utils.Utils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.Material;
 
 import java.util.Optional;
@@ -400,24 +400,6 @@ public class BuildGui extends NetworkRefreshableGui {
             u.mainGui = new UtilsGui(provider);
             u.mainGui.open(u.player);
         });
-
-        // if (constants.progressMap() && user.player.hasPermission("uknet.progressmap.edit")) {
-        //     // Progress map edit menu
-        //     setItem(0, Utils.createItem(Material.MAP, 1, Utils.title("Progress Map"), Utils.line("Edit or add areas to the progress map")), (NetworkUser u) -> {
-        //
-        //         LocalFeaturesMenu localFeatures = new LocalFeaturesMenu(constants.progressMapID(), constants.mapHubAPIKey(), u.player);
-        //
-        //         // Check to see if the location could be established
-        //         if (localFeatures.getPlayerCoordinates() == null) {
-        //             u.player.sendMessage(ChatUtils.error("Could not locate you"));
-        //         } else {
-        //             this.delete();
-        //             // Switch to the local features menu
-        //             u.mainGui = new LocalFeatureListGUI(provider, localFeatures, localFeatures.getGUI());
-        //             u.mainGui.open(u.player);
-        //         }
-        //     });
-        // }
 
         // Return
         setItem(26, Utils.createItem(Material.SPRUCE_DOOR, 1, Utils.title("Return"), Utils.line("Open the navigator main menu.")), (NetworkUser u) -> {

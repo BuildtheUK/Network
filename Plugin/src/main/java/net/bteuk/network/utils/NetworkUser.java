@@ -9,15 +9,14 @@ import net.bteuk.network.commands.Nightvision;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.Time;
 import net.bteuk.network.eventing.events.EventManager;
-import net.bteuk.network.lib.dto.FocusEvent;
-import net.bteuk.network.lib.dto.UserConnectReply;
-import net.bteuk.network.lib.dto.UserDisconnect;
-import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.regions.RegionUser;
 import net.bteuk.network.socket.MessageSender;
 import net.kyori.adventure.text.Component;
 import org.btuk.minecraft.gui.Gui;
-import org.bukkit.Bukkit;
+import org.btuk.network.lib.dto.FocusEvent;
+import org.btuk.network.lib.dto.UserConnectReply;
+import org.btuk.network.lib.dto.UserDisconnect;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -25,9 +24,9 @@ import org.bukkit.inventory.ItemStack;
 import java.util.HashSet;
 import java.util.Set;
 
-import static net.bteuk.network.lib.enums.ChatChannels.GLOBAL;
-import static net.bteuk.network.lib.enums.ChatChannels.REVIEWER;
-import static net.bteuk.network.lib.enums.ChatChannels.STAFF;
+import static org.btuk.network.lib.enums.ChatChannels.GLOBAL;
+import static org.btuk.network.lib.enums.ChatChannels.REVIEWER;
+import static org.btuk.network.lib.enums.ChatChannels.STAFF;
 
 public class NetworkUser {
 
@@ -51,7 +50,6 @@ public class NetworkUser {
     @Setter
     private boolean switching;
     // If the player is afk.
-    @Setter
     @Getter
     private boolean afk;
     public long last_movement;
@@ -103,7 +101,7 @@ public class NetworkUser {
 
     private final RegionUser regionUser;
 
-    public NetworkUser(Player player, UserConnectReply reply, Network instance, Constants constants, Roles roles, Nightvision nightvision, EventManager eventManager,
+    public NetworkUser(Player player, UserConnectReply reply, Network instance, Constants constants, Roles roles, Nightvision nightvision,
                        RegionUser regionUser, MessageSender messageSender) {
 
         this.instance = instance;
@@ -148,8 +146,6 @@ public class NetworkUser {
                 }
             }
         }
-
-        runEvents(eventManager);
 
         // Give the player nightvision if enabled or remove it if disabled.
         if (nightvisionEnabled) {
@@ -203,29 +199,26 @@ public class NetworkUser {
         );
     }
 
-    private void runEvents(EventManager eventManager) {
+    public void runEvents(EventManager eventManager) {
 
-        // Check if the player has any join events, if try run them.
-        // Delay by 1 second for all plugins to run their join events.
-        Bukkit.getScheduler().scheduleSyncDelayedTask(instance, () -> {
-            if (instance.getGlobalSQL().hasRow("SELECT uuid FROM join_events WHERE uuid='" + player.getUniqueId() + "';")) {
+        // Check if the player has any join events, try run them.
+        if (instance.getGlobalSQL().hasRow("SELECT uuid FROM join_events WHERE uuid='" + player.getUniqueId() + "';")) {
 
-                // Get the event from the database.
-                String event = instance.getGlobalSQL().getString("SELECT event FROM join_events WHERE uuid='" + player.getUniqueId() + "';");
+            // Get the event from the database.
+            String event = instance.getGlobalSQL().getString("SELECT event FROM join_events WHERE uuid='" + player.getUniqueId() + "';");
 
-                // Get message.
-                String message = instance.getGlobalSQL().getString("SELECT message FROM join_events WHERE uuid='" + player.getUniqueId() + "';");
+            // Get message.
+            String message = instance.getGlobalSQL().getString("SELECT message FROM join_events WHERE uuid='" + player.getUniqueId() + "';");
 
-                // Split the event by word.
-                String[] aEvent = event.split(" ");
+            // Split the event by word.
+            String[] aEvent = event.split(" ");
 
-                // Clear the events.
-                instance.getGlobalSQL().update("DELETE FROM join_events WHERE uuid='" + player.getUniqueId() + "';");
+            // Clear the events.
+            instance.getGlobalSQL().update("DELETE FROM join_events WHERE uuid='" + player.getUniqueId() + "';");
 
-                // Send the event to the event handler.
-                eventManager.event(player.getUniqueId().toString(), aEvent, message);
-            }
-        }, 20L);
+            // Send the event to the event handler.
+            eventManager.event(player.getUniqueId().toString(), aEvent, message);
+        }
     }
 
     /**
@@ -323,4 +316,24 @@ public class NetworkUser {
         });
     }
 
+    public void setAfk(boolean afk) {
+        this.afk = afk;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o instanceof NetworkUser other) {
+            return player.getUniqueId().equals(other.player.getUniqueId());
+        }
+
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return player.getUniqueId().hashCode();
+    }
 }

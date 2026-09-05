@@ -1,6 +1,5 @@
 package net.bteuk.network.eventing.events;
 
-import io.papermc.lib.PaperLib;
 import lombok.extern.java.Log;
 import net.bteuk.network.api.EventAPI;
 import net.bteuk.network.api.PlotAPI;
@@ -9,16 +8,17 @@ import net.bteuk.network.api.entity.Event;
 import net.bteuk.network.commands.navigation.Tpll;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.ServerType;
-import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.lobby.Lobby;
 import net.bteuk.network.papercore.LocationAdapter;
 import net.bteuk.network.papercore.PlayerAdapter;
+import net.bteuk.network.papercore.WorldUtils;
 import net.bteuk.network.regions.Region;
 import net.bteuk.network.regions.RegionManager;
 import net.bteuk.network.sql.GlobalSQL;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -120,7 +120,7 @@ public class TeleportEvent implements Event {
                 if (plotAPI.hasLocation(worldName)) {
 
                     // Add coordinate transformation.
-                    l = new Location(Bukkit.getWorld(worldName), l.getX() + plotAPI.getXTransform(worldName), l.getY(), l.getZ() + plotAPI.getZTransform(worldName), l.getYaw(),
+                    l = new Location(WorldUtils.getWorld(worldName), l.getX() + plotAPI.getXTransform(worldName), l.getY(), l.getZ() + plotAPI.getZTransform(worldName), l.getYaw(),
                             l.getPitch());
                 }
 
@@ -167,7 +167,7 @@ public class TeleportEvent implements Event {
             default -> {
 
                 // Get world.
-                World world = Bukkit.getWorld(event[1]);
+                World world = WorldUtils.getWorld(event[1]);
 
                 if (world == null) {
                     p.sendMessage(ChatUtils.error("World %s can not be found.", event[1]));
@@ -211,12 +211,12 @@ public class TeleportEvent implements Event {
                 Location l = new Location(world, x, y, z, yaw, pitch);
 
                 // If the terrain has not been generated, let the player know it could take a while.
-                if (!PaperLib.isChunkGenerated(l)) {
+                if (!world.isChunkGenerated((int) x >> 4, (int) z >> 4)) {
                     ChatUtils.success("Location is generating, please wait a moment...");
                 }
 
                 // Teleport player.
-                PaperLib.teleportAsync(p, l);
+                p.teleportAsync(l);
 
                 // If custom message is set, send that to player, else send default message.
                 if (message == null) {

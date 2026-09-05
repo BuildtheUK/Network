@@ -6,6 +6,7 @@ import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.papercore.LocationAdapter;
 import net.bteuk.network.papercore.PlayerAdapter;
+import net.bteuk.network.papercore.WorldUtils;
 import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.sql.PlotSQL;
 import net.bteuk.network.utils.NetworkUser;
@@ -13,7 +14,6 @@ import net.bteuk.network.utils.Utils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
 
@@ -78,7 +78,7 @@ public class PlotsystemLocations extends NetworkRefreshableGui {
                             u.player.closeInventory();
 
                             // Teleport to the location.
-                            World world = Bukkit.getWorld(name);
+                            World world = WorldUtils.getWorld(name);
                             double y = Objects.requireNonNull(world).getHighestBlockYAt((int) x, (int) z);
                             y++;
 

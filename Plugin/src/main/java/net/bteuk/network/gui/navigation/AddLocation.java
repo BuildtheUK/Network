@@ -12,8 +12,6 @@ import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.NetworkRefreshableGui;
 import net.bteuk.network.gui.staff.LocationRequests;
 import net.bteuk.network.gui.staff.StaffGui;
-import net.bteuk.network.lib.dto.ChatMessage;
-import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.papercore.LocationAdapter;
 import net.bteuk.network.papercore.PlayerAdapter;
 import net.bteuk.network.sql.GlobalSQL;
@@ -24,12 +22,14 @@ import net.bteuk.network.utils.enums.Category;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.btuk.network.lib.dto.ChatMessage;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.Location;
 import org.bukkit.Material;
 
 import java.util.Arrays;
 
-import static net.bteuk.network.lib.enums.ChatChannels.REVIEWER;
+import static org.btuk.network.lib.enums.ChatChannels.REVIEWER;
 
 public class AddLocation extends NetworkRefreshableGui {
 
@@ -199,7 +199,7 @@ public class AddLocation extends NetworkRefreshableGui {
                 // If server is plotsystem add the necessary coordinate transformation.
                 if (constants.serverType() == ServerType.PLOT) {
 
-                    String worldName = u.player.getLocation().getWorld().getName();
+                    String worldName = u.player.getLocation().getWorld().key().asMinimalString();
 
                     // If location exists.
                     if (provider.plotAPI().hasLocation(worldName)) {
@@ -252,7 +252,7 @@ public class AddLocation extends NetworkRefreshableGui {
                             // If the server is the plot system, add the necessary coordinate transformation.
                             if (constants.serverType() == ServerType.PLOT) {
 
-                                String worldName = u.player.getLocation().getWorld().getName();
+                                String worldName = u.player.getLocation().getWorld().key().asMinimalString();
 
                                 // If location exists.
                                 if (provider.plotSQL().hasRow("SELECT name FROM location_data WHERE " + "name='" + worldName + "';")) {

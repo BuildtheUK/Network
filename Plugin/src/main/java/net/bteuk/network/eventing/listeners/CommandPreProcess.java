@@ -6,13 +6,13 @@ import net.bteuk.network.api.ServerAPI;
 import net.bteuk.network.commands.Afk;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.Time;
-import net.bteuk.network.lib.dto.ServerShutdown;
-import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.papercore.PlayerAdapter;
 import net.bteuk.network.socket.MessageSender;
 import net.bteuk.network.utils.NetworkUser;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.btuk.network.lib.dto.ServerShutdown;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -20,7 +20,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.server.ServerCommandEvent;
 
-import java.util.ArrayList;
+import java.util.Collection;
 
 @Log
 public class CommandPreProcess implements Listener {
@@ -132,7 +132,7 @@ public class CommandPreProcess implements Listener {
 
     // This class executes when the server closes, instead of a player server quit event since that will cause errors.
     // For the most part, it copies the methods.
-    public void onServerClose(ArrayList<NetworkUser> users) {
+    public void onServerClose(Collection<NetworkUser> users) {
 
         // Check if another server is online,
         // If true then switch all the players to this server.

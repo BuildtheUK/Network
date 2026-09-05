@@ -63,15 +63,6 @@ tutorials:
     password: password
     name: TeachingTutorials
 
-# Progress Map
-# Enable if you have a MapHub progress map
-ProgressMap:
-  enabled: false
-  MapHubAPIKey: insert_api_key_here
-  ProgressMapID: insert_map_id_here
-  #A web link to the progress map
-  Link: insert_link_to_map_here
-
 # Chat Settings
 chat:
   # The socket configuration is only necessary if running the server as part of a network
@@ -104,11 +95,12 @@ tpll:
 
 # Enable regions and cross-server teleport.
 # Regions must be enabled for cross-server teleport to function (if standalone=false).
-# Earth world must be specified on all servers as it is used to determine cross-server tpll to the earth server.
+# Earth dimension must be specified on all servers as it is used to determine cross-server tpll to the earth server.
 # To make sure the player is teleported to the correct world.
 regions:
   enabled: true
-  earth_world: earth
+  # The dimension name of the earth, by default, it is overworld.
+  earth_dimension: overworld
 
   # Number of days a region owner can be inactive before they are demoted to member.
   # If the region has no other members, then the owner does not get demoted by the region becomes 'inactive'.
@@ -132,9 +124,6 @@ ll_enabled: true
 
 # Time before the player is set to AFK (minutes).
 afk: 5
-
-# Discord link
-discord: 'https://discord.gg/5m56EgEVW6'
 
 # Enables warps and the explore-menu.
 warps_enabled: true
@@ -180,3 +169,9 @@ minrank_publicjoin: Jr.Builder
 
 # Whether the UK Survey is enabled
 UKSurvey_enabled: false
+
+# Links
+links:
+  website: 'https://btuk.org'
+  discord: 'https://discord.gg/5m56EgEVW6'
+  progress_map: 'https://progress.buildtheuk.org/'

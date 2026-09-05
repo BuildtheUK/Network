@@ -1,6 +1,5 @@
 package net.bteuk.network.commands.navigation;
 
-import io.papermc.lib.PaperLib;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.bteuk.network.Network;
 import net.bteuk.network.api.EventAPI;
@@ -8,9 +7,9 @@ import net.bteuk.network.api.ServerAPI;
 import net.bteuk.network.commands.AbstractCommand;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.Time;
-import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.papercore.LocationAdapter;
 import net.bteuk.network.papercore.PlayerAdapter;
+import net.bteuk.network.papercore.WorldUtils;
 import net.bteuk.network.regions.Region;
 import net.bteuk.network.regions.RegionManager;
 import net.bteuk.network.sql.GlobalSQL;
@@ -18,15 +17,15 @@ import net.bteuk.network.sql.PlotSQL;
 import net.bteuk.network.utils.Statistics;
 import net.bteuk.network.utils.TpllFormat;
 import net.bteuk.network.utils.Utils;
-import net.buildtheearth.terraminusminus.dataset.IScalarDataset;
-import net.buildtheearth.terraminusminus.generator.EarthGeneratorPipelines;
+import net.buildtheearth.terraminusminus.generator.CachedChunkData;
+import net.buildtheearth.terraminusminus.generator.ChunkDataLoader;
 import net.buildtheearth.terraminusminus.generator.EarthGeneratorSettings;
-import net.buildtheearth.terraminusminus.generator.GeneratorDatasets;
-import net.buildtheearth.terraminusminus.projection.OutOfProjectionBoundsException;
+import net.buildtheearth.terraminusminus.substitutes.ChunkPos;
 import net.buildtheearth.terraminusminus.util.geo.CoordinateParseUtils;
 import net.buildtheearth.terraminusminus.util.geo.LatLng;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -37,10 +36,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 public class Tpll extends AbstractCommand {
 
-    public static final EarthGeneratorSettings bteGeneratorSettings = EarthGeneratorSettings.parse(EarthGeneratorSettings.BTE_DEFAULT_SETTINGS);
+    public static final EarthGeneratorSettings BTE_GENERATOR_SETTINGS = EarthGeneratorSettings.parse(EarthGeneratorSettings.BTE_DEFAULT_SETTINGS);
+    private static final ChunkDataLoader CHUNK_DATA_LOADER = new ChunkDataLoader(BTE_GENERATOR_SETTINGS);
     private static final DecimalFormat DECIMAL_FORMATTER = new DecimalFormat("##.#####");
     private static final Component USAGE = ChatUtils.error("/tpll <latitude> <longitude> [altitude]");
     private final Network instance;
@@ -50,11 +51,10 @@ public class Tpll extends AbstractCommand {
     private final PlotSQL plotSQL;
     private final EventAPI eventAPI;
     private final ServerAPI serverAPI;
-    private final Back back;
     private final GlobalSQL globalSQL;
     private final PreviousLocationTracker previousLocationTracker;
 
-    public Tpll(Network instance, boolean requiresPermission, RegionManager regionManager, Constants constants, PlotSQL plotSQL, EventAPI eventAPI, ServerAPI serverAPI, Back back,
+    public Tpll(Network instance, boolean requiresPermission, RegionManager regionManager, Constants constants, PlotSQL plotSQL, EventAPI eventAPI, ServerAPI serverAPI,
                 GlobalSQL globalSQL, PreviousLocationTracker previousLocationTracker) {
         this.instance = instance;
         this.requiresPermission = requiresPermission;
@@ -63,7 +63,6 @@ public class Tpll extends AbstractCommand {
         this.plotSQL = plotSQL;
         this.eventAPI = eventAPI;
         this.serverAPI = serverAPI;
-        this.back = back;
         this.globalSQL = globalSQL;
         this.previousLocationTracker = previousLocationTracker;
     }
@@ -219,7 +218,7 @@ public class Tpll extends AbstractCommand {
         double[] proj;
 
         try {
-            proj = bteGeneratorSettings.projection().fromGeo(format.getCoordinates().getLng(), format.getCoordinates().getLat());
+            proj = BTE_GENERATOR_SETTINGS.projection().fromGeo(format.getCoordinates().getLng(), format.getCoordinates().getLat());
         } catch (Exception e) {
             p.sendMessage(USAGE);
             return;
@@ -311,9 +310,9 @@ public class Tpll extends AbstractCommand {
         // Check if the region is on the plot server.
         if (regionManager.isPlot(region)) {
             String location = plotSQL.getString("SELECT location FROM regions WHERE region='" + region.regionName() + "';");
-            l.setWorld(Bukkit.getWorld(location));
+            l.setWorld(WorldUtils.getWorld(location));
         } else {
-            l.setWorld(Bukkit.getWorld(constants.earthWorld()));
+            l.setWorld(WorldUtils.getWorld(constants.earthDimension()));
         }
     }
 
@@ -326,32 +325,51 @@ public class Tpll extends AbstractCommand {
      * @return {@link CompletableFuture<Double>} the completableFuture that will give the altitude
      */
     private CompletableFuture<Double> getAltitude(Player p, TpllFormat format, Location l) {
-        CompletableFuture<Double> altFuture;
-        if (!PaperLib.isChunkGenerated(l)) {
-            p.sendMessage(ChatUtils.success("Location is generating, please wait a moment..."));
 
-            // If the altitude was not specified, get it from the data.
-            if (Double.isNaN(format.getAltitude())) {
-                try {
-                    altFuture = new GeneratorDatasets(bteGeneratorSettings).<IScalarDataset>getCustom(EarthGeneratorPipelines.KEY_DATASET_HEIGHTS)
-                            .getAsync(format.getCoordinates().getLng(), format.getCoordinates().getLat()).thenApply(a -> a + 1.0d);
-                } catch (OutOfProjectionBoundsException e) { // out of bounds, notify user
-                    p.sendMessage(ChatUtils.error("These coordinates are out of the projection bounds."));
-                    return null;
-                }
-            } else {
-                altFuture = CompletableFuture.completedFuture(format.getAltitude());
-            }
-        } else {
-
-            // If the altitude was not specified, get it from the data.
-            if (Double.isNaN(format.getAltitude())) {
-                altFuture = CompletableFuture.completedFuture((double) Utils.getHighestYAt(constants, l.getWorld(), l.getBlockX(), l.getBlockZ()));
-            } else {
-                altFuture = CompletableFuture.completedFuture(format.getAltitude());
-            }
+        // If the altitude was specified, return it.
+        if (!Double.isNaN(format.getAltitude())) {
+            return CompletableFuture.completedFuture(format.getAltitude());
         }
-        return altFuture;
+
+        // Get altitude from the dataset, this is used if the chunk is not yet generated,
+        // or if we fail to get the altitude from the world safely.
+        int roundedX = l.getBlockX();
+        int roundedZ = l.getBlockZ();
+        int chunkX = ChunkPos.blockToCube(roundedX);
+        int chunkZ = ChunkPos.blockToCube(roundedZ);
+
+        CompletableFuture<Double> datasetAltFuture = CHUNK_DATA_LOADER.load(new ChunkPos(chunkX, chunkZ))
+                .thenApply(terraData -> {
+                    double height = terraData.surfaceHeight(roundedX - ChunkPos.cubeToMinBlock(chunkX), roundedZ - ChunkPos.cubeToMinBlock(chunkZ));
+                    if (height == CachedChunkData.BLANK_HEIGHT) {
+                        return 0.0d;
+                    }
+                    return height + 1.0d;
+                });
+
+        CompletableFuture<Double> altFuture;
+
+        // Check if the chunk is generated.
+        boolean isGenerated = l.getWorld().isChunkGenerated(l.getBlockX() >> 4, l.getBlockZ() >> 4);
+
+        // If the chunk is generated, get it from the world.
+        // We use gen=false to avoid a deadlock if the chunk is currently being generated.
+        // If the chunk is not loaded, we fall back to the dataset altitude.
+        if (isGenerated) {
+            altFuture = l.getWorld().getChunkAtAsync(l.getBlockX() >> 4, l.getBlockZ() >> 4, false).thenCompose(chunk -> {
+                if (chunk != null) {
+                    return CompletableFuture.completedFuture((double) Utils.getHighestYAt(l.getWorld(), l.getBlockX(), l.getBlockZ()));
+                } else {
+                    Bukkit.getScheduler().runTask(instance, () -> p.sendMessage(ChatUtils.success("Location is generating, please wait a moment...")));
+                    return datasetAltFuture;
+                }
+            });
+        } else {
+            Bukkit.getScheduler().runTask(instance, () -> p.sendMessage(ChatUtils.success("Location is generating, please wait a moment...")));
+            altFuture = datasetAltFuture;
+        }
+
+        return altFuture.orTimeout(30, TimeUnit.SECONDS);
     }
 
     /**
@@ -381,11 +399,19 @@ public class Tpll extends AbstractCommand {
             Statistics.addTpll(globalSQL, p.getUniqueId().toString(), Time.getDate(Time.currentTime()));
 
             // Teleport player.
-            PaperLib.teleportAsync(p, l);
-
-            p.sendMessage(ChatUtils.success("Teleported to ").append(Component.text(DECIMAL_FORMATTER.format(format.getCoordinates().getLat()), NamedTextColor.DARK_AQUA))
-                    .append(ChatUtils.success(", ")).append(Component.text(DECIMAL_FORMATTER.format(format.getCoordinates().getLng()), NamedTextColor.DARK_AQUA)));
-        }));
+            p.teleportAsync(l).whenComplete((success, ex) -> {
+                if (ex == null && success) {
+                    Bukkit.getScheduler().runTask(instance, () -> p.sendMessage(
+                            ChatUtils.success("Teleported to ").append(Component.text(DECIMAL_FORMATTER.format(format.getCoordinates().getLat()), NamedTextColor.DARK_AQUA))
+                                    .append(ChatUtils.success(", ")).append(Component.text(DECIMAL_FORMATTER.format(format.getCoordinates().getLng()), NamedTextColor.DARK_AQUA))));
+                } else {
+                    Bukkit.getScheduler().runTask(instance, () -> p.sendMessage(ChatUtils.error("An error occurred while teleporting, please try again.")));
+                }
+            });
+        })).exceptionally(_ -> {
+            Bukkit.getScheduler().runTask(instance, () -> p.sendMessage(ChatUtils.error("An error occurred while fetching altitude data, please try again.")));
+            return null;
+        });
     }
 
     @Override
@@ -398,3 +424,4 @@ public class Tpll extends AbstractCommand {
         return "Teleport to coordinates";
     }
 }
+

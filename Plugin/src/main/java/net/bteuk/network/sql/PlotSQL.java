@@ -5,8 +5,8 @@ import net.bteuk.network.api.plotsystem.SubmittedPlot;
 import net.bteuk.network.api.plotsystem.SubmittedStatus;
 import net.bteuk.network.core.Time;
 import net.bteuk.network.core.sql.AbstractSQL;
-import net.bteuk.network.lib.enums.PlotDifficulties;
-import net.bteuk.network.lib.utils.Reviewing;
+import org.btuk.network.lib.enums.PlotDifficulties;
+import org.btuk.network.lib.utils.Reviewing;
 import net.bteuk.network.utils.TutorialRecommendation;
 import teachingtutorials.utils.DBConnection;
 

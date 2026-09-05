@@ -3,11 +3,11 @@ package net.bteuk.network.commands;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.bteuk.network.Network;
 import net.bteuk.network.commands.tabcompleters.PlayerSelector;
-import net.bteuk.network.lib.dto.PrivateMessage;
-import net.bteuk.network.lib.enums.ChatChannels;
-import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.socket.MessageSender;
 import net.kyori.adventure.text.Component;
+import org.btuk.network.lib.dto.PrivateMessage;
+import org.btuk.network.lib.enums.ChatChannels;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 

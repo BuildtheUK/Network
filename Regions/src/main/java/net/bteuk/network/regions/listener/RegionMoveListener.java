@@ -6,12 +6,13 @@ import net.bteuk.network.api.PlotAPI;
 import net.bteuk.network.api.SQLAPI;
 import net.bteuk.network.api.ServerAPI;
 import net.bteuk.network.core.Constants;
-import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.papercore.PlayerAdapter;
+import net.bteuk.network.papercore.WorldUtils;
 import net.bteuk.network.regions.Region;
 import net.bteuk.network.regions.RegionManager;
 import net.bteuk.network.regions.RegionStatus;
 import net.bteuk.network.regions.RegionUser;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
@@ -70,13 +71,13 @@ public class RegionMoveListener extends AbstractMoveListener implements Listener
             // Check if the player has moved to another region.
             if (!regionUser.getTrackedRegion().equals(x, z)) {
 
-                log.info(e.getPlayer().getName() + " is moving across a region border");
+                log.info(e.getPlayer().getName() + " is moving across a region border at coordinates " + e.getTo().getX() + "," + e.getTo().getZ());
 
                 // Get the new region.
                 Region newRegion = regionManager.getRegion(x, z);
 
                 // Check if the new region is on this server or not. If it is, check whether it is on the same world.
-                if (!regionManager.getServer(regionUser.getTrackedRegion()).equals(regionManager.getServer(newRegion))) {
+                if (!constants.serverName().equals(regionManager.getServer(newRegion))) {
 
                     switchServer(regionUser, newRegion, e.getTo());
                     e.setCancelled(true);
@@ -90,16 +91,16 @@ public class RegionMoveListener extends AbstractMoveListener implements Listener
 
                     // Get the world that the region is in.
                     boolean isPlot = regionManager.isPlot(newRegion);
-                    String world = isPlot ? plotAPI.getRegionLocation(newRegion.regionName()) : constants.earthWorld();
+                    String world = isPlot ? plotAPI.getRegionLocation(newRegion.regionName()) : constants.earthDimension();
 
-                    if (!newLocation.getWorld().getName().equals(world)) {
+                    if (!newLocation.getWorld().key().asMinimalString().equals(world)) {
                         if (isPlot) {
                             // Apply new region shift
                             String szLocation = plotAPI.getRegionLocation(newRegion.regionName());
                             trueNewX = trueNewX + plotAPI.getXTransform(szLocation);
                             trueNewZ = trueNewZ + plotAPI.getZTransform(szLocation);
                         }
-                        newLocation.setWorld(Bukkit.getWorld(world));
+                        newLocation.setWorld(WorldUtils.getWorld(world));
                         newLocation.setX(trueNewX);
                         newLocation.setZ(trueNewZ);
                         e.setTo(newLocation);
@@ -128,7 +129,7 @@ public class RegionMoveListener extends AbstractMoveListener implements Listener
 
                     // Region is on another server, teleport them accordingly.
                     // If the new region is on a plot server, check for coordinate transform.
-                    String world = constants.earthWorld();
+                    String world = constants.earthDimension();
                     int xTransform = regionUser.getDeltaX();
                     int zTransform = regionUser.getDeltaZ();
                     if (constants.plotSystemEnabled() && regionManager.status(region) == RegionStatus.PLOT) {

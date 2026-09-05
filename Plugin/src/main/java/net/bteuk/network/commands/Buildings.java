@@ -4,12 +4,10 @@ import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.bteuk.network.Network;
 import net.bteuk.network.building_counter.Building;
 import net.bteuk.network.building_counter.ConfirmationListener;
-import net.bteuk.network.commands.tabcompleters.FixedArgSelector;
 import net.bteuk.network.commands.tabcompleters.TabCompleterTree;
 import net.bteuk.network.commands.tabcompleters.TreeTabCompleter;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.ServerType;
-import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.sql.PlotSQL;
 import net.buildtheearth.terraminusminus.generator.EarthGeneratorSettings;
 import net.buildtheearth.terraminusminus.projection.OutOfProjectionBoundsException;
@@ -18,7 +16,7 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
-import org.apache.maven.model.Build;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -49,7 +47,7 @@ public class Buildings extends AbstractCommand {
         this.instance = instance;
         this.plotSQL = plotSQL;
         setTabCompleter(new TreeTabCompleter(
-                new TabCompleterTree("add, show, count (total, personal), delete, help, query, definition, help, flag (public, private, built, counted), claim, recent")));
+                new TabCompleterTree("add (-f (public, private, built, counted)), show, count (total, personal), delete, help, query, definition, help, flag (public, private, built, counted), claim, recent (all, personal)")));
         this.constants = constants;
     }
 
@@ -155,17 +153,28 @@ public class Buildings extends AbstractCommand {
                 break;
             case "recent":
                 if (player.hasPermission("network.buildings.recent")) {
-                    if (args.length > 1) {
+                    if( args.length == 2 && args[1].equals("personal")){
+                        displayMostRecent(player,1,true);
+                    }
+                    else if (args.length == 1 || (args.length == 2 && args[1].equals("all"))) {
+                        displayMostRecent(player, 1,false);
+                    }
+                    else {
                         try {
-                            int page = Integer.parseInt(args[1]); // note args[1], not args[0], since args[0] is command
-                            displayMostRecent(player, page);
+                            int index = 1;
+                            boolean playerOnly = false;
+                            if (args.length > 2 && args[1].equals("personal")){
+                                index = 2;
+                                playerOnly = true;
+                            }
+                            int page = Integer.parseInt(args[index]); // note args[1], not args[0], since args[0] is command
+                            displayMostRecent(player, page,playerOnly);
                         } catch (NumberFormatException e) {
                             player.sendMessage(ChatUtils.error("Invalid page number. Using page 1."));
-                            displayMostRecent(player, 1);
+                            displayMostRecent(player, 1, args.length > 2 && args[1].equals("personal"));
                         }
-                    } else {
-                        displayMostRecent(player, 1);
                     }
+
                 } else {
                     player.sendMessage(ChatUtils.error("You don't have permission to use this command"));
                 }
@@ -174,7 +183,7 @@ public class Buildings extends AbstractCommand {
 
     }
 
-    private void displayMostRecent(Player player, int page) {
+    private void displayMostRecent(Player player, int page,boolean playerOnly) {
 
         int pageSize = 6;
 
@@ -184,8 +193,13 @@ public class Buildings extends AbstractCommand {
 
         int offset = (page - 1) * pageSize;
 
+        String baseSQL = "WHERE is_public = true AND player_built = true ORDER BY time_added DESC LIMIT %d OFFSET %d";
+        if(playerOnly){
+            baseSQL = "WHERE player_built = true AND player_id = '" + player.getUniqueId() + "' ORDER BY time_added DESC LIMIT %d OFFSET %d";
+        }
+
         String condition = String.format(
-                "WHERE is_public = true AND player_built = true ORDER BY time_added DESC LIMIT %d OFFSET %d",
+                baseSQL,
                 pageSize,
                 offset
         );
@@ -201,7 +215,13 @@ public class Buildings extends AbstractCommand {
         if (page > 1) {
             Component previousPage = Component.text("⏪⏪⏪", TextColor.color(212, 113, 15));
             previousPage = previousPage.hoverEvent(HoverEvent.hoverEvent(HoverEvent.Action.SHOW_TEXT, Component.text("Click to view the previous page of recent buildings.")));
-            previousPage = previousPage.clickEvent(ClickEvent.runCommand("/building recent " + (page - 1)));
+            if (playerOnly) {
+                previousPage = previousPage.clickEvent(ClickEvent.runCommand("/building recent personal " + (page - 1)));
+            }
+            else
+            {
+                previousPage = previousPage.clickEvent(ClickEvent.runCommand("/building recent " + (page - 1)));
+            }
 
             message = message.append(previousPage).append(Component.text(" "));
         }
@@ -213,7 +233,14 @@ public class Buildings extends AbstractCommand {
         if (recent.size() == pageSize) {
             Component nextPage = Component.text(" ⏩⏩⏩\n", TextColor.color(212, 113, 15));
             nextPage = nextPage.hoverEvent(HoverEvent.hoverEvent(HoverEvent.Action.SHOW_TEXT, Component.text("Click to view the next page of recent buildings.")));
-            nextPage = nextPage.clickEvent(ClickEvent.runCommand("/building recent " + (page + 1)));
+
+            if (playerOnly) {
+                nextPage = nextPage.clickEvent(ClickEvent.runCommand("/building recent personal " + (page + 1)));
+            }
+            else
+            {
+                nextPage = nextPage.clickEvent(ClickEvent.runCommand("/building recent " + (page + 1)));
+            }
             message = message.append(Component.text(" "));
             message = message.append(nextPage);
         } else {
@@ -397,13 +424,31 @@ public class Buildings extends AbstractCommand {
         try {
             int deltaX = 0;
             int deltaZ = 0;
-            if (constants.serverType() == PLOT && plotSQL.hasRow("SELECT name FROM location_data WHERE name='" + player.getWorld().getName() + "';")) {
+            if (constants.serverType() == PLOT && plotSQL.hasRow("SELECT name FROM location_data WHERE name='" + player.getWorld().key().asMinimalString() + "';")) {
                 // Get negative coordinate transform of new location.
-                deltaX = -plotSQL.getInt("SELECT xTransform FROM location_data WHERE name='" + player.getWorld().getName() + "';");
-                deltaZ = -plotSQL.getInt("SELECT zTransform FROM location_data WHERE name='" + player.getWorld().getName() + "';");
+                deltaX = -plotSQL.getInt("SELECT xTransform FROM location_data WHERE name='" + player.getWorld().key().asMinimalString() + "';");
+                deltaZ = -plotSQL.getInt("SELECT zTransform FROM location_data WHERE name='" + player.getWorld().key().asMinimalString() + "';");
             }
             double[] coords = bteGeneratorSettings.projection().toGeo(player.getLocation().getX() + deltaX,
                     player.getLocation().getZ() + deltaZ);
+            return coords;
+        } catch (
+                OutOfProjectionBoundsException e) {
+            throw new RuntimeException("You are not standing in a location where coordinates can be retrieved.");
+        }
+    }
+
+    private double[] getMinecraftLocationCoords(Player player, Location l){
+        try {
+            int deltaX = 0;
+            int deltaZ = 0;
+            if (constants.serverType() == PLOT && plotSQL.hasRow("SELECT name FROM location_data WHERE name='" + player.getWorld().key().asMinimalString() + "';")) {
+                // Get negative coordinate transform of new location.
+                deltaX = -plotSQL.getInt("SELECT xTransform FROM location_data WHERE name='" + player.getWorld().key().asMinimalString() + "';");
+                deltaZ = -plotSQL.getInt("SELECT zTransform FROM location_data WHERE name='" + player.getWorld().key().asMinimalString() + "';");
+            }
+            double[] coords = bteGeneratorSettings.projection().toGeo(l.getX() + deltaX,
+                    l.getZ() + deltaZ);
             return coords;
         } catch (
                 OutOfProjectionBoundsException e) {
@@ -416,7 +461,7 @@ public class Buildings extends AbstractCommand {
         int coordinateId = instance.getGlobalSQL().addCoordinate(l);
 
         try {
-            double[] coords = getPlayerIRLCoords(player);
+            double[] coords = getMinecraftLocationCoords(player,l);
 
             boolean isPublic = true;
             boolean playerBuilt = true;
@@ -499,9 +544,9 @@ public class Buildings extends AbstractCommand {
         List<Location> heightBuildingsAdded = new ArrayList<Location>();
         int deltaX = 0;
         int deltaZ = 0;
-        if (constants.serverType() == PLOT && plotSQL.hasRow("SELECT name FROM location_data WHERE name='" + player.getWorld().getName() + "';")) {
-            deltaX = -plotSQL.getInt("SELECT xTransform FROM location_data WHERE name='" + player.getWorld().getName() + "';");
-            deltaZ = -plotSQL.getInt("SELECT zTransform FROM location_data WHERE name='" + player.getWorld().getName() + "';");
+        if (constants.serverType() == PLOT && plotSQL.hasRow("SELECT name FROM location_data WHERE name='" + player.getWorld().key().asMinimalString() + "';")) {
+            deltaX = -plotSQL.getInt("SELECT xTransform FROM location_data WHERE name='" + player.getWorld().key().asMinimalString() + "';");
+            deltaZ = -plotSQL.getInt("SELECT zTransform FROM location_data WHERE name='" + player.getWorld().key().asMinimalString() + "';");
         }
         for (Building building : nearbyBuildings) {
             Location loc;

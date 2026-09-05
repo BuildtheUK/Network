@@ -17,8 +17,10 @@ import net.bteuk.network.commands.Buildings;
 import net.bteuk.network.commands.Clear;
 import net.bteuk.network.commands.Demote;
 import net.bteuk.network.commands.Discord;
+import net.bteuk.network.commands.DisplayClickableLink;
 import net.bteuk.network.commands.Focus;
 import net.bteuk.network.commands.Gamemode;
+import net.bteuk.network.commands.Hat;
 import net.bteuk.network.commands.Hdb;
 import net.bteuk.network.commands.Help;
 import net.bteuk.network.commands.Me;
@@ -29,7 +31,6 @@ import net.bteuk.network.commands.Nightvision;
 import net.bteuk.network.commands.Phead;
 import net.bteuk.network.commands.Plot;
 import net.bteuk.network.commands.Pmute;
-import net.bteuk.network.commands.ProgressMap;
 import net.bteuk.network.commands.Promote;
 import net.bteuk.network.commands.Ptime;
 import net.bteuk.network.commands.Punmute;
@@ -81,11 +82,6 @@ import net.bteuk.network.eventing.listeners.NetworkMoveListener;
 import net.bteuk.network.eventing.listeners.NetworkTeleportListener;
 import net.bteuk.network.eventing.listeners.PlayerInteract;
 import net.bteuk.network.eventing.listeners.PreJoinServer;
-import net.bteuk.network.lib.dto.OnlineUser;
-import net.bteuk.network.lib.dto.OnlineUserAdd;
-import net.bteuk.network.lib.dto.OnlineUserRemove;
-import net.bteuk.network.lib.dto.OnlineUsersReply;
-import net.bteuk.network.lib.dto.ServerStartup;
 import net.bteuk.network.lobby.Lobby;
 import net.bteuk.network.lobby.LobbyCommand;
 import net.bteuk.network.logging.BukkitForwardingHandler;
@@ -114,7 +110,13 @@ import net.bteuk.teachingtutorials.services.PromotionService;
 import net.buildtheearth.terraminusminus.TerraConfig;
 import org.btuk.minecraft.gui.GuiListener;
 import org.btuk.minecraft.gui.GuiManager;
-import org.btuk.proxy.core.ProxyController;
+import org.btuk.network.lib.dto.OnlineUser;
+import org.btuk.network.lib.dto.OnlineUserAdd;
+import org.btuk.network.lib.dto.OnlineUserRemove;
+import org.btuk.network.lib.dto.OnlineUsersReply;
+import org.btuk.network.lib.dto.ProxyStart;
+import org.btuk.network.lib.dto.ServerStartup;
+import org.btuk.proxy.app.ProxyController;
 import org.btuk.proxy.core.socket.ProxySocketHandler;
 import org.btuk.proxy.database.DatabaseInit;
 import org.bukkit.Material;
@@ -131,13 +133,17 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @Log
 public final class Network extends JavaPlugin implements NetworkAPI {
@@ -157,9 +163,12 @@ public final class Network extends JavaPlugin implements NetworkAPI {
     private RegionManager regionManager;
     // List of users connected to the network.
     @Getter
-    private HashSet<OnlineUser> onlineUsers;
-    // Server User List
-    private ArrayList<NetworkUser> networkUsers;
+    private Map<UUID, OnlineUser> onlineUsers;
+
+    @Getter
+    private TabManager tabManager;
+
+    private Map<UUID, NetworkUser> networkUsers;
     // SQL
     private PlotSQL plotSQL;
 
@@ -266,6 +275,17 @@ public final class Network extends JavaPlugin implements NetworkAPI {
             return;
         }
 
+        // If the database contains worlds that have the same name as the level directory and no dimensions have this name, rename them to 'overworld'; this is due to the new
+        // dimension storage method introduced with Minecraft 26.1.
+        String worldFolderName = getServer().getLevelDirectory().getFileName().toFile().getName();
+        if (getServer().getWorlds().stream().noneMatch(world -> world.key().asMinimalString().equals(worldFolderName))) {
+            int count = globalSQL.getInt("SELECT COUNT(1) FROM coordinates WHERE world='" + worldFolderName + "' AND server='" + constants.serverName() + "'");
+            if (count > 0) {
+                log.warning("Database contains " + count + " coordinates for world '" + worldFolderName + "' on server '" + constants.serverName() + "', renaming to 'overworld'");
+                globalSQL.update("UPDATE coordinates SET world='overworld' WHERE world='" + worldFolderName + "' AND server='" + constants.serverName() + "'");
+            }
+        }
+
         // Setup tutorials DB connection and connect
         if (constants.tutorials()) {
             // Initialise the DBConnection object
@@ -315,8 +335,8 @@ public final class Network extends JavaPlugin implements NetworkAPI {
     public void enablePlugin() {
 
         // Create the user lists.
-        networkUsers = new ArrayList<>();
-        onlineUsers = new HashSet<>();
+        networkUsers = new ConcurrentHashMap<>();
+        onlineUsers = new ConcurrentHashMap<>();
 
         // Set up the message sender.
         MessageSender messageSender = new MessageSender(constants);
@@ -343,7 +363,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         }
 
         // Enable tab.
-        TabManager tab = new TabManager(this, constants, roleAPI);
+        tabManager = new TabManager(this, constants, roleAPI);
 
         Nightvision nightvision = new Nightvision(this);
 
@@ -363,7 +383,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
         // Setup connect, this handles all connections to the server.
         // Listener and manager of server connections.
-        Connect connect = new Connect(this, constants, tab, roleAPI, networkGuiManager, nightvision, eventAPI, regionManager, messageSender);
+        Connect connect = new Connect(this, constants, tabManager, roleAPI, networkGuiManager, nightvision, eventAPI, regionManager, messageSender);
 
         Teleport teleport = new Teleport(this, previousLocationTracker, eventAPI, serverAPI, constants, messageSender);
         commandManager.registerCommand(teleport);
@@ -372,7 +392,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         commandManager.registerCommand(new TpDeny(this, messageSender));
 
         // Set up socket listening - used for sending messages cross-server on multi-server setups
-        NetworkSocketHandler socketHandler = new NetworkSocketHandler(this, chat, tab, connect, constants, teleport);
+        NetworkSocketHandler socketHandler = new NetworkSocketHandler(this, chat, tabManager, connect, constants, teleport);
 
         // If running in standalone mode, set up the proxy logic locally.
         if (constants.standalone()) {
@@ -412,7 +432,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
         if (constants.tpllEnabled()) {
             TerraConfig.reducedConsoleMessages = true;
-            tpll = new Tpll(this, constants.tpllRequiresPermission(), regionManager, constants, plotSQL, eventAPI, serverAPI, back, globalSQL, previousLocationTracker);
+            tpll = new Tpll(this, constants.tpllRequiresPermission(), regionManager, constants, plotSQL, eventAPI, serverAPI, globalSQL, previousLocationTracker);
             commandManager.registerCommand(tpll);
         }
 
@@ -457,9 +477,17 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         if (constants.skullsEnabled()) {
             commandManager.registerCommand(new Hdb());
         }
-        if (constants.progressMap()) {
-            commandManager.registerCommand(new ProgressMap(constants));
+
+        if (constants.progressMapLink() != null) {
+            commandManager.registerCommand(new DisplayClickableLink("progressmap", "Sends a link of the progress map", "Click to view our progress map.",
+                    constants.progressMapLink(), "progress"));
         }
+
+        if (constants.websiteLink() != null) {
+            commandManager.registerCommand(new DisplayClickableLink("website", "Sends a link of the website", "Click to view our website.",
+                    constants.websiteLink()));
+        }
+
         if (constants.tips()) {
             commandManager.registerCommand(new TipsToggle(this));
         }
@@ -478,6 +506,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
         commandManager.registerCommand(new Reply(messageSender));
         commandManager.registerCommand(new Nick(this, messageSender));
+        commandManager.registerCommand(new Hat());
 
         commandManager.registerCommand(new Promote(this, roleAPI, chat));
         commandManager.registerCommand(new Demote(this, roleAPI, chat));
@@ -581,12 +610,13 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         NetworkCoreServerManager serverManager = new NetworkCoreServerManager(this);
 
         NetworkChatHandler chatHandler = new NetworkChatHandler(socketHandler);
-        NetworkTabManager tabManager = new NetworkTabManager(getServer(), proxyController.getConfig(), proxyController.getCoreUserManager(), chatHandler, scheduler);
+        NetworkTabManager standaloneTabManager = new NetworkTabManager(getServer(), roleAPI, constants, proxyController.getConfig(), proxyController.getCoreUserManager(),
+                chatHandler, scheduler);
 
         // Set up the local socket handler.
         Consumer<ProxySocketHandler> socketInitializer = messageSender.setupStandaloneOutputSocket();
 
-        proxyController.start(chatHandler, scheduler, serverManager, playerManager, tabManager, socketInitializer);
+        proxyController.start(chatHandler, scheduler, serverManager, playerManager, standaloneTabManager, socketInitializer);
     }
 
     @Override
@@ -599,27 +629,24 @@ public final class Network extends JavaPlugin implements NetworkAPI {
             chat.onDisable();
         }
 
-        if (getUsers() != null) {
-            for (NetworkUser u : getUsers()) {
+        for (NetworkUser u : getUsers()) {
+            String uuid = u.player.getUniqueId().toString();
 
-                String uuid = u.player.getUniqueId().toString();
+            // Remove any outstanding invites that this player has sent.
+            plotSQL.update("DELETE FROM plot_invites WHERE owner='" + uuid + "';");
+            plotSQL.update("DELETE FROM zone_invites WHERE owner='" + uuid + "';");
 
-                // Remove any outstanding invites that this player has sent.
-                plotSQL.update("DELETE FROM plot_invites WHERE owner='" + uuid + "';");
-                plotSQL.update("DELETE FROM zone_invites WHERE owner='" + uuid + "';");
+            // Remove any outstanding invites that this player has received.
+            plotSQL.update("DELETE FROM plot_invites WHERE uuid='" + uuid + "';");
+            plotSQL.update("DELETE FROM zone_invites WHERE uuid='" + uuid + "';");
 
-                // Remove any outstanding invites that this player has received.
-                plotSQL.update("DELETE FROM plot_invites WHERE uuid='" + uuid + "';");
-                plotSQL.update("DELETE FROM zone_invites WHERE uuid='" + uuid + "';");
+            // Set last_online time in playerdata.
+            globalSQL.update("UPDATE player_data SET last_online=" + Time.currentTime() + " WHERE " + "UUID='" + uuid + "';");
 
-                // Set last_online time in playerdata.
-                globalSQL.update("UPDATE player_data SET last_online=" + Time.currentTime() + " WHERE " + "UUID='" + uuid + "';");
-
-                // Reset last logged time.
-                if (u.isAfk()) {
-                    u.last_movement = Time.currentTime();
-                    u.setAfk(false);
-                }
+            // Reset last logged time.
+            if (u.isAfk()) {
+                u.last_movement = Time.currentTime();
+                u.setAfk(false);
             }
         }
 
@@ -629,53 +656,64 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         }
     }
 
-    // Get user from player.
     public @Nullable NetworkUser getUser(Player p) {
-        return networkUsers.stream().filter((NetworkUser user) -> user.player.equals(p)).findFirst().orElse(null);
+        return networkUsers.get(p.getUniqueId());
     }
 
     public Optional<NetworkUser> getNetworkUserByUuid(String uuid) {
-        return networkUsers.stream().filter((NetworkUser user) -> user.player.getUniqueId().toString().equals(uuid)).findFirst();
+        return Optional.ofNullable(networkUsers.get(UUID.fromString(uuid)));
     }
 
-    // Get users.
-    public ArrayList<NetworkUser> getUsers() {
-        return networkUsers;
+    public Collection<NetworkUser> getUsers() {
+        return networkUsers.values();
     }
 
-    // Add user to list.
     public void addUser(NetworkUser u) {
-
-        networkUsers.add(u);
+        log.info("Adding user " + u.player.getName());
+        networkUsers.put(u.player.getUniqueId(), u);
+        log.info("All users: " + networkUsers.values().stream().map(user -> user.player.getName()).toList());
     }
 
     public void removeUser(NetworkUser u) {
-        networkUsers.remove(u);
+        log.info("Removing user " + u.player.getName());
+        networkUsers.remove(u.player.getUniqueId());
+        log.info("All users: " + networkUsers.values().stream().map(user -> user.player.getName()).toList());
     }
 
     public void handleOnlineUsersReply(OnlineUsersReply onlineUsersReply) {
-        onlineUsers.addAll(onlineUsersReply.getOnlineUsers());
+        onlineUsers.clear();
+        onlineUsers.putAll(onlineUsersReply.getOnlineUsers().stream().collect(Collectors.toMap(onlineUser -> UUID.fromString(onlineUser.getUuid()), onlineUser -> onlineUser)));
+        log.info("All online users: " + onlineUsers.values().stream().map(OnlineUser::getName).toList());
+    }
+
+    public void handleProxyStart(ProxyStart proxyStart) {
+        log.info("Proxy has started, clearing online users.");
+        onlineUsers.clear();
+        tabManager.clearTeams();
     }
 
     public void handleOnlineUserAdd(OnlineUserAdd onlineUserAdd) {
-        onlineUsers.remove(onlineUserAdd.getUser());
-        onlineUsers.add(onlineUserAdd.getUser());
+        log.info("Adding online user " + onlineUserAdd.getUser().getName() + " to server " + onlineUserAdd.getUser().getServer());
+        onlineUsers.put(UUID.fromString(onlineUserAdd.getUser().getUuid()), onlineUserAdd.getUser());
+        log.info("All online users: " + onlineUsers.values().stream().map(OnlineUser::getName).toList());
     }
 
     public void handleOnlineUserRemove(OnlineUserRemove onlineUserRemove) {
-        onlineUsers.stream().filter(onlineUser -> onlineUser.getUuid().equals(onlineUserRemove.getUuid())).findFirst().ifPresent(onlineUser -> onlineUsers.remove(onlineUser));
+        OnlineUser user = onlineUsers.remove(UUID.fromString(onlineUserRemove.getUuid()));
+        log.info("Removing online user " + user.getName() + " from server " + user.getServer());
+        log.info("All online users: " + onlineUsers.values().stream().map(OnlineUser::getName).toList());
     }
 
     public boolean isOnlineOnNetwork(String uuid) {
-        return onlineUsers.stream().anyMatch(onlineUser -> onlineUser.getUuid().equals(uuid));
+        return onlineUsers.containsKey(UUID.fromString(uuid));
     }
 
     public Optional<OnlineUser> getOnlineUserByUuid(String uuid) {
-        return onlineUsers.stream().filter(onlineUser -> onlineUser.getUuid().equals(uuid)).findFirst();
+        return Optional.ofNullable(onlineUsers.get(UUID.fromString(uuid)));
     }
 
     public Optional<OnlineUser> getOnlineUserByNameIgnoreCase(String name) {
-        return onlineUsers.stream().filter(onlineUser -> onlineUser.getName().equalsIgnoreCase(name)).findFirst();
+        return onlineUsers.values().stream().filter(onlineUser -> onlineUser.getName().equalsIgnoreCase(name)).findFirst();
     }
 
     public PlotAPI getPlotAPI() {

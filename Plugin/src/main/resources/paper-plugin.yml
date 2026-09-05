@@ -1,15 +1,12 @@
 name: Network
 version: '${project.version}'
 main: net.bteuk.network.Network
-api-version: '1.21.4'
+api-version: '26.2'
+loader: "net.bteuk.network.PluginLibrariesLoader"
 
 dependencies:
   server:
     WorldGuard:
-      load: BEFORE
-      required: true
-      join-classpath: true
-    ProtocolLib:
       load: BEFORE
       required: true
       join-classpath: true

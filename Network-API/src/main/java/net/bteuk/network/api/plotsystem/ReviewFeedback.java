@@ -2,7 +2,6 @@ package net.bteuk.network.api.plotsystem;
 
 import net.bteuk.network.api.PlotAPI;
 import net.bteuk.network.api.SQLAPI;
-import net.bteuk.network.lib.utils.ChatUtils;
 import net.kyori.adventure.inventory.Book;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -10,6 +9,7 @@ import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -176,6 +176,6 @@ public final class ReviewFeedback {
     }
 
     private static ClickEvent getGotoFeedbackClickEvent(int page) {
-        return ClickEvent.clickEvent(ClickEvent.Action.CHANGE_PAGE, String.valueOf(page));
+        return ClickEvent.changePage(page);
     }
 }

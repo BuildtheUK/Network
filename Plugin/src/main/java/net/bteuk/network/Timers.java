@@ -10,6 +10,7 @@ import net.bteuk.network.utils.NetworkUser;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
+import java.util.Collection;
 
 @Log
 public class Timers {
@@ -17,7 +18,7 @@ public class Timers {
     // Plugin
     private final Network instance;
     // Users
-    private final ArrayList<NetworkUser> users;
+    private final Collection<NetworkUser> users;
 
     // SQL
     private final GlobalSQL globalSQL;

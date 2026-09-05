@@ -1,6 +1,6 @@
 package net.bteuk.network.proxy;
 
-import net.bteuk.network.lib.dto.AbstractTransferObject;
+import org.btuk.network.lib.dto.AbstractTransferObject;
 import net.bteuk.network.socket.NetworkSocketHandler;
 import org.btuk.proxy.core.chat.ChatHandler;
 

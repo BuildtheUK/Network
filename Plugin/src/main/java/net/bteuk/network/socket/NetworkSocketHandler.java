@@ -7,19 +7,20 @@ import net.bteuk.network.TabManager;
 import net.bteuk.network.commands.navigation.Teleport;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.eventing.listeners.Connect;
-import net.bteuk.network.lib.dto.AbstractTransferObject;
-import net.bteuk.network.lib.dto.AddTeamEvent;
-import net.bteuk.network.lib.dto.DirectMessage;
-import net.bteuk.network.lib.dto.DiscordLinking;
-import net.bteuk.network.lib.dto.OnlineUserAdd;
-import net.bteuk.network.lib.dto.OnlineUserRemove;
-import net.bteuk.network.lib.dto.OnlineUsersReply;
-import net.bteuk.network.lib.dto.TeleportEvent;
-import net.bteuk.network.lib.dto.UserConnectReply;
-import net.bteuk.network.lib.dto.UserRemove;
-import net.bteuk.network.lib.dto.UserUpdate;
-import net.bteuk.network.lib.socket.InputSocket;
-import net.bteuk.network.lib.socket.SocketHandler;
+import org.btuk.network.lib.dto.AbstractTransferObject;
+import org.btuk.network.lib.dto.AddTeamEvent;
+import org.btuk.network.lib.dto.DirectMessage;
+import org.btuk.network.lib.dto.DiscordLinking;
+import org.btuk.network.lib.dto.OnlineUserAdd;
+import org.btuk.network.lib.dto.OnlineUserRemove;
+import org.btuk.network.lib.dto.OnlineUsersReply;
+import org.btuk.network.lib.dto.ProxyStart;
+import org.btuk.network.lib.dto.TeleportEvent;
+import org.btuk.network.lib.dto.UserConnectReply;
+import org.btuk.network.lib.dto.UserRemove;
+import org.btuk.network.lib.dto.UserUpdate;
+import org.btuk.network.lib.socket.InputSocket;
+import org.btuk.network.lib.socket.SocketHandler;
 
 @Log
 public class NetworkSocketHandler implements SocketHandler {
@@ -69,6 +70,7 @@ public class NetworkSocketHandler implements SocketHandler {
             case OnlineUserAdd onlineUserAdd -> instance.handleOnlineUserAdd(onlineUserAdd);
             case OnlineUserRemove onlineUserRemove -> instance.handleOnlineUserRemove(onlineUserRemove);
             case TeleportEvent teleportEvent -> teleport.handleTeleportEvent(teleportEvent);
+            case ProxyStart proxyStart -> instance.handleProxyStart(proxyStart);
             default -> log.warning(String.format("Socket object has an unrecognised type %s",
                     abstractTransferObject.getClass().getTypeName()));
         }

@@ -9,7 +9,7 @@ public class PlotValues {
             case 1 -> "Easy";
             case 2 -> "Normal";
             case 3 -> "Hard";
-            default -> null;
+            default -> "null";
         };
     }
 
@@ -20,7 +20,7 @@ public class PlotValues {
             case 1 -> "Small";
             case 2 -> "Medium";
             case 3 -> "Large";
-            default -> null;
+            default -> "null";
         };
     }
 }

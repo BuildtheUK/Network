@@ -256,6 +256,27 @@ public abstract class AbstractSQL implements SQLAPI {
         return list;
     }
 
+    public ArrayList<String> getStringList(String sql, Object[] args) {
+        ArrayList<String> list = new ArrayList<>();
+        try (
+                Connection conn = conn(); PreparedStatement statement = conn.prepareStatement(sql)
+        ) {
+            for (int i = 0; i < args.length; i++) {
+                statement.setObject(i + 1, args[i]);
+            }
+
+            try (ResultSet results = statement.executeQuery()) {
+                while (results.next()) {
+                    list.add(results.getString(1));
+                }
+            }
+            return list;
+        } catch (SQLException e) {
+            log.log(Level.SEVERE, "SQL query failed in getString: " + sql, e);
+            return null;
+        }
+    }
+
     public ArrayList<Integer> getIntList(String sql) {
 
         ArrayList<Integer> list = new ArrayList<>();

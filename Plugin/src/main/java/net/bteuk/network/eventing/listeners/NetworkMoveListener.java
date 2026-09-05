@@ -4,7 +4,6 @@ import lombok.extern.java.Log;
 import net.bteuk.network.Network;
 import net.bteuk.network.commands.Afk;
 import net.bteuk.network.core.Time;
-import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.NetworkUser;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
@@ -43,11 +42,9 @@ public class NetworkMoveListener implements Listener {
             return;
         }
 
-        // If u is null, cancel.
+        // If u is null, cancel; this could be the case when moving before the user instance has been created.
         NetworkUser user = instance.getUser(e.getPlayer());
         if (user == null) {
-            log.severe("User " + e.getPlayer().getName() + " can not be found!");
-            e.getPlayer().sendMessage(ChatUtils.error("User can not be found, please relog!"));
             e.setCancelled(true);
             return;
         }

@@ -8,7 +8,6 @@ import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.ServerType;
 import net.bteuk.network.exceptions.NoBuildPermissionException;
 import net.bteuk.network.exceptions.RegionNotFoundException;
-import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.regions.Region;
 import net.bteuk.network.regions.RegionManager;
 import net.bteuk.network.regions.RegionUser;
@@ -19,6 +18,7 @@ import net.bteuk.network.utils.worldguard.WorldguardUtils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -174,8 +174,8 @@ public class BuildingCompanion {
         if (input_corners.size() == 4) {
             // addDrawOutlinesEvent();
             sendFeedback(ChatUtils.success("You have 4 corners selected, click here to draw the outlines.")
-                    .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/buildingcompanion " +
-                            "drawoutlines")));
+                    .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, ClickEvent.Payload.string("/buildingcompanion " +
+                            "drawoutlines"))));
         }
     }
 
@@ -260,12 +260,12 @@ public class BuildingCompanion {
                 saved_outlines.put(outline.uuid(), outline);
                 sendFeedback(Component.text("Save outlines: ", NamedTextColor.YELLOW)
                         .append(Component.text("[Yes]", NamedTextColor.GREEN)
-                                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/buildingcompanion " +
-                                        "save " + outline.uuid())))
+                                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, ClickEvent.Payload.string("/buildingcompanion " +
+                                        "save " + outline.uuid()))))
                         .append(Component.text(" - ", NamedTextColor.YELLOW))
                         .append(Component.text("[No]", NamedTextColor.RED)
-                                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/buildingcompanion " +
-                                        "remove " + outline.uuid()))));
+                                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, ClickEvent.Payload.string("/buildingcompanion " +
+                                        "remove " + outline.uuid())))));
             }
         });
     }

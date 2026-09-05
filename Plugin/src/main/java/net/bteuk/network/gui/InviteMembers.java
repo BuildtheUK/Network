@@ -3,8 +3,6 @@ package net.bteuk.network.gui;
 import net.bteuk.network.gui.plotsystem.PlotInfo;
 import net.bteuk.network.gui.plotsystem.ZoneInfo;
 import net.bteuk.network.gui.regions.RegionInfo;
-import net.bteuk.network.lib.dto.OnlineUser;
-import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.regions.Region;
 import net.bteuk.network.regions.RegionType;
 import net.bteuk.network.regions.sql.RegionSQL;
@@ -15,8 +13,12 @@ import net.bteuk.network.utils.Utils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.btuk.network.lib.dto.OnlineUser;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.Material;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class InviteMembers extends NetworkRefreshableGui {
@@ -46,8 +48,9 @@ public class InviteMembers extends NetworkRefreshableGui {
 
     protected void createGui() {
 
-        // Get all online players in the network.
-        List<String> online_users = provider.instance().getOnlineUsers().stream().map(OnlineUser::getUuid).toList();
+        // Create a copy of the online users to ensure it is not concurrently modified by someone joining/leaving the network.
+        Collection<OnlineUser> onlineUsers = new ArrayList<>(provider.instance().getOnlineUsers().values());
+        List<String> onlineUserIds = onlineUsers.stream().map(OnlineUser::getUuid).toList();
 
         // Slot count.
         int slot = 10;
@@ -69,7 +72,7 @@ public class InviteMembers extends NetworkRefreshableGui {
         }
 
         // Iterate through all online players.
-        for (String uuid : online_users) {
+        for (String uuid : onlineUserIds) {
 
             // If the slot is greater than the number that fit in a page, create a new page.
             if (slot > 34) {

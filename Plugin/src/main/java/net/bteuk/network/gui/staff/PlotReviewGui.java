@@ -3,12 +3,14 @@ package net.bteuk.network.gui.staff;
 import net.bteuk.network.api.plotsystem.SubmittedPlot;
 import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.NetworkMultiPageGui;
-import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.papercore.PlayerAdapter;
+import net.bteuk.network.sql.PlotSQL;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Utils;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.Material;
 
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -16,11 +18,19 @@ import java.util.List;
  */
 public class PlotReviewGui extends NetworkMultiPageGui {
 
-    private final List<SubmittedPlot> submittedPlots;
+    private final NetworkUser user;
 
-    public PlotReviewGui(GuiProvider provider, List<SubmittedPlot> submittedPlots) {
-        super(provider, 45, ChatUtils.title("Submitted Plots"), submittedPlots.size());
+    private List<SubmittedPlot> submittedPlots;
+
+    public PlotReviewGui(GuiProvider provider, NetworkUser user, List<SubmittedPlot> submittedPlots) {
+        super(provider, 45, ChatUtils.title("Submitted Plots"));
+        this.user = user;
         this.submittedPlots = submittedPlots;
+    }
+
+    @Override
+    protected int getButtonCount() {
+        return submittedPlots.size();
     }
 
     @Override
@@ -37,6 +47,16 @@ public class PlotReviewGui extends NetworkMultiPageGui {
             user.staffGui = new StaffGui(provider, user);
             user.staffGui.open(user.player);
         });
+    }
+
+    /**
+     * Updates the list of submitted plots.
+     * {@inheritDoc}
+     */
+    @Override
+    public void refresh() {
+        submittedPlots = getSubmittedPlots(user, provider.plotSQL());
+        super.refresh();
     }
 
     public static void reviewPlot(GuiProvider provider, SubmittedPlot submittedPlot, NetworkUser user) {
@@ -57,6 +77,22 @@ public class PlotReviewGui extends NetworkMultiPageGui {
             // Teleport them to the server.
             provider.serverAPI().switchServer(PlayerAdapter.adapt(user.player), server);
         }
+    }
+
+    /**
+     * Gets a list of submitted plots that are reviewable by the given user sorted by submit time.
+     *
+     * @param user    the user that can review the plots
+     * @param plotSQL plot database
+     * @return list of submitted plots
+     */
+    public static List<SubmittedPlot> getSubmittedPlots(NetworkUser user, PlotSQL plotSQL) {
+        boolean isArchitect = user.hasPermission("group.architect");
+        boolean isReviewer = user.hasPermission("group.reviewer");
+
+        List<SubmittedPlot> submittedPlots = plotSQL.getReviewablePlots(user.player.getUniqueId().toString(), isArchitect, isReviewer);
+        submittedPlots.sort(Comparator.comparingLong(SubmittedPlot::submitTime));
+        return submittedPlots;
     }
 
     private static Material getPlotDifficultyMaterial(int difficulty) {

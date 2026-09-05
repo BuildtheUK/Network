@@ -2,7 +2,7 @@ package net.bteuk.network.commands;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.bteuk.network.api.EventAPI;
-import net.bteuk.network.lib.utils.ChatUtils;
+import org.btuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.sql.PlotSQL;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;

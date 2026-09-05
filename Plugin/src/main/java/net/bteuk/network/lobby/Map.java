@@ -1,7 +1,6 @@
 package net.bteuk.network.lobby;
 
 import eu.decentsoftware.holograms.api.holograms.Hologram;
-import io.papermc.lib.PaperLib;
 import lombok.extern.java.Log;
 import net.bteuk.network.CommandManager;
 import net.bteuk.network.Network;
@@ -10,14 +9,15 @@ import net.bteuk.network.api.ServerAPI;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.gui.GuiProvider;
 import net.bteuk.network.gui.navigation.LocationMenu;
-import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.papercore.LocationAdapter;
 import net.bteuk.network.papercore.PlayerAdapter;
+import net.bteuk.network.papercore.WorldUtils;
 import net.bteuk.network.utils.Holograms;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.enums.Category;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -118,13 +118,13 @@ public class Map extends AbstractReloadableComponent {
         mapLocation = new Location(null, constants.mapLocation().x(), constants.mapLocation().y(), constants.mapLocation().z(), constants.mapLocation().yaw(),
                 constants.mapLocation().pitch());
         if (Objects.equals(constants.serverName(), server)) {
-            if (constants.mapLocation().world() == null || Bukkit.getWorld(constants.mapLocation().world()) == null) {
+            if (constants.mapLocation().world() == null || WorldUtils.getWorld(constants.mapLocation().world()) == null) {
                 setEnabled(false);
                 log.warning("The map world does not exist on this server, disabling the map.");
                 return;
             }
             // Set the world, the coordinates have already been set.
-            mapLocation.setWorld(Bukkit.getWorld(constants.mapLocation().world()));
+            mapLocation.setWorld(WorldUtils.getWorld(constants.mapLocation().world()));
 
             // Register the hologram click event.
             hologramClickEvent = new HologramClickEvent(instance, this);
@@ -169,7 +169,7 @@ public class Map extends AbstractReloadableComponent {
     protected void teleport(Player p) {
         // If the map is on this server teleport the player directly, else switch server first.
         if (Objects.equals(constants.serverName(), server)) {
-            PaperLib.teleportAsync(p, mapLocation);
+            p.teleportAsync(mapLocation);
         } else {
             // Create teleport event.
             eventAPI.createTeleportEvent(true, p.getUniqueId().toString(),

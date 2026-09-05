@@ -4,24 +4,26 @@ import lombok.extern.java.Log;
 import net.bteuk.network.api.ChatAPI;
 import net.bteuk.network.api.entity.Role;
 import net.bteuk.network.core.Constants;
-import net.bteuk.network.lib.dto.ChatMessage;
-import net.bteuk.network.lib.dto.DirectMessage;
-import net.bteuk.network.lib.dto.DiscordDirectMessage;
-import net.bteuk.network.lib.dto.DiscordLinking;
-import net.bteuk.network.lib.dto.DiscordRole;
-import net.bteuk.network.lib.dto.PlotMessage;
-import net.bteuk.network.lib.dto.UserUpdate;
-import net.bteuk.network.lib.enums.ChatChannels;
-import net.bteuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.socket.MessageSender;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.Roles;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.btuk.network.lib.dto.ChatMessage;
+import org.btuk.network.lib.dto.DirectMessage;
+import org.btuk.network.lib.dto.DiscordDirectMessage;
+import org.btuk.network.lib.dto.DiscordLinking;
+import org.btuk.network.lib.dto.DiscordRole;
+import org.btuk.network.lib.dto.PlotMessage;
+import org.btuk.network.lib.dto.UserUpdate;
+import org.btuk.network.lib.enums.ChatChannels;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.bukkit.entity.Player;
 
-import static net.bteuk.network.lib.enums.ChatChannels.STAFF;
+import static org.btuk.network.lib.enums.ChatChannels.STAFF;
 
 @Log
 public class CustomChat implements ChatAPI {
@@ -32,6 +34,7 @@ public class CustomChat implements ChatAPI {
     private final MessageSender messageSender;
     private final Constants constants;
     private final Roles roles;
+    private static final PlainTextComponentSerializer PLAIN_SERIALIZER = PlainTextComponentSerializer.plainText();
 
     public CustomChat(Network instance, MessageSender messageSender, Constants constants, Roles roles) {
 
@@ -75,12 +78,22 @@ public class CustomChat implements ChatAPI {
         Role userRole = user.getPrimaryRole();
         return userRole.getColouredPrefix() // The prefix based on the role.
                 .append(Component.space())
-                .append(user.player.displayName()) // Player name in white without formatting.
+                .append(formatDisplayName(user.player))
                 .append(Component.space())
                 .append(Component.text(">", NamedTextColor.GRAY).decorate(TextDecoration.BOLD)) // Arrow between the
                 // player and message in bold.
                 .append(Component.space())
                 .append(message.color(NamedTextColor.WHITE)); // The message in white without formatting.
+    }
+
+    private static Component formatDisplayName(Player player) {
+        String displayName = PLAIN_SERIALIZER.serialize(player.displayName());
+
+        if (!displayName.equals(player.getName())) {
+            return player.displayName().hoverEvent(HoverEvent.showText(ChatUtils.greyText(player.getName())));
+        }
+
+        return player.displayName();
     }
 
     private static Component directMessageFormat(String message, String sender, String recipient) {
