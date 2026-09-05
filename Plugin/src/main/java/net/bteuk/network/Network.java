@@ -583,7 +583,9 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         eventAPI.registerEvent("invite", new InviteEvent(globalSQL, plotAPI, regionManager));
         eventAPI.registerEvent("teleport", new TeleportEvent(globalSQL, plotAPI, regionManager, constants, serverAPI, eventAPI, tpll, lobby));
         if (constants.regionsEnabled()) {
-            eventAPI.registerEvent("region", new RegionEvent(regionManager, chat, globalSQL, coordinateAPI));
+            RegionEvent regionEvent = new RegionEvent(regionManager, chat, globalSQL, coordinateAPI);
+            eventAPI.registerEvent("region", regionEvent);
+            eventAPI.registerProxyEvent(RegionEvent.class, regionEvent);
         }
         eventAPI.registerEvent("kick", new KickEvent());
 

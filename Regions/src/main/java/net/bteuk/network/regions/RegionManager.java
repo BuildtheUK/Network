@@ -427,8 +427,7 @@ public class RegionManager {
     // Accept a request for a specific user.
     public void acceptRequest(Region region, String uuid, RequestType type) {
         switch (type) {
-            case BOTH ->
-            { confirmRequest(region, uuid); }
+            case BOTH -> confirmRequest(region, uuid);
             case STAFF -> {
                 // Updates the DB with staff accept set to 1
                 regionSQL.update("UPDATE region_requests SET staff_accept = 1 WHERE region='" + region.regionName() + "' AND " + "uuid='" + uuid + "'; ");
@@ -449,8 +448,7 @@ public class RegionManager {
             confirmRequest(region, uuid);
     }
 
-    private void confirmRequest(Region region, String uuid)
-    {
+    private void confirmRequest(Region region, String uuid) {
         // Get the coordinate id for the request.
         int coordinate_id = regionSQL.getInt("SELECT coordinate_id FROM region_requests WHERE " + "region='" + region.regionName() + "' AND uuid='" + uuid + "';");
 
@@ -461,16 +459,18 @@ public class RegionManager {
         regionSQL.update("DELETE FROM region_requests WHERE region='" + region.regionName() + "' AND " + "uuid='" + uuid + "'; ");
     }
 
-
     // Deny a request for a specific user.
-    public void denyRequest(Region region, String uuid) {
+    public void denyRequest(Region region, String uuid, String reason) {
 
         // Delete the request.
         regionSQL.update("DELETE FROM region_requests WHERE region='" + region.regionName() + "' AND " + "uuid='" + uuid + "';");
 
         // Send message to user.
-        DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), uuid, "server",
-                ChatUtils.success("Your request to join region %s has been denied.", region.regionName()), true);
+        Component denyMessage = ChatUtils.error("Your request to join region %s has been denied.", region.regionName());
+        if (reason != null) {
+            denyMessage = denyMessage.append(ChatUtils.error(" Reason: %s", reason));
+        }
+        DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), uuid, "server", denyMessage, true);
         chat.sendDirectMessage(directMessage);
     }
 
@@ -499,8 +499,7 @@ public class RegionManager {
         // Get coordinate of player.
         int coordinate = coordinateAPI.addCoordinate(LocationAdapter.adapt(player.getLocation()));
 
-        switch (requestType)
-        {
+        switch (requestType) {
             case BOTH -> {
                 // Owner request
 
@@ -812,8 +811,9 @@ public class RegionManager {
         }, 60_000L);
     }
 
-    public enum RequestType
-    {
-        STAFF, OWNER, BOTH
+    public enum RequestType {
+        STAFF,
+        OWNER,
+        BOTH
     }
 }
