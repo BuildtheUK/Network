@@ -226,10 +226,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.github.BuildtheUK</groupId>
-            <artifactId>NetworkLib</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.github.BTEUK</groupId>
             <artifactId>TeachingTutorials</artifactId>
             <version>1.13.0</version>

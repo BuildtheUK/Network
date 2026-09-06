@@ -115,6 +115,7 @@ import org.btuk.network.lib.dto.OnlineUserAdd;
 import org.btuk.network.lib.dto.OnlineUserRemove;
 import org.btuk.network.lib.dto.OnlineUsersReply;
 import org.btuk.network.lib.dto.ProxyStart;
+import org.btuk.network.lib.dto.RegionRequestEvent;
 import org.btuk.network.lib.dto.ServerStartup;
 import org.btuk.proxy.app.ProxyController;
 import org.btuk.proxy.core.socket.ProxySocketHandler;
@@ -392,7 +393,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         commandManager.registerCommand(new TpDeny(this, messageSender));
 
         // Set up socket listening - used for sending messages cross-server on multi-server setups
-        NetworkSocketHandler socketHandler = new NetworkSocketHandler(this, chat, tabManager, connect, constants, teleport);
+        NetworkSocketHandler socketHandler = new NetworkSocketHandler(this, chat, tabManager, connect, constants, teleport, eventAPI);
 
         // If running in standalone mode, set up the proxy logic locally.
         if (constants.standalone()) {
@@ -514,7 +515,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         commandManager.registerCommand(new Me());
 
         Navigator navigator = new Navigator(this, networkGuiManager, constants, globalSQL, regionSQL, regionManager, plotSQL, plotAPI, lobby, back, eventAPI, serverAPI,
-                nightvision, roleAPI, tutorialsDBConnection, chat, moderation, previousLocationTracker);
+                nightvision, roleAPI, tutorialsDBConnection, chat, moderation, previousLocationTracker, messageSender);
         commandManager.registerCommand(navigator);
         new PlayerInteract(this, navigator);
 
@@ -583,7 +584,9 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         eventAPI.registerEvent("invite", new InviteEvent(globalSQL, plotAPI, regionManager));
         eventAPI.registerEvent("teleport", new TeleportEvent(globalSQL, plotAPI, regionManager, constants, serverAPI, eventAPI, tpll, lobby));
         if (constants.regionsEnabled()) {
-            eventAPI.registerEvent("region", new RegionEvent(regionManager, chat, globalSQL, coordinateAPI));
+            RegionEvent regionEvent = new RegionEvent(regionManager, chat, globalSQL, coordinateAPI);
+            eventAPI.registerEvent("region", regionEvent);
+            eventAPI.registerProxyEvent(RegionRequestEvent.class, regionEvent);
         }
         eventAPI.registerEvent("kick", new KickEvent());
 

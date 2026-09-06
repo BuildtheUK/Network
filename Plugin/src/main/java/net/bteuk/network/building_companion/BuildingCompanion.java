@@ -174,8 +174,7 @@ public class BuildingCompanion {
         if (input_corners.size() == 4) {
             // addDrawOutlinesEvent();
             sendFeedback(ChatUtils.success("You have 4 corners selected, click here to draw the outlines.")
-                    .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, ClickEvent.Payload.string("/buildingcompanion " +
-                            "drawoutlines"))));
+                    .clickEvent(ClickEvent.runCommand("/buildingcompanion drawoutlines")));
         }
     }
 
@@ -260,12 +259,10 @@ public class BuildingCompanion {
                 saved_outlines.put(outline.uuid(), outline);
                 sendFeedback(Component.text("Save outlines: ", NamedTextColor.YELLOW)
                         .append(Component.text("[Yes]", NamedTextColor.GREEN)
-                                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, ClickEvent.Payload.string("/buildingcompanion " +
-                                        "save " + outline.uuid()))))
+                                .clickEvent(ClickEvent.runCommand("/buildingcompanion save " + outline.uuid())))
                         .append(Component.text(" - ", NamedTextColor.YELLOW))
                         .append(Component.text("[No]", NamedTextColor.RED)
-                                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, ClickEvent.Payload.string("/buildingcompanion " +
-                                        "remove " + outline.uuid())))));
+                                .clickEvent(ClickEvent.runCommand("/buildingcompanion remove " + outline.uuid()))));
             }
         });
     }

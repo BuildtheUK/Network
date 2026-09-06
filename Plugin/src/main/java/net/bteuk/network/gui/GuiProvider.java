@@ -13,6 +13,7 @@ import net.bteuk.network.core.Constants;
 import net.bteuk.network.lobby.Lobby;
 import net.bteuk.network.regions.RegionManager;
 import net.bteuk.network.regions.sql.RegionSQL;
+import net.bteuk.network.socket.MessageSender;
 import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.sql.PlotSQL;
 import net.bteuk.network.utils.Roles;
@@ -25,5 +26,5 @@ import teachingtutorials.utils.DBConnection;
  */
 public record GuiProvider(Network instance, GuiManager manager, Constants constants, GlobalSQL globalSQL, RegionSQL regionSQL, RegionManager regionManager, PlotSQL plotSQL,
                           PlotAPI plotAPI, Lobby lobby, Back back, EventAPI eventAPI, ServerAPI serverAPI, Nightvision nightvision, Navigator navigator, Roles roles,
-                          DBConnection tutorialsDBConnection, ChatAPI chatAPI, Moderation moderation, PreviousLocationTracker previousLocationTracker) {
+                          DBConnection tutorialsDBConnection, ChatAPI chatAPI, Moderation moderation, PreviousLocationTracker previousLocationTracker, MessageSender messageSender) {
 }

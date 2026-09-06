@@ -101,7 +101,7 @@ public class ModerationActionGui extends NetworkRefreshableGui {
                 });
 
                 setItem(4, Utils.createItem((days == 0) ? Material.BARRIER : Material.CLOCK, (days == 0) ? 1 : days, Utils.title("Days"),
-                        Utils.line("Click to increase the hours by 1.")), (NetworkUser u) -> {
+                        Utils.line("Click to increase the days by 1.")), (NetworkUser u) -> {
 
                     days = (days == 30) ? 0 : days + 1;
                     this.refresh();
@@ -109,7 +109,7 @@ public class ModerationActionGui extends NetworkRefreshableGui {
                 });
 
                 setItem(5, Utils.createItem((months == 0) ? Material.BARRIER : Material.CLOCK, (months == 0) ? 1 : months, Utils.title("Months"),
-                        Utils.line("Click to increase the hours by 1.")), (NetworkUser u) -> {
+                        Utils.line("Click to increase the months by 1.")), (NetworkUser u) -> {
 
                     months = (months == 12) ? 0 : months + 1;
                     this.refresh();
@@ -117,7 +117,7 @@ public class ModerationActionGui extends NetworkRefreshableGui {
                 });
 
                 setItem(6, Utils.createItem((years == 0) ? Material.BARRIER : Material.CLOCK, (years == 0) ? 1 : years, Utils.title("Years"),
-                        Utils.line("Click to increase the hours by 1.")), (NetworkUser u) -> {
+                        Utils.line("Click to increase the years by 1.")), (NetworkUser u) -> {
 
                     years = (years == 5) ? 0 : years + 1;
                     this.refresh();
