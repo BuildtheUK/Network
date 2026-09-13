@@ -9,7 +9,8 @@ import lombok.Getter;
 @Getter
 public enum ConfigMigration {
 
-    DISCORD_LINK(new ConfigVersion(1, 11, 0), "discord", "links.discord");
+    DISCORD_LINK(new ConfigVersion(1, 11, 0), "discord", "links.discord"),
+    WARPS_ENABLED(new ConfigVersion(1, 11, 0), "warps_enabled", "explore.warps_enabled");
 
     private final ConfigVersion version;
     private final String oldKey;
