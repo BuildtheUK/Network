@@ -45,7 +45,7 @@ public class Where extends AbstractCommand {
             return;
         }
 
-        boolean bPlotWorld = (constants.serverType() == PLOT || constants.standalone()) && plotAPI.hasLocation(player.getWorld().key().asMinimalString());
+        boolean bPlotWorld = constants.plotSystemEnabled() && (constants.serverType() == PLOT || constants.standalone()) && plotAPI.hasLocation(player.getWorld().key().asMinimalString());
 
         if (!bPlotWorld && !(constants.serverType() == ServerType.EARTH && player.getWorld().key().asMinimalString().equals(constants.earthDimension()))) {
             player.sendMessage(ChatUtils.error("This world does not support coordinates."));

@@ -1,11 +1,16 @@
 package net.bteuk.network.proxy;
 
+import lombok.extern.java.Log;
 import net.bteuk.network.Network;
 import net.bteuk.network.api.entity.Role;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.utils.Roles;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.Style;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.btuk.network.lib.dto.TabPlayer;
+import org.btuk.network.lib.utils.ChatUtils;
 import org.btuk.proxy.core.chat.ChatHandler;
 import org.btuk.proxy.core.config.Config;
 import org.btuk.proxy.core.player.Player;
@@ -13,7 +18,6 @@ import org.btuk.proxy.core.scheduler.Scheduler;
 import org.btuk.proxy.core.tab.AbstractTabManager;
 import org.btuk.proxy.core.user.CoreUserManager;
 import org.btuk.proxy.core.user.User;
-import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.scoreboard.Criteria;
 import org.bukkit.scoreboard.DisplaySlot;
@@ -23,9 +27,11 @@ import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+@Log
 public class NetworkTabManager extends AbstractTabManager {
 
     private static final char[] ALPHABET = "abcdefghijklmnopqrstuvwxyz".toCharArray();
@@ -67,25 +73,21 @@ public class NetworkTabManager extends AbstractTabManager {
 
     @Override
     protected void addPlayerToTabList(Player player, User user, TabPlayer tabPlayer) {
-        server.getScheduler().runTask(plugin, new Runnable() {
-            @Override
-            public void run() {
-                org.bukkit.entity.Player bukkitPlayer = resolveBukkitPlayer(tabPlayer.getUuid());
-                if (bukkitPlayer == null || !bukkitPlayer.isOnline()) {
-                    return;
-                }
+        server.getScheduler().runTask(plugin, () -> {
+            org.bukkit.entity.Player bukkitPlayer = resolveBukkitPlayer(tabPlayer.getUuid());
+            if (bukkitPlayer == null || !bukkitPlayer.isOnline()) {
+                return;
+            }
 
-                // Set the player list name to empty globally, so the team prefix is used for the entire name.
-                bukkitPlayer.playerListName(Component.empty());
+            updateBukkitPlayerListName(bukkitPlayer, tabPlayer);
 
-                for (org.bukkit.entity.Player onlinePlayer : server.getOnlinePlayers()) {
-                    // Update the scoreboard for the online player.
-                    User viewerUser = coreUserManager.getUserByUuid(onlinePlayer.getUniqueId().toString());
-                    if (viewerUser != null) {
-                        updatePlayerInScoreboard(getScoreboard(onlinePlayer), viewerUser, tabPlayer);
-                    }
-                    onlinePlayer.listPlayer(bukkitPlayer);
+            for (org.bukkit.entity.Player onlinePlayer : server.getOnlinePlayers()) {
+                // Update the scoreboard for the online player.
+                User viewerUser = coreUserManager.getUserByUuid(onlinePlayer.getUniqueId().toString());
+                if (viewerUser != null) {
+                    updatePlayerInScoreboard(getScoreboard(onlinePlayer), tabPlayer);
                 }
+                onlinePlayer.listPlayer(bukkitPlayer);
             }
         });
     }
@@ -113,15 +115,17 @@ public class NetworkTabManager extends AbstractTabManager {
 
     @Override
     protected void updatePlayerDisplayName(String name, TabPlayer updated) {
-        server.getScheduler().runTask(plugin, new Runnable() {
-            @Override
-            public void run() {
-                // Update the display name in all scoreboards.
-                for (org.bukkit.entity.Player onlinePlayer : server.getOnlinePlayers()) {
-                    User viewerUser = coreUserManager.getUserByUuid(onlinePlayer.getUniqueId().toString());
-                    if (viewerUser != null) {
-                        updatePlayerInScoreboard(getScoreboard(onlinePlayer), viewerUser, updated);
-                    }
+        server.getScheduler().runTask(plugin, () -> {
+            org.bukkit.entity.Player bukkitPlayer = resolveBukkitPlayer(updated.getUuid());
+            if (bukkitPlayer != null && bukkitPlayer.isOnline()) {
+                updateBukkitPlayerListName(bukkitPlayer, updated);
+            }
+
+            // Update the display name in all scoreboards.
+            for (org.bukkit.entity.Player onlinePlayer : server.getOnlinePlayers()) {
+                User viewerUser = coreUserManager.getUserByUuid(onlinePlayer.getUniqueId().toString());
+                if (viewerUser != null) {
+                    updatePlayerInScoreboard(getScoreboard(onlinePlayer), updated);
                 }
             }
         });
@@ -147,15 +151,16 @@ public class NetworkTabManager extends AbstractTabManager {
      */
     @Override
     public void updatePlayerInTablistOfPlayer(User user, User userToUpdate) {
-        server.getScheduler().runTask(plugin, new Runnable() {
-            @Override
-            public void run() {
-                org.bukkit.entity.Player bukkitPlayer = resolveBukkitPlayer(user.getUuid());
-                if (bukkitPlayer != null) {
-                    TabPlayer tabPlayerToUpdate = findTabPlayerByUuid(userToUpdate.getUuid());
-                    if (tabPlayerToUpdate != null) {
-                        updatePlayerInScoreboard(getScoreboard(bukkitPlayer), user, tabPlayerToUpdate);
+        server.getScheduler().runTask(plugin, () -> {
+            org.bukkit.entity.Player bukkitPlayer = resolveBukkitPlayer(user.getUuid());
+            if (bukkitPlayer != null) {
+                TabPlayer tabPlayerToUpdate = findTabPlayerByUuid(userToUpdate.getUuid());
+                if (tabPlayerToUpdate != null) {
+                    org.bukkit.entity.Player targetPlayer = resolveBukkitPlayer(tabPlayerToUpdate.getUuid());
+                    if (targetPlayer != null && targetPlayer.isOnline()) {
+                        updateBukkitPlayerListName(targetPlayer, tabPlayerToUpdate);
                     }
+                    updatePlayerInScoreboard(getScoreboard(bukkitPlayer), tabPlayerToUpdate);
                 }
             }
         });
@@ -168,62 +173,97 @@ public class NetworkTabManager extends AbstractTabManager {
      */
     @Override
     public void sendTablist(User user) {
-        server.getScheduler().runTask(plugin, new Runnable() {
-            @Override
-            public void run() {
-                org.bukkit.entity.Player player = resolveBukkitPlayer(user.getUuid());
-                if (player == null || !player.isOnline()) {
-                    return;
+        server.getScheduler().runTask(plugin, () -> {
+            org.bukkit.entity.Player player = resolveBukkitPlayer(user.getUuid());
+            if (player == null || !player.isOnline()) {
+                return;
+            }
+
+            // Set the scoreboard for the player.
+            player.setScoreboard(getScoreboard(player));
+
+            // Send header and footer.
+            player.sendPlayerListHeaderAndFooter(HEADER, FOOTER);
+
+            for (org.bukkit.entity.Player onlinePlayer : server.getOnlinePlayers()) {
+                // Add the other player to this player's scoreboard.
+                TabPlayer tabPlayer = findTabPlayerByUuid(onlinePlayer.getUniqueId().toString());
+                if (tabPlayer != null) {
+                    updateBukkitPlayerListName(onlinePlayer, tabPlayer);
+                    updatePlayerInScoreboard(player.getScoreboard(), tabPlayer);
                 }
-
-                // Set the scoreboard for the player.
-                player.setScoreboard(getScoreboard(player));
-
-                // Send header and footer.
-                player.sendPlayerListHeaderAndFooter(HEADER, FOOTER);
-
-                for (org.bukkit.entity.Player onlinePlayer : server.getOnlinePlayers()) {
-                    // Ensure the other player has an empty list name.
-                    onlinePlayer.playerListName(Component.empty());
-
-                    // Add the other player to this player's scoreboard.
-                    TabPlayer tabPlayer = findTabPlayerByUuid(onlinePlayer.getUniqueId().toString());
-                    if (tabPlayer != null) {
-                        updatePlayerInScoreboard(player.getScoreboard(), user, tabPlayer);
-                    }
-                    player.listPlayer(onlinePlayer);
-                }
+                player.listPlayer(onlinePlayer);
             }
         });
     }
 
-    private void updatePlayerInScoreboard(Scoreboard sb, User viewer, TabPlayer target) {
+    private void updatePlayerInScoreboard(Scoreboard sb, TabPlayer target) {
         String teamName = getTeamName(target);
         Team team = sb.getTeam(teamName);
 
         // If the player was in a different team, remove them first.
         Team oldTeam = sb.getEntryTeam(target.getName());
         if (oldTeam != null && !oldTeam.getName().equals(teamName)) {
-            oldTeam.unregister();
+            oldTeam.removeEntry(target.getName());
         }
 
         if (team == null) {
             team = sb.registerNewTeam(teamName);
-            team.addEntry(target.getName());
         }
 
-        // Apply the formatted name as the prefix.
-        team.prefix(formattedName(viewer, target));
+        if (!team.hasEntry(target.getName())) {
+            team.addEntry(target.getName());
+        }
+    }
+
+    private void updateBukkitPlayerListName(org.bukkit.entity.Player bukkitPlayer, TabPlayer tabPlayer) {
+        bukkitPlayer.playerListName(globalDisplayName(tabPlayer));
+    }
+
+    private Component globalDisplayName(TabPlayer tabPlayer) {
+        User userToAdd = coreUserManager.getUserByUuid(tabPlayer.getUuid());
+
+        Style.Builder statusStyle = Style.style();
+
+        Component name = ChatUtils.line(tabPlayer.getName());
+        if (userToAdd != null) {
+            if (userToAdd.isMuted()) {
+                statusStyle.color(NamedTextColor.DARK_RED);
+            }
+            if (userToAdd.isAfk()) {
+                statusStyle.decorate(TextDecoration.ITALIC);
+                statusStyle.color(NamedTextColor.WHITE);
+            }
+            if (userToAdd.isFocusEnabled()) {
+                statusStyle.decorate(TextDecoration.STRIKETHROUGH);
+                statusStyle.color(NamedTextColor.WHITE);
+            }
+            name = userToAdd.getDisplayName();
+        }
+
+        Style style = statusStyle.build();
+        if (!style.isEmpty()) {
+            name = applyStyleToTree(name, style);
+        }
+
+        Component prefix = Component.empty();
+
+        if (tabPlayer.getPrefix() != null) {
+            prefix = prefix.append(tabPlayer.getPrefix()).append(Component.space());
+        }
+
+        name = prefix.append(name);
+
+        return name;
     }
 
     private String getTeamName(TabPlayer tabPlayer) {
         String sortKey = sortKeys.getOrDefault(tabPlayer.getPrimaryGroup(), "zz");
-        // Team name is sortKey + first 14 chars of UUID to ensure uniqueness and sorting.
-        return sortKey + tabPlayer.getUuid().substring(0, 10);
+        return sortKey + tabPlayer.getUuid().substring(0, 14);
     }
 
     private Scoreboard getScoreboard(org.bukkit.entity.Player player) {
-        return scoreboards.computeIfAbsent(player.getUniqueId(), uuid -> {
+        return scoreboards.computeIfAbsent(player.getUniqueId(), _ -> {
             Scoreboard sb = server.getScoreboardManager().getNewScoreboard();
 
             // Set sidebar if enabled.
@@ -243,5 +283,18 @@ public class NetworkTabManager extends AbstractTabManager {
 
     private @Nullable org.bukkit.entity.Player resolveBukkitPlayer(String uuid) {
         return server.getOnlinePlayers().stream().filter(player -> player.getUniqueId().toString().equals(uuid)).findFirst().orElse(null);
+    }
+
+    private static Component applyStyleToTree(Component component, Style styleToApply) {
+        Component updated = component.style(styleToApply);
+
+        if (!component.children().isEmpty()) {
+            List<Component> updatedChildren = component.children().stream()
+                    .map(child -> applyStyleToTree(child, styleToApply))
+                    .toList();
+            updated = updated.children(updatedChildren);
+        }
+
+        return updated;
     }
 }

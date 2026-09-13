@@ -117,7 +117,7 @@ public class TeleportEvent implements Event {
                 String worldName = globalSQL.getString("SELECT world FROM coordinates " + "WHERE id=" + coordinate_id + ";");
 
                 // Check if world is in plotsystem.
-                if (plotAPI.hasLocation(worldName)) {
+                if (constants.plotSystemEnabled() && plotAPI.hasLocation(worldName)) {
 
                     // Add coordinate transformation.
                     l = new Location(WorldUtils.getWorld(worldName), l.getX() + plotAPI.getXTransform(worldName), l.getY(), l.getZ() + plotAPI.getZTransform(worldName), l.getYaw(),
