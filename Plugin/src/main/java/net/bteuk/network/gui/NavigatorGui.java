@@ -49,6 +49,10 @@ public class NavigatorGui extends NetworkGui {
             if (constants.warpsEnabled()) {
                 u.mainGui = new ExploreGui(provider, u);
                 u.mainGui.open(u.player);
+            }
+            else if (constants.warpsAlternativeEnabled()) {
+                u.player.closeInventory();
+                u.player.performCommand(constants.warpsAlternativeCommand());
             } else {
                 u.player.closeInventory();
                 u.player.sendMessage(ChatUtils.error("Warps are currently not enabled!"));

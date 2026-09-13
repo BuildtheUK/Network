@@ -110,6 +110,9 @@ public class Navigator extends AbstractCommand {
             }
             u.mainGui = new ExploreGui(provider, u);
             u.mainGui.open(u.player);
+        } else if (constants.warpsAlternativeEnabled()) {
+            u.player.closeInventory();
+            u.player.performCommand(constants.warpsAlternativeCommand());
         } else {
             openNavigator(u);
         }

@@ -610,7 +610,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         NetworkCoreServerManager serverManager = new NetworkCoreServerManager(this);
 
         NetworkChatHandler chatHandler = new NetworkChatHandler(socketHandler);
-        NetworkTabManager standaloneTabManager = new NetworkTabManager(getServer(), roleAPI, constants, proxyController.getConfig(), proxyController.getCoreUserManager(),
+        NetworkTabManager standaloneTabManager = new NetworkTabManager(this, getServer(), roleAPI, constants, proxyController.getConfig(), proxyController.getCoreUserManager(),
                 chatHandler, scheduler);
 
         // Set up the local socket handler.
