@@ -34,20 +34,19 @@ public class TpAccept extends AbstractCommand {
             return;
         }
 
-        // Check if args exist.
-        if (args.length == 0) {
-            player.sendMessage(ChatUtils.error("/tpaccept <player>"));
-            return;
+        String uuid = null;
+        if (args.length > 0) {
+            Optional<OnlineUser> optionalRequester = instance.getOnlineUserByNameIgnoreCase(args[0]);
+
+            if (optionalRequester.isEmpty()) {
+                player.sendMessage(ChatUtils.error("Player %s is not online!", args[0]));
+                return;
+            }
+
+            uuid = optionalRequester.get().getUuid();
         }
 
-        Optional<OnlineUser> optionalRequester = instance.getOnlineUserByNameIgnoreCase(args[0]);
-
-        if (optionalRequester.isEmpty()) {
-            player.sendMessage(ChatUtils.error("Player %s is not online!", args[0]));
-            return;
-        }
-
-        TeleportEvent teleportEvent = new TeleportEvent(optionalRequester.get().getUuid(), player.getUniqueId().toString(), TeleportRequestType.ACCEPT);
+        TeleportEvent teleportEvent = new TeleportEvent(uuid, player.getUniqueId().toString(), TeleportRequestType.ACCEPT);
         messageSender.sendSocketMessage(teleportEvent);
     }
 
