@@ -68,13 +68,14 @@ public class Where extends AbstractCommand {
             player.sendMessage(ChatUtils.success("Your coordinates are ")
                     .append(Component.text(DECIMAL_FORMATTER.format(coords[1]), NamedTextColor.DARK_AQUA))
                     .append(ChatUtils.success(","))
-                    .append(Component.text(DECIMAL_FORMATTER.format(coords[0]), NamedTextColor.DARK_AQUA)));
-            Component message = ChatUtils.success("Click here to view the coordinates in Google Maps.");
-            message = message.clickEvent(ClickEvent.openUrl("https://www.google.com/maps/@?api=1&map_action=map&basemap=satellite&zoom=21&center=" + coords[1] + "," + coords[0]));
+                    .append(Component.text(DECIMAL_FORMATTER.format(coords[0]), NamedTextColor.DARK_AQUA))
+                    .append(ChatUtils.success(" click to copy."))
+                    .clickEvent(ClickEvent.copyToClipboard(DECIMAL_FORMATTER.format(coords[1]) + "," + DECIMAL_FORMATTER.format(coords[0]))));
+            Component message = ChatUtils.success("Click here to view the coordinates in Google Maps.")
+                    .clickEvent(ClickEvent.openUrl("https://www.google.com/maps/@?api=1&map_action=map&basemap=satellite&zoom=21&center=" + coords[1] + "," + coords[0]));
             player.sendMessage(message);
         } catch (OutOfProjectionBoundsException e) {
-            player.sendMessage(ChatUtils.error("You are not standing in a location where coordinates can be retrieved" +
-                    "."));
+            player.sendMessage(ChatUtils.error("You are not standing in a location where coordinates can be retrieved."));
         }
     }
 

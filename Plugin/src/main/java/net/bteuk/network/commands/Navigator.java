@@ -19,6 +19,7 @@ import net.bteuk.network.gui.tutorials.TutorialsGui;
 import net.bteuk.network.lobby.Lobby;
 import net.bteuk.network.regions.RegionManager;
 import net.bteuk.network.regions.sql.RegionSQL;
+import net.bteuk.network.socket.MessageSender;
 import net.bteuk.network.sql.GlobalSQL;
 import net.bteuk.network.sql.PlotSQL;
 import net.bteuk.network.utils.NetworkUser;
@@ -45,12 +46,12 @@ public class Navigator extends AbstractCommand {
 
     public Navigator(Network instance, GuiManager guiManager, Constants constants, GlobalSQL globalSQL, RegionSQL regionSQL, RegionManager regionManager, PlotSQL plotSQL,
                      PlotAPI plotAPI, Lobby lobby, Back back, EventAPI eventAPI, ServerAPI serverAPI, Nightvision nightvision, Roles roles,
-                     DBConnection tutorialsDBConnection, ChatAPI chatAPI, Moderation moderation, PreviousLocationTracker previousLocationTracker) {
+                     DBConnection tutorialsDBConnection, ChatAPI chatAPI, Moderation moderation, PreviousLocationTracker previousLocationTracker, MessageSender messageSender) {
         this.instance = instance;
         this.constants = constants;
 
         this.provider = new GuiProvider(instance, guiManager, constants, globalSQL, regionSQL, regionManager, plotSQL, plotAPI, lobby, back, eventAPI, serverAPI, nightvision, this,
-                roles, tutorialsDBConnection, chatAPI, moderation, previousLocationTracker);
+                roles, tutorialsDBConnection, chatAPI, moderation, previousLocationTracker, messageSender);
 
         this.navigator = new NavigatorGui(provider);
     }

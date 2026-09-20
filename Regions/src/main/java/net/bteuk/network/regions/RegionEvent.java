@@ -4,12 +4,15 @@ import net.bteuk.network.api.ChatAPI;
 import net.bteuk.network.api.CoordinateAPI;
 import net.bteuk.network.api.SQLAPI;
 import net.bteuk.network.api.entity.Event;
+import net.bteuk.network.api.entity.ProxyEvent;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.btuk.network.lib.dto.DirectMessage;
+import org.btuk.network.lib.dto.RegionRequestEvent;
+import org.btuk.network.lib.enums.ApprovalAction;
 import org.btuk.network.lib.enums.ChatChannels;
 import org.btuk.network.lib.utils.ChatUtils;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
-public class RegionEvent implements Event {
+public class RegionEvent implements Event, ProxyEvent<RegionRequestEvent> {
 
     private final RegionManager regionManager;
     private final ChatAPI chatAPI;
@@ -53,56 +56,6 @@ public class RegionEvent implements Event {
                         // Set region to default.
                         regionManager.setDefault(region);
                     }
-                }
-            }
-            case "request" -> {
-                if (event[2].equals("accept")) {
-
-                    // 'region', request, accept/deny, region, uuid, owner/staff
-
-                    region = regionManager.getRegion(event[3]);
-
-                    // If length is 4, then no user is specified; this implies that it should accept all requests for
-                    // the region, rather than a specific request.
-                    if (event.length == 4) {
-
-                        regionManager.acceptRequests(region);
-                    } else {
-                        RegionManager.RequestType requestType;
-
-                        // The 6th argument specifies whether this is staff or owner approval
-                        if (event[5].equals("owner"))
-                            requestType = RegionManager.RequestType.OWNER;
-                        else if (event[5].equals("staff"))
-                            requestType = RegionManager.RequestType.STAFF;
-                        else
-                        {
-                            DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), uuid, "server",
-                                    ChatUtils.error("An error occurred - the request type was malformatted: "+event[5]), true);
-                            chatAPI.sendDirectMessage(directMessage);
-                            return;
-                        }
-
-                        // The 5th argument specifies the uuid of the player who created the request.
-                        regionManager.acceptRequest(region, event[4], requestType);
-
-                        // Send feedback to the user who accepted the request.
-                        DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), uuid, "server",
-                                ChatUtils.success("Accepted region request for %s in the region %s.",
-                                        globalSQL.getString("SELECT name FROM player_data " + "WHERE uuid='" + event[4] + "';"), event[3]), true);
-                        chatAPI.sendDirectMessage(directMessage);
-                    }
-                } else if (event[2].equals("deny")) {
-
-                    region = regionManager.getRegion(event[3]);
-
-                    regionManager.denyRequest(region, event[4]);
-
-                    // Send feedback to the user who denied the request.
-                    DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), uuid, "server",
-                            ChatUtils.success("Denied region request for %s in the region %s.",
-                                    globalSQL.getString("SELECT name FROM player_data " + "WHERE uuid='" + event[4] + "';"), event[3]), true);
-                    chatAPI.sendDirectMessage(directMessage);
                 }
             }
             case "leave" -> {
@@ -153,6 +106,42 @@ public class RegionEvent implements Event {
                                 regionManager.getTag(region, regionManager.getOwner(region))), true);
                 chatAPI.sendDirectMessage(directMessage);
             }
+        }
+    }
+
+    @Override
+    public void event(RegionRequestEvent event) {
+        handleRegionRequest(event.getApprovalAction(), event.getRegionName(), event.getReviewerUuid(), event.getRequesterUuid(), event.isStaffReview(), event.getReason());
+    }
+
+    private void handleRegionRequest(ApprovalAction action, String regionName, String reviewerUuid, String requesterUuid, boolean staffReview, String reason) {
+        Region region = regionManager.getRegion(regionName);
+        if (action == ApprovalAction.ACCEPT) {
+
+            // If no requester uuid was specified, all requests must be accepted for the region.
+            if (requesterUuid == null) {
+                regionManager.acceptRequests(region);
+                return;
+            }
+
+            RegionManager.RequestType requestType = staffReview ? RegionManager.RequestType.STAFF : RegionManager.RequestType.OWNER;
+            regionManager.acceptRequest(region, requesterUuid, requestType);
+
+            // Send feedback to the user who accepted the request.
+            DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), reviewerUuid, "server",
+                    ChatUtils.success("Accepted region request for %s in the region %s.",
+                            globalSQL.getString("SELECT name FROM player_data " + "WHERE uuid='" + requesterUuid + "';"), regionName), true);
+            chatAPI.sendDirectMessage(directMessage);
+
+        } else if (action == ApprovalAction.REJECT) {
+
+            regionManager.denyRequest(region, requesterUuid, reason);
+
+            // Send feedback to the user who denied the request.
+            DirectMessage directMessage = new DirectMessage(ChatChannels.GLOBAL.getChannelName(), reviewerUuid, "server",
+                    ChatUtils.success("Denied region request for %s in the region %s.",
+                            globalSQL.getString("SELECT name FROM player_data " + "WHERE uuid='" + requesterUuid + "';"), regionName), true);
+            chatAPI.sendDirectMessage(directMessage);
         }
     }
 }

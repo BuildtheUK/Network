@@ -36,14 +36,13 @@ public class ModerationReasonListener implements Listener {
         task = Bukkit.getScheduler().runTaskLater(instance, () -> {
             // Send message to player telling them it's been timer out.
             if (u.player != null) {
-                u.player.sendMessage(ChatUtils.error("'Set " + gui.getType().label.toLowerCase(Locale.ROOT) + " " +
-                        "reason' cancelled."));
+                u.player.sendMessage(ChatUtils.error("'Set " + gui.getType().label.toLowerCase(Locale.ROOT) + " reason' cancelled."));
             }
             unregister();
         }, 1200L);
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void ChatEvent(AsyncChatEvent e) {
 
         // Check if this is the correct player.
@@ -54,8 +53,7 @@ public class ModerationReasonListener implements Listener {
             // Check if message is 256 characters or less.
             if (PlainTextComponentSerializer.plainText().serialize(e.message()).length() > 64) {
 
-                e.getPlayer().sendMessage(ChatUtils.error("The region tag can't be longer than 256 characters, please" +
-                        " try again."));
+                e.getPlayer().sendMessage(ChatUtils.error("The reason can't be longer than 64 characters, please try again."));
             } else {
 
                 // Set the reason.
