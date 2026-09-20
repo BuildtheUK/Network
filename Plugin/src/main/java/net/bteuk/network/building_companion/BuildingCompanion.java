@@ -15,6 +15,7 @@ import net.bteuk.network.utils.Blocks;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.worldguard.WorldguardMembers;
 import net.bteuk.network.utils.worldguard.WorldguardUtils;
+import net.buildtheearth.terraminusminus.TerraminusminusService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -68,7 +69,7 @@ public class BuildingCompanion {
     private World world;
     private boolean asyncActive = false;
 
-    public BuildingCompanion(NetworkUser user, Network instance, Constants constants, RegionManager regionManager) {
+    public BuildingCompanion(NetworkUser user, Network instance, TerraminusminusService terraminusminusService, Constants constants, RegionManager regionManager) {
 
         this.user = user;
         this.instance = instance;
@@ -81,7 +82,7 @@ public class BuildingCompanion {
 
         // Enable the tpll listener.
         listeners = new HashSet<>();
-        listeners.add(new TpllListener(this, instance, constants, regionManager));
+        listeners.add(new TpllListener(this, instance, terraminusminusService, constants, regionManager));
     }
 
     private static boolean contains(Set<double[]> list, double[] input) {

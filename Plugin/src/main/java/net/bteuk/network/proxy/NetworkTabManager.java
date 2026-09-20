@@ -13,6 +13,7 @@ import org.btuk.proxy.core.tab.AbstractTabManager;
 import org.btuk.proxy.core.user.CoreUserManager;
 import org.btuk.proxy.core.user.User;
 import org.bukkit.Server;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scoreboard.Criteria;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
@@ -28,6 +29,7 @@ public class NetworkTabManager extends AbstractTabManager {
 
     private static final char[] ALPHABET = "abcdefghijklmnopqrstuvwxyz".toCharArray();
 
+    private final JavaPlugin plugin;
     private final Server server;
     private final Roles roles;
     private final Constants constants;
@@ -35,8 +37,10 @@ public class NetworkTabManager extends AbstractTabManager {
     private final Map<UUID, Scoreboard> scoreboards;
     private final Map<String, String> sortKeys;
 
-    public NetworkTabManager(Server server, Roles roles, Constants constants, Config config, CoreUserManager coreUserManager, ChatHandler chatHandler, Scheduler scheduler) {
+    public NetworkTabManager(JavaPlugin plugin, Server server, Roles roles, Constants constants, Config config, CoreUserManager coreUserManager, ChatHandler chatHandler,
+                             Scheduler scheduler) {
         super(config, coreUserManager, chatHandler, scheduler);
+        this.plugin = plugin;
         this.server = server;
         this.roles = roles;
         this.constants = constants;
@@ -63,38 +67,42 @@ public class NetworkTabManager extends AbstractTabManager {
 
     @Override
     protected void addPlayerToTabList(Player player, User user, TabPlayer tabPlayer) {
-        org.bukkit.entity.Player bukkitPlayer = resolveBukkitPlayer(tabPlayer.getUuid());
-        if (bukkitPlayer == null || !bukkitPlayer.isOnline()) {
-            return;
-        }
-
-        // Set the player list name to empty globally, so the team prefix is used for the entire name.
-        bukkitPlayer.playerListName(Component.empty());
-
-        for (org.bukkit.entity.Player onlinePlayer : server.getOnlinePlayers()) {
-            // Update the scoreboard for the online player.
-            User viewerUser = coreUserManager.getUserByUuid(onlinePlayer.getUniqueId().toString());
-            if (viewerUser != null) {
-                updatePlayerInScoreboard(getScoreboard(onlinePlayer), viewerUser, tabPlayer);
+        plugin.getServer().getScheduler().runTask(plugin, () -> {
+            org.bukkit.entity.Player bukkitPlayer = resolveBukkitPlayer(tabPlayer.getUuid());
+            if (bukkitPlayer == null || !bukkitPlayer.isOnline()) {
+                return;
             }
-            onlinePlayer.listPlayer(bukkitPlayer);
-        }
+
+            // Set the player list name to empty globally, so the team prefix is used for the entire name.
+            bukkitPlayer.playerListName(Component.empty());
+
+            for (org.bukkit.entity.Player onlinePlayer : server.getOnlinePlayers()) {
+                // Update the scoreboard for the online player.
+                User viewerUser = coreUserManager.getUserByUuid(onlinePlayer.getUniqueId().toString());
+                if (viewerUser != null) {
+                    updatePlayerInScoreboard(getScoreboard(onlinePlayer), viewerUser, tabPlayer);
+                }
+                onlinePlayer.listPlayer(bukkitPlayer);
+            }
+        });
     }
 
     @Override
     protected void removePlayerFromTabList(Player player, TabPlayer tabPlayer) {
-        // Remove the scoreboard if the player leaving is the owner of the scoreboard.
-        scoreboards.remove(UUID.fromString(tabPlayer.getUuid()));
+        plugin.getServer().getScheduler().runTask(plugin, () -> {
+            // Remove the scoreboard if the player leaving is the owner of the scoreboard.
+            scoreboards.remove(UUID.fromString(tabPlayer.getUuid()));
 
-        for (org.bukkit.entity.Player onlinePlayer : server.getOnlinePlayers()) {
-            Scoreboard sb = scoreboards.get(onlinePlayer.getUniqueId());
-            if (sb != null) {
-                Team team = sb.getEntryTeam(tabPlayer.getName());
-                if (team != null) {
-                    team.unregister();
+            for (org.bukkit.entity.Player onlinePlayer : server.getOnlinePlayers()) {
+                Scoreboard sb = scoreboards.get(onlinePlayer.getUniqueId());
+                if (sb != null) {
+                    Team team = sb.getEntryTeam(tabPlayer.getName());
+                    if (team != null) {
+                        team.unregister();
+                    }
                 }
             }
-        }
+        });
     }
 
     @Override
@@ -104,13 +112,15 @@ public class NetworkTabManager extends AbstractTabManager {
 
     @Override
     protected void updatePlayerDisplayName(String name, TabPlayer updated) {
-        // Update the display name in all scoreboards.
-        for (org.bukkit.entity.Player onlinePlayer : server.getOnlinePlayers()) {
-            User viewerUser = coreUserManager.getUserByUuid(onlinePlayer.getUniqueId().toString());
-            if (viewerUser != null) {
-                updatePlayerInScoreboard(getScoreboard(onlinePlayer), viewerUser, updated);
+        plugin.getServer().getScheduler().runTask(plugin, () -> {
+            // Update the display name in all scoreboards.
+            for (org.bukkit.entity.Player onlinePlayer : server.getOnlinePlayers()) {
+                User viewerUser = coreUserManager.getUserByUuid(onlinePlayer.getUniqueId().toString());
+                if (viewerUser != null) {
+                    updatePlayerInScoreboard(getScoreboard(onlinePlayer), viewerUser, updated);
+                }
             }
-        }
+        });
     }
 
     @Override
@@ -133,13 +143,15 @@ public class NetworkTabManager extends AbstractTabManager {
      */
     @Override
     public void updatePlayerInTablistOfPlayer(User user, User userToUpdate) {
-        org.bukkit.entity.Player bukkitPlayer = resolveBukkitPlayer(user.getUuid());
-        if (bukkitPlayer != null) {
-            TabPlayer tabPlayerToUpdate = findTabPlayerByUuid(userToUpdate.getUuid());
-            if (tabPlayerToUpdate != null) {
-                updatePlayerInScoreboard(getScoreboard(bukkitPlayer), user, tabPlayerToUpdate);
+        plugin.getServer().getScheduler().runTask(plugin, () -> {
+            org.bukkit.entity.Player bukkitPlayer = resolveBukkitPlayer(user.getUuid());
+            if (bukkitPlayer != null) {
+                TabPlayer tabPlayerToUpdate = findTabPlayerByUuid(userToUpdate.getUuid());
+                if (tabPlayerToUpdate != null) {
+                    updatePlayerInScoreboard(getScoreboard(bukkitPlayer), user, tabPlayerToUpdate);
+                }
             }
-        }
+        });
     }
 
     /**
@@ -149,28 +161,30 @@ public class NetworkTabManager extends AbstractTabManager {
      */
     @Override
     public void sendTablist(User user) {
-        org.bukkit.entity.Player player = resolveBukkitPlayer(user.getUuid());
-        if (player == null || !player.isOnline()) {
-            return;
-        }
-
-        // Set the scoreboard for the player.
-        player.setScoreboard(getScoreboard(player));
-
-        // Send header and footer.
-        player.sendPlayerListHeaderAndFooter(HEADER, FOOTER);
-
-        for (org.bukkit.entity.Player onlinePlayer : server.getOnlinePlayers()) {
-            // Ensure the other player has an empty list name.
-            onlinePlayer.playerListName(Component.empty());
-
-            // Add the other player to this player's scoreboard.
-            TabPlayer tabPlayer = findTabPlayerByUuid(onlinePlayer.getUniqueId().toString());
-            if (tabPlayer != null) {
-                updatePlayerInScoreboard(player.getScoreboard(), user, tabPlayer);
+        plugin.getServer().getScheduler().runTask(plugin, () -> {
+            org.bukkit.entity.Player player = resolveBukkitPlayer(user.getUuid());
+            if (player == null || !player.isOnline()) {
+                return;
             }
-            player.listPlayer(onlinePlayer);
-        }
+
+            // Set the scoreboard for the player.
+            player.setScoreboard(getScoreboard(player));
+
+            // Send header and footer.
+            player.sendPlayerListHeaderAndFooter(HEADER, FOOTER);
+
+            for (org.bukkit.entity.Player onlinePlayer : server.getOnlinePlayers()) {
+                // Ensure the other player has an empty list name.
+                onlinePlayer.playerListName(Component.empty());
+
+                // Add the other player to this player's scoreboard.
+                TabPlayer tabPlayer = findTabPlayerByUuid(onlinePlayer.getUniqueId().toString());
+                if (tabPlayer != null) {
+                    updatePlayerInScoreboard(player.getScoreboard(), user, tabPlayer);
+                }
+                player.listPlayer(onlinePlayer);
+            }
+        });
     }
 
     private void updatePlayerInScoreboard(Scoreboard sb, User viewer, TabPlayer target) {
@@ -199,7 +213,7 @@ public class NetworkTabManager extends AbstractTabManager {
     }
 
     private Scoreboard getScoreboard(org.bukkit.entity.Player player) {
-        return scoreboards.computeIfAbsent(player.getUniqueId(), uuid -> {
+        return scoreboards.computeIfAbsent(player.getUniqueId(), _ -> {
             Scoreboard sb = server.getScoreboardManager().getNewScoreboard();
 
             // Set sidebar if enabled.

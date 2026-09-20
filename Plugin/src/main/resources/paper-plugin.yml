@@ -2,7 +2,6 @@ name: Network
 version: '${project.version}'
 main: net.bteuk.network.Network
 api-version: '26.2'
-loader: "net.bteuk.network.PluginLibrariesLoader"
 
 dependencies:
   server:
@@ -22,7 +21,7 @@ dependencies:
       load: AFTER
       required: false
       join-classpath: true
-    Terraplusminus:
+    terraminusminus:
       load: BEFORE
-      required: false
+      required: true
       join-classpath: true

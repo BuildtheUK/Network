@@ -40,6 +40,8 @@
         <lombok.version>1.18.46</lombok.version>
 
         <caffeine.version>3.2.3</caffeine.version>
+
+        <commons.io.version>2.22.0</commons.io.version>
     </properties>
 
     <repositories>
@@ -149,6 +151,12 @@
                 <groupId>com.github.ben-manes.caffeine</groupId>
                 <artifactId>caffeine</artifactId>
                 <version>${caffeine.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons.io.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
