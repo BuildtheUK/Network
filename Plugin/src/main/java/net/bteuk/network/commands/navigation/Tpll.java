@@ -17,11 +17,7 @@ import net.bteuk.network.sql.PlotSQL;
 import net.bteuk.network.utils.Statistics;
 import net.bteuk.network.utils.TpllFormat;
 import net.bteuk.network.utils.Utils;
-import net.buildtheearth.terraminusminus.generator.CachedChunkData;
-import net.buildtheearth.terraminusminus.generator.ChunkDataLoader;
-import net.buildtheearth.terraminusminus.generator.EarthGeneratorSettings;
-import net.buildtheearth.terraminusminus.substitutes.ChunkPos;
-import net.buildtheearth.terraminusminus.util.geo.CoordinateParseUtils;
+import net.buildtheearth.terraminusminus.TerraminusminusService;
 import net.buildtheearth.terraminusminus.util.geo.LatLng;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -40,11 +36,10 @@ import java.util.concurrent.TimeUnit;
 
 public class Tpll extends AbstractCommand {
 
-    public static final EarthGeneratorSettings BTE_GENERATOR_SETTINGS = EarthGeneratorSettings.parse(EarthGeneratorSettings.BTE_DEFAULT_SETTINGS);
-    private static final ChunkDataLoader CHUNK_DATA_LOADER = new ChunkDataLoader(BTE_GENERATOR_SETTINGS);
     private static final DecimalFormat DECIMAL_FORMATTER = new DecimalFormat("##.#####");
     private static final Component USAGE = ChatUtils.error("/tpll <latitude> <longitude> [altitude]");
     private final Network instance;
+    private final TerraminusminusService terraminusminusService;
     private final boolean requiresPermission;
     private final RegionManager regionManager;
     private final Constants constants;
@@ -54,9 +49,10 @@ public class Tpll extends AbstractCommand {
     private final GlobalSQL globalSQL;
     private final PreviousLocationTracker previousLocationTracker;
 
-    public Tpll(Network instance, boolean requiresPermission, RegionManager regionManager, Constants constants, PlotSQL plotSQL, EventAPI eventAPI, ServerAPI serverAPI,
+    public Tpll(Network instance, TerraminusminusService terraminusminusService, boolean requiresPermission, RegionManager regionManager, Constants constants, PlotSQL plotSQL, EventAPI eventAPI, ServerAPI serverAPI,
                 GlobalSQL globalSQL, PreviousLocationTracker previousLocationTracker) {
         this.instance = instance;
+        this.terraminusminusService = terraminusminusService;
         this.requiresPermission = requiresPermission;
         this.regionManager = regionManager;
         this.constants = constants;
@@ -71,21 +67,22 @@ public class Tpll extends AbstractCommand {
      * Convert the input arguments to a usable format
      *
      * @param args the command arguments
+     * @param terraminusminusService the service to use for parsing
      * @return {@link TpllFormat} that includes the coordinate information that could be read from the command
      */
-    public static TpllFormat getUsableTpllFormat(String[] args) {
+    public static TpllFormat getUsableTpllFormat(String[] args, TerraminusminusService terraminusminusService) {
         TpllFormat format = new TpllFormat();
 
-        format.setCoordinates(CoordinateParseUtils.parseVerbatimCoordinates(getRawArguments(args).trim()));
+        format.setCoordinates(terraminusminusService.parseCoordinates(getRawArguments(args).trim()));
 
         if (format.getCoordinates() == null) {
-            LatLng possiblePlayerCoords = CoordinateParseUtils.parseVerbatimCoordinates(getRawArguments(selectArray(args)));
+            LatLng possiblePlayerCoords = terraminusminusService.parseCoordinates(getRawArguments(selectArray(args)));
             if (possiblePlayerCoords != null) {
                 format.setCoordinates(possiblePlayerCoords);
             }
         }
 
-        LatLng possibleHeightCoords = CoordinateParseUtils.parseVerbatimCoordinates(getRawArguments(inverseSelectArray(args, args.length - 1)));
+        LatLng possibleHeightCoords = terraminusminusService.parseCoordinates(getRawArguments(inverseSelectArray(args, args.length - 1)));
         if (possibleHeightCoords != null) {
             format.setCoordinates(possibleHeightCoords);
             try {
@@ -94,7 +91,7 @@ public class Tpll extends AbstractCommand {
             }
         }
 
-        LatLng possibleHeightNameCoords = CoordinateParseUtils.parseVerbatimCoordinates(getRawArguments(inverseSelectArray(selectArray(args), selectArray(args).length - 1)));
+        LatLng possibleHeightNameCoords = terraminusminusService.parseCoordinates(getRawArguments(inverseSelectArray(selectArray(args), selectArray(args).length - 1)));
         if (possibleHeightNameCoords != null) {
             format.setCoordinates(possibleHeightNameCoords);
             try {
@@ -208,7 +205,7 @@ public class Tpll extends AbstractCommand {
         }
 
         // Convert the input to a usable format.
-        TpllFormat format = getUsableTpllFormat(args);
+        TpllFormat format = getUsableTpllFormat(args, terraminusminusService);
 
         if (format.getCoordinates() == null) {
             p.sendMessage(USAGE);
@@ -218,7 +215,7 @@ public class Tpll extends AbstractCommand {
         double[] proj;
 
         try {
-            proj = BTE_GENERATOR_SETTINGS.projection().fromGeo(format.getCoordinates().getLng(), format.getCoordinates().getLat());
+            proj = terraminusminusService.fromGeo(format.getCoordinates().getLng(), format.getCoordinates().getLat());
         } catch (Exception e) {
             p.sendMessage(USAGE);
             return;
@@ -333,19 +330,7 @@ public class Tpll extends AbstractCommand {
 
         // Get altitude from the dataset, this is used if the chunk is not yet generated,
         // or if we fail to get the altitude from the world safely.
-        int roundedX = l.getBlockX();
-        int roundedZ = l.getBlockZ();
-        int chunkX = ChunkPos.blockToCube(roundedX);
-        int chunkZ = ChunkPos.blockToCube(roundedZ);
-
-        CompletableFuture<Double> datasetAltFuture = CHUNK_DATA_LOADER.load(new ChunkPos(chunkX, chunkZ))
-                .thenApply(terraData -> {
-                    double height = terraData.surfaceHeight(roundedX - ChunkPos.cubeToMinBlock(chunkX), roundedZ - ChunkPos.cubeToMinBlock(chunkZ));
-                    if (height == CachedChunkData.BLANK_HEIGHT) {
-                        return 0.0d;
-                    }
-                    return height + 1.0d;
-                });
+        CompletableFuture<Double> datasetAltFuture = terraminusminusService.getHeight(l.getX(), l.getZ());
 
         CompletableFuture<Double> altFuture;
 

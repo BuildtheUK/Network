@@ -7,6 +7,7 @@ import net.bteuk.network.core.Constants;
 import net.bteuk.network.regions.RegionManager;
 import net.bteuk.network.regions.RegionUser;
 import net.bteuk.network.utils.TpllFormat;
+import net.buildtheearth.terraminusminus.TerraminusminusService;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
@@ -21,12 +22,15 @@ public class TpllListener implements Listener {
 
     private final BuildingCompanion companion;
 
+    private final TerraminusminusService terraminusminusService;
+
     private final Constants constants;
 
     private final RegionManager regionManager;
 
-    public TpllListener(BuildingCompanion companion, Network instance, Constants constants, RegionManager regionManager) {
+    public TpllListener(BuildingCompanion companion, Network instance, TerraminusminusService terraminusminusService, Constants constants, RegionManager regionManager) {
         this.companion = companion;
+        this.terraminusminusService = terraminusminusService;
         this.constants = constants;
         this.regionManager = regionManager;
         Bukkit.getServer().getPluginManager().registerEvents(this, instance);
@@ -50,12 +54,12 @@ public class TpllListener implements Listener {
             }
 
             // Convert the command to a usage format.
-            TpllFormat format = Tpll.getUsableTpllFormat(Arrays.copyOfRange(command, 1, command.length));
+            TpllFormat format = Tpll.getUsableTpllFormat(Arrays.copyOfRange(command, 1, command.length), terraminusminusService);
 
             double[] proj;
 
             try {
-                proj = Tpll.BTE_GENERATOR_SETTINGS.projection().fromGeo(format.getCoordinates().getLng(),
+                proj = terraminusminusService.fromGeo(format.getCoordinates().getLng(),
                         format.getCoordinates().getLat());
             } catch (Exception ex) {
                 // No coordinates were parsed, return.

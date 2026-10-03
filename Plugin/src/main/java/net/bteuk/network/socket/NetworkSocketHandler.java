@@ -6,6 +6,7 @@ import net.bteuk.network.Network;
 import net.bteuk.network.TabManager;
 import net.bteuk.network.commands.navigation.Teleport;
 import net.bteuk.network.core.Constants;
+import net.bteuk.network.eventing.events.EventManager;
 import net.bteuk.network.eventing.listeners.Connect;
 import org.btuk.network.lib.dto.AbstractTransferObject;
 import org.btuk.network.lib.dto.AddTeamEvent;
@@ -37,12 +38,15 @@ public class NetworkSocketHandler implements SocketHandler {
 
     private final Teleport teleport;
 
-    public NetworkSocketHandler(Network instance, CustomChat chat, TabManager tabManager, Connect connect, Constants constants, Teleport teleport) {
+    private final EventManager eventManager;
+
+    public NetworkSocketHandler(Network instance, CustomChat chat, TabManager tabManager, Connect connect, Constants constants, Teleport teleport, EventManager eventManager) {
         this.instance = instance;
         this.chat = chat;
         this.tabManager = tabManager;
         this.connect = connect;
         this.teleport = teleport;
+        this.eventManager = eventManager;
 
         // Register input socket for receiving messages from the proxy.
         int inputSocketPort = constants.chatSocketInputPort();
@@ -71,8 +75,7 @@ public class NetworkSocketHandler implements SocketHandler {
             case OnlineUserRemove onlineUserRemove -> instance.handleOnlineUserRemove(onlineUserRemove);
             case TeleportEvent teleportEvent -> teleport.handleTeleportEvent(teleportEvent);
             case ProxyStart proxyStart -> instance.handleProxyStart(proxyStart);
-            default -> log.warning(String.format("Socket object has an unrecognised type %s",
-                    abstractTransferObject.getClass().getTypeName()));
+            default -> eventManager.handleProxyEvent(abstractTransferObject);
         }
         return null;
     }

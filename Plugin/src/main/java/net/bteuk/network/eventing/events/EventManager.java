@@ -4,18 +4,23 @@ import lombok.extern.java.Log;
 import net.bteuk.network.api.EventAPI;
 import net.bteuk.network.api.entity.Event;
 import net.bteuk.network.api.entity.NetworkLocation;
+import net.bteuk.network.api.entity.ProxyEvent;
 import net.bteuk.network.commands.navigation.PreviousLocationTracker;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.sql.GlobalSQL;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.btuk.network.lib.dto.AbstractTransferObject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 @Log
 public class EventManager implements EventAPI, Event {
 
     private final HashMap<String, Event> events = new HashMap<>();
+    private final List<ProxyEventListener<? extends AbstractTransferObject>> proxyEvents = new ArrayList<>();
     private final GlobalSQL globalSQL;
     private final Constants constants;
     private final PreviousLocationTracker previousLocationTracker;
@@ -28,6 +33,10 @@ public class EventManager implements EventAPI, Event {
 
     public void registerEvent(String name, Event event) {
         events.put(name, event);
+    }
+
+    public <T extends AbstractTransferObject> void registerProxyEvent(Class<T> type, ProxyEvent<T> proxyEvent) {
+        proxyEvents.add(new ProxyEventListener<>(type, proxyEvent));
     }
 
     public void createJoinEvent(String uuid, String event) {
@@ -148,6 +157,20 @@ public class EventManager implements EventAPI, Event {
             log.warning("Event " + event[0] + " is not registered.");
         } else {
             eventType.event(uuid, event, message);
+        }
+    }
+
+    public void handleProxyEvent(AbstractTransferObject event) {
+        for (ProxyEventListener<?> listener : proxyEvents) {
+            listener.handleIfMatches(event);
+        }
+    }
+
+    private record ProxyEventListener<T extends AbstractTransferObject>(Class<T> type, ProxyEvent<T> listener) {
+        public void handleIfMatches(AbstractTransferObject dto) {
+            if (type.isInstance(dto)) {
+                listener.event(type.cast(dto));
+            }
         }
     }
 }

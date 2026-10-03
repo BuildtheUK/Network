@@ -15,6 +15,7 @@ import net.bteuk.network.utils.Blocks;
 import net.bteuk.network.utils.NetworkUser;
 import net.bteuk.network.utils.worldguard.WorldguardMembers;
 import net.bteuk.network.utils.worldguard.WorldguardUtils;
+import net.buildtheearth.terraminusminus.TerraminusminusService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -68,7 +69,7 @@ public class BuildingCompanion {
     private World world;
     private boolean asyncActive = false;
 
-    public BuildingCompanion(NetworkUser user, Network instance, Constants constants, RegionManager regionManager) {
+    public BuildingCompanion(NetworkUser user, Network instance, TerraminusminusService terraminusminusService, Constants constants, RegionManager regionManager) {
 
         this.user = user;
         this.instance = instance;
@@ -81,7 +82,7 @@ public class BuildingCompanion {
 
         // Enable the tpll listener.
         listeners = new HashSet<>();
-        listeners.add(new TpllListener(this, instance, constants, regionManager));
+        listeners.add(new TpllListener(this, instance, terraminusminusService, constants, regionManager));
     }
 
     private static boolean contains(Set<double[]> list, double[] input) {
@@ -174,8 +175,7 @@ public class BuildingCompanion {
         if (input_corners.size() == 4) {
             // addDrawOutlinesEvent();
             sendFeedback(ChatUtils.success("You have 4 corners selected, click here to draw the outlines.")
-                    .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, ClickEvent.Payload.string("/buildingcompanion " +
-                            "drawoutlines"))));
+                    .clickEvent(ClickEvent.runCommand("/buildingcompanion drawoutlines")));
         }
     }
 
@@ -260,12 +260,10 @@ public class BuildingCompanion {
                 saved_outlines.put(outline.uuid(), outline);
                 sendFeedback(Component.text("Save outlines: ", NamedTextColor.YELLOW)
                         .append(Component.text("[Yes]", NamedTextColor.GREEN)
-                                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, ClickEvent.Payload.string("/buildingcompanion " +
-                                        "save " + outline.uuid()))))
+                                .clickEvent(ClickEvent.runCommand("/buildingcompanion save " + outline.uuid())))
                         .append(Component.text(" - ", NamedTextColor.YELLOW))
                         .append(Component.text("[No]", NamedTextColor.RED)
-                                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, ClickEvent.Payload.string("/buildingcompanion " +
-                                        "remove " + outline.uuid())))));
+                                .clickEvent(ClickEvent.runCommand("/buildingcompanion remove " + outline.uuid()))));
             }
         });
     }

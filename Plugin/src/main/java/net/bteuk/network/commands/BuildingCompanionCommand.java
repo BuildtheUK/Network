@@ -7,6 +7,7 @@ import net.bteuk.network.building_companion.BuildingCompanion;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.regions.RegionManager;
 import net.bteuk.network.utils.NetworkUser;
+import net.buildtheearth.terraminusminus.TerraminusminusService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.btuk.network.lib.utils.ChatUtils;
@@ -23,12 +24,15 @@ public class BuildingCompanionCommand extends AbstractCommand {
 
     private final Network instance;
 
+    private final TerraminusminusService terraminusminusService;
+
     private final Constants constants;
 
     private final RegionManager regionManager;
 
-    public BuildingCompanionCommand(Network instance, Constants constants, RegionManager regionManager) {
+    public BuildingCompanionCommand(Network instance, TerraminusminusService terraminusminusService, Constants constants, RegionManager regionManager) {
         this.instance = instance;
+        this.terraminusminusService = terraminusminusService;
         this.constants = constants;
         this.regionManager = regionManager;
     }
@@ -37,7 +41,7 @@ public class BuildingCompanionCommand extends AbstractCommand {
         // Toggle the building companion.
         BuildingCompanion companion = user.getCompanion();
         if (companion == null) {
-            user.setCompanion(new BuildingCompanion(user, instance, constants, regionManager));
+            user.setCompanion(new BuildingCompanion(user, instance, terraminusminusService, constants, regionManager));
             user.player.sendMessage(ChatUtils.success("Building Companion enabled"));
         } else {
             // Disable the building companion.
