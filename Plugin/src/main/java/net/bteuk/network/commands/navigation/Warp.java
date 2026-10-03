@@ -78,7 +78,7 @@ public class Warp extends AbstractCommand {
                 String worldName = globalSQL.getString("SELECT world FROM coordinates WHERE id=" + coordinate_id + ";");
 
                 // Check if world is in plotsystem.
-                if (plotAPI.hasLocation(worldName)) {
+                if (constants.plotSystemEnabled() && plotAPI.hasLocation(worldName)) {
 
                     // Add coordinate transformation.
                     l = new Location(

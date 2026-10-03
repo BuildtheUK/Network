@@ -189,7 +189,11 @@ public class NetworkConfig {
 
         boolean moderationEnabled = config.getBoolean("staff.moderation.enabled");
 
-        boolean warpsEnabled = config.getBoolean("warps_enabled");
+        boolean warpsEnabled = config.getBoolean("explore.warps_enabled");
+
+        boolean alternativeWarpsEnabled = config.getBoolean("explore.alternative_command.enabled");
+
+        String alternativeWarpsCommand = config.getString("explore.alternative_command.command");
 
         boolean homesEnabled = config.getBoolean("homes_enabled");
 
@@ -228,7 +232,7 @@ public class NetworkConfig {
         log.info("Loaded constants from config.");
         return new Constants(serverName, serverType, standalone, regionsEnabled, regionInactivity, tpllEnabled, tpllRequiredPermission, maxY, minY, staffChat, tips,
                 tutorials, llEnabled, progression, announceOverallLevelUps, announceSeasonalLevelUps, sidebarEnabled, sidebarTitle, sidebarTextList, motdEnabled,
-                motdText, minrankGeneration, minrankRegionClaim, minrankZoneJoin, plotSystemEnabled, moderationEnabled, warpsEnabled, homesEnabled, announcePromotions,
+                motdText, minrankGeneration, minrankRegionClaim, minrankZoneJoin, plotSystemEnabled, moderationEnabled, warpsEnabled, alternativeWarpsEnabled, alternativeWarpsCommand, homesEnabled, announcePromotions,
                 skullsEnabled, chatSocketOutputIP, chatSocketOutputPort, chatSocketInputPort, tipsFrequency, regionStaffRequestAlways, regionStaffRequestRadius, navigationRadius,
                 compulsoryTutorial, afkTime, mapEnabled, mapServer, mapLocation, spawnLocation, UKSurvey, discordLink, websiteLink, progressMapLink, earthDimension);
     }

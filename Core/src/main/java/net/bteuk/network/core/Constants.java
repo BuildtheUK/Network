@@ -8,7 +8,7 @@ public record Constants(String serverName, ServerType serverType, boolean standa
                         boolean tpllRequiresPermission, int maxY, int minY, boolean staffChat, boolean tips, boolean tutorials, boolean ll,
                         boolean progression, boolean announceOveralLevelUps, boolean announceSeasonLevelUps, boolean sidebarEnabled, String sidebarTitle,
                         List<String> sidebarContent, boolean motdEnabled, String motdContent, String minrankGeneration, String minrankRegionClaim, String minrankZoneJoin,
-                        boolean plotSystemEnabled, boolean moderationEnabled, boolean warpsEnabled,
+                        boolean plotSystemEnabled, boolean moderationEnabled, boolean warpsEnabled, boolean warpsAlternativeEnabled, String warpsAlternativeCommand,
                         boolean homesEnabled, boolean announcePromotions, boolean skullsEnabled, String chatSocketOutputIP,
                         int chatSocketOutputPort, int chatSocketInputPort, int tipsFrequency, boolean regionStaffRequestAlways, int regionStaffRequestRadius,
                         int navigationRadius, boolean compulsoryTutorial, int afkTime, boolean mapEnabled, String mapServer, NetworkLocation mapLocation,

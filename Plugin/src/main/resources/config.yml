@@ -126,7 +126,11 @@ ll_enabled: true
 afk: 5
 
 # Enables warps and the explore-menu.
-warps_enabled: true
+explore:
+  warps_enabled: true
+  alternative_command:
+    enabled: false
+    command: /warps
 
 # Radius to search in the nearby locations tab of the exploration menu, distance in kilometres.
 navigation_radius: 200
