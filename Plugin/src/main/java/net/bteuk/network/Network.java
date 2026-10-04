@@ -57,6 +57,7 @@ import net.bteuk.network.commands.navigation.Sethome;
 import net.bteuk.network.commands.navigation.Spawn;
 import net.bteuk.network.commands.navigation.Teleport;
 import net.bteuk.network.commands.navigation.TpAccept;
+import net.bteuk.network.commands.navigation.TpCancel;
 import net.bteuk.network.commands.navigation.TpDeny;
 import net.bteuk.network.commands.navigation.TpToggle;
 import net.bteuk.network.commands.navigation.Tpll;
@@ -396,6 +397,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         commandManager.registerCommand(new TpToggle(this));
         commandManager.registerCommand(new TpAccept(this, messageSender));
         commandManager.registerCommand(new TpDeny(this, messageSender));
+        commandManager.registerCommand(new TpCancel(messageSender));
 
         // Set up socket listening - used for sending messages cross-server on multi-server setups
         NetworkSocketHandler socketHandler = new NetworkSocketHandler(this, chat, tabManager, connect, constants, teleport, eventAPI);
