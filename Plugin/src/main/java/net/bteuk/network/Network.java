@@ -79,6 +79,7 @@ import net.bteuk.network.eventing.events.TeleportEvent;
 import net.bteuk.network.eventing.listeners.ChatListener;
 import net.bteuk.network.eventing.listeners.CommandPreProcess;
 import net.bteuk.network.eventing.listeners.Connect;
+import net.bteuk.network.eventing.listeners.CushionProtector;
 import net.bteuk.network.eventing.listeners.NetworkMoveListener;
 import net.bteuk.network.eventing.listeners.NetworkTeleportListener;
 import net.bteuk.network.eventing.listeners.PlayerInteract;
@@ -600,6 +601,9 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
         // Register the chat listener.
         new ChatListener(this, moderation, afk, messageSender);
+
+        // Temporary protection for breaking cushions using projectiles and players since worldguard does not support it.
+        new CushionProtector(this);
 
         // Let the Proxy know that the server is enabled.
         messageSender.sendSocketMessage(new ServerStartup(constants.serverName()));
