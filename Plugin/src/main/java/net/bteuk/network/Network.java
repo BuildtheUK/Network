@@ -57,6 +57,7 @@ import net.bteuk.network.commands.navigation.Sethome;
 import net.bteuk.network.commands.navigation.Spawn;
 import net.bteuk.network.commands.navigation.Teleport;
 import net.bteuk.network.commands.navigation.TpAccept;
+import net.bteuk.network.commands.navigation.TpCancel;
 import net.bteuk.network.commands.navigation.TpDeny;
 import net.bteuk.network.commands.navigation.TpToggle;
 import net.bteuk.network.commands.navigation.Tpll;
@@ -78,6 +79,7 @@ import net.bteuk.network.eventing.events.TeleportEvent;
 import net.bteuk.network.eventing.listeners.ChatListener;
 import net.bteuk.network.eventing.listeners.CommandPreProcess;
 import net.bteuk.network.eventing.listeners.Connect;
+import net.bteuk.network.eventing.listeners.CushionProtector;
 import net.bteuk.network.eventing.listeners.NetworkMoveListener;
 import net.bteuk.network.eventing.listeners.NetworkTeleportListener;
 import net.bteuk.network.eventing.listeners.PlayerInteract;
@@ -396,6 +398,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         commandManager.registerCommand(new TpToggle(this));
         commandManager.registerCommand(new TpAccept(this, messageSender));
         commandManager.registerCommand(new TpDeny(this, messageSender));
+        commandManager.registerCommand(new TpCancel(messageSender));
 
         // Set up socket listening - used for sending messages cross-server on multi-server setups
         NetworkSocketHandler socketHandler = new NetworkSocketHandler(this, chat, tabManager, connect, constants, teleport, eventAPI);
@@ -598,6 +601,9 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
         // Register the chat listener.
         new ChatListener(this, moderation, afk, messageSender);
+
+        // Temporary protection for breaking cushions using projectiles and players since worldguard does not support it.
+        new CushionProtector(this);
 
         // Let the Proxy know that the server is enabled.
         messageSender.sendSocketMessage(new ServerStartup(constants.serverName()));
