@@ -8,6 +8,7 @@ import net.bteuk.network.commands.navigation.Teleport;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.eventing.events.EventManager;
 import net.bteuk.network.eventing.listeners.Connect;
+import net.bteuk.network.waypoint.NetworkWaypointManager;
 import org.btuk.network.lib.dto.AbstractTransferObject;
 import org.btuk.network.lib.dto.AddTeamEvent;
 import org.btuk.network.lib.dto.DirectMessage;
@@ -20,6 +21,9 @@ import org.btuk.network.lib.dto.TeleportEvent;
 import org.btuk.network.lib.dto.UserConnectReply;
 import org.btuk.network.lib.dto.UserRemove;
 import org.btuk.network.lib.dto.UserUpdate;
+import org.btuk.network.lib.dto.WaypointHologramUpdateEvent;
+import org.btuk.network.lib.dto.WaypointLocationRequest;
+import org.btuk.network.lib.dto.WaypointTeleportEvent;
 import org.btuk.network.lib.socket.InputSocket;
 import org.btuk.network.lib.socket.SocketHandler;
 
@@ -40,13 +44,16 @@ public class NetworkSocketHandler implements SocketHandler {
 
     private final EventManager eventManager;
 
-    public NetworkSocketHandler(Network instance, CustomChat chat, TabManager tabManager, Connect connect, Constants constants, Teleport teleport, EventManager eventManager) {
+    private final NetworkWaypointManager waypointManager;
+
+    public NetworkSocketHandler(Network instance, CustomChat chat, TabManager tabManager, Connect connect, Constants constants, Teleport teleport, EventManager eventManager, NetworkWaypointManager waypointManager) {
         this.instance = instance;
         this.chat = chat;
         this.tabManager = tabManager;
         this.connect = connect;
         this.teleport = teleport;
         this.eventManager = eventManager;
+        this.waypointManager = waypointManager;
 
         // Register input socket for receiving messages from the proxy.
         int inputSocketPort = constants.chatSocketInputPort();
@@ -75,6 +82,9 @@ public class NetworkSocketHandler implements SocketHandler {
             case OnlineUserRemove onlineUserRemove -> instance.handleOnlineUserRemove(onlineUserRemove);
             case TeleportEvent teleportEvent -> teleport.handleTeleportEvent(teleportEvent);
             case ProxyStart proxyStart -> instance.handleProxyStart(proxyStart);
+            case WaypointLocationRequest waypointLocationRequest -> waypointManager.handleLocationRequest(waypointLocationRequest);
+            case WaypointTeleportEvent waypointTeleportEvent -> waypointManager.handleTeleportEvent(waypointTeleportEvent);
+            case WaypointHologramUpdateEvent waypointHologramUpdateEvent -> waypointManager.handleHologramUpdate(waypointHologramUpdateEvent);
             default -> eventManager.handleProxyEvent(abstractTransferObject);
         }
         return null;

@@ -31,9 +31,9 @@
 
         <paper.api.version>[26.2.build,)</paper.api.version>
 
-        <btuk.proxy.version>develop-2749ad3406-1</btuk.proxy.version>
-        <btuk.lib.version>main-36b0421e66-1</btuk.lib.version>
-        <btuk.networklib.version>60202edfff</btuk.networklib.version>
+        <btuk.proxy.version>a2ec5bb65f</btuk.proxy.version>
+        <btuk.lib.version>326a88b443</btuk.lib.version>
+        <btuk.networklib.version>7150a5737e</btuk.networklib.version>
 
         <kyori.version>5.2.0</kyori.version>
 

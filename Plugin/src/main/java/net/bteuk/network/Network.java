@@ -20,6 +20,7 @@ import net.bteuk.network.commands.Discord;
 import net.bteuk.network.commands.DisplayClickableLink;
 import net.bteuk.network.commands.Focus;
 import net.bteuk.network.commands.Gamemode;
+import net.bteuk.network.commands.GuessCommand;
 import net.bteuk.network.commands.Hat;
 import net.bteuk.network.commands.Hdb;
 import net.bteuk.network.commands.Help;
@@ -41,6 +42,7 @@ import net.bteuk.network.commands.Rules;
 import net.bteuk.network.commands.Speed;
 import net.bteuk.network.commands.Survey;
 import net.bteuk.network.commands.TipsToggle;
+import net.bteuk.network.commands.WaypointCommand;
 import net.bteuk.network.commands.Where;
 import net.bteuk.network.commands.Zone;
 import net.bteuk.network.commands.give.GiveBarrier;
@@ -108,6 +110,7 @@ import net.bteuk.network.utils.Tips;
 import net.bteuk.network.utils.Utils;
 import net.bteuk.network.utils.staff.Moderation;
 import net.bteuk.network.utils.worldguard.WorldGuard;
+import net.bteuk.network.waypoint.NetworkWaypointManager;
 import net.bteuk.teachingtutorials.services.PromotionService;
 import net.buildtheearth.terraminusminus.TerraminusminusService;
 import org.btuk.minecraft.gui.GuiListener;
@@ -211,6 +214,11 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
     @Getter
     private Roles roleAPI;
+
+    @Getter
+    private NetworkWaypointManager waypointManager;
+
+    private ProxyController proxyController;
 
     @Override
     public void onEnable() {
@@ -400,13 +408,15 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         commandManager.registerCommand(new TpDeny(this, messageSender));
         commandManager.registerCommand(new TpCancel(messageSender));
 
+        waypointManager = new NetworkWaypointManager(this, constants, messageSender);
+
         // Set up socket listening - used for sending messages cross-server on multi-server setups
-        NetworkSocketHandler socketHandler = new NetworkSocketHandler(this, chat, tabManager, connect, constants, teleport, eventAPI);
+        NetworkSocketHandler socketHandler = new NetworkSocketHandler(this, chat, tabManager, connect, constants, teleport, eventAPI, waypointManager);
 
         // If running in standalone mode, set up the proxy logic locally.
         if (constants.standalone()) {
             try {
-                initStandaloneMode(socketHandler, messageSender);
+                initStandaloneMode(socketHandler, messageSender, commandManager);
             } catch (IOException e) {
                 log.severe("Failed to initialise standalone mode, disabling plugin!");
                 return;
@@ -613,9 +623,9 @@ public final class Network extends JavaPlugin implements NetworkAPI {
 
     }
 
-    private void initStandaloneMode(NetworkSocketHandler socketHandler, MessageSender messageSender) throws IOException {
+    private void initStandaloneMode(NetworkSocketHandler socketHandler, MessageSender messageSender, CommandManager commandManager) throws IOException {
         log.info("Loading Network in standalone mode.");
-        ProxyController proxyController = new ProxyController(getDataFolder());
+        proxyController = new ProxyController(getDataFolder());
 
         NetworkScheduler scheduler = new NetworkScheduler(this);
         NetworkPlayerManager playerManager = new NetworkPlayerManager(this);
@@ -629,12 +639,19 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         Consumer<ProxySocketHandler> socketInitializer = messageSender.setupStandaloneOutputSocket();
 
         proxyController.start(chatHandler, scheduler, serverManager, playerManager, standaloneTabManager, socketInitializer);
+
+        commandManager.registerCommand(new WaypointCommand(proxyController.getWaypointManager(), proxyController.getCoreUserManager()));
+        commandManager.registerCommand(new GuessCommand(proxyController.getWaypointManager(), proxyController.getCoreUserManager()));
     }
 
     @Override
     public void onDisable() {
 
         shutdownHooks.forEach(ShutdownHook::shutdown);
+
+        if (proxyController != null) {
+            proxyController.stop();
+        }
 
         // Shut down chat.
         if (chat != null) {
@@ -702,6 +719,9 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         log.info("Proxy has started, clearing online users.");
         onlineUsers.clear();
         tabManager.clearTeams();
+        if (waypointManager != null) {
+            waypointManager.requestHologramData();
+        }
     }
 
     public void handleOnlineUserAdd(OnlineUserAdd onlineUserAdd) {
