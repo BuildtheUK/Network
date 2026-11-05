@@ -25,7 +25,8 @@ import net.bteuk.network.commands.Hdb;
 import net.bteuk.network.commands.Help;
 import net.bteuk.network.commands.Me;
 import net.bteuk.network.commands.Msg;
-import net.bteuk.network.commands.Navigator;
+import net.bteuk.network.commands.Navigator.Navigator;
+import net.bteuk.network.commands.Navigator.Tutorials;
 import net.bteuk.network.commands.Nick;
 import net.bteuk.network.commands.Nightvision;
 import net.bteuk.network.commands.Phead;
@@ -523,6 +524,8 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         Navigator navigator = new Navigator(this, networkGuiManager, constants, globalSQL, regionSQL, regionManager, plotSQL, plotAPI, lobby, back, eventAPI, serverAPI,
                 nightvision, roleAPI, tutorialsDBConnection, chat, moderation, previousLocationTracker, messageSender);
         commandManager.registerCommand(navigator);
+        //alias for /nav tutorials
+        commandManager.registerCommand((new Tutorials(navigator)));
         new PlayerInteract(this, navigator);
 
         if (constants.warpsEnabled()) {

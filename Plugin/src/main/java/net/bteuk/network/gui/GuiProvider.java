@@ -5,7 +5,7 @@ import net.bteuk.network.api.ChatAPI;
 import net.bteuk.network.api.EventAPI;
 import net.bteuk.network.api.PlotAPI;
 import net.bteuk.network.api.ServerAPI;
-import net.bteuk.network.commands.Navigator;
+import net.bteuk.network.commands.Navigator.Navigator;
 import net.bteuk.network.commands.Nightvision;
 import net.bteuk.network.commands.navigation.Back;
 import net.bteuk.network.commands.navigation.PreviousLocationTracker;
