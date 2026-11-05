@@ -2,7 +2,7 @@ package net.bteuk.network.eventing.listeners;
 
 import lombok.extern.java.Log;
 import net.bteuk.network.Network;
-import net.bteuk.network.commands.Navigator;
+import net.bteuk.network.commands.Navigator.Navigator;
 import org.btuk.network.lib.utils.ChatUtils;
 import net.bteuk.network.utils.NetworkUser;
 import org.bukkit.Bukkit;

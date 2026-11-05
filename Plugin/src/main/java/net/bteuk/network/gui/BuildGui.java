@@ -3,7 +3,7 @@ package net.bteuk.network.gui;
 import net.bteuk.network.api.EventAPI;
 import net.bteuk.network.api.ServerAPI;
 import net.bteuk.network.api.entity.NetworkLocation;
-import net.bteuk.network.commands.Navigator;
+import net.bteuk.network.commands.Navigator.Navigator;
 import net.bteuk.network.commands.navigation.Back;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.core.ServerType;
