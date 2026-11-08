@@ -1,4 +1,4 @@
-package net.bteuk.network.commands;
+package net.bteuk.network.commands.Navigator;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import lombok.Getter;
@@ -8,8 +8,11 @@ import net.bteuk.network.api.ChatAPI;
 import net.bteuk.network.api.EventAPI;
 import net.bteuk.network.api.PlotAPI;
 import net.bteuk.network.api.ServerAPI;
+import net.bteuk.network.commands.AbstractCommand;
+import net.bteuk.network.commands.Nightvision;
 import net.bteuk.network.commands.navigation.Back;
 import net.bteuk.network.commands.navigation.PreviousLocationTracker;
+import net.bteuk.network.commands.tabcompleters.FixedArgSelector;
 import net.bteuk.network.core.Constants;
 import net.bteuk.network.gui.BuildGui;
 import net.bteuk.network.gui.GuiProvider;
@@ -49,6 +52,7 @@ public class Navigator extends AbstractCommand {
                      DBConnection tutorialsDBConnection, ChatAPI chatAPI, Moderation moderation, PreviousLocationTracker previousLocationTracker, MessageSender messageSender) {
         this.instance = instance;
         this.constants = constants;
+        setTabCompleter(new FixedArgSelector(List.of("explore","building","tutorials"),0));
 
         this.provider = new GuiProvider(instance, guiManager, constants, globalSQL, regionSQL, regionManager, plotSQL, plotAPI, lobby, back, eventAPI, serverAPI, nightvision, this,
                 roles, tutorialsDBConnection, chatAPI, moderation, previousLocationTracker, messageSender);
