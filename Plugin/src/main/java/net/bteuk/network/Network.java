@@ -489,7 +489,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         }
 
         if (constants.progressMapLink() != null) {
-            commandManager.registerCommand(new ProgressMap(constants.progressMapLink()));
+            commandManager.registerCommand(new ProgressMap(constants.progressMapLink(),messageSender));
         }
 
         if (constants.websiteLink() != null) {
