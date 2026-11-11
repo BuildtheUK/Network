@@ -32,6 +32,7 @@ import net.bteuk.network.commands.Nightvision;
 import net.bteuk.network.commands.Phead;
 import net.bteuk.network.commands.Plot;
 import net.bteuk.network.commands.Pmute;
+import net.bteuk.network.commands.ProgressMap;
 import net.bteuk.network.commands.Promote;
 import net.bteuk.network.commands.Ptime;
 import net.bteuk.network.commands.Punmute;
@@ -488,8 +489,7 @@ public final class Network extends JavaPlugin implements NetworkAPI {
         }
 
         if (constants.progressMapLink() != null) {
-            commandManager.registerCommand(new DisplayClickableLink("progressmap", "Sends a link of the progress map", "Click to view our progress map.",
-                    constants.progressMapLink(), "progress"));
+            commandManager.registerCommand(new ProgressMap(constants.progressMapLink(),messageSender));
         }
 
         if (constants.websiteLink() != null) {

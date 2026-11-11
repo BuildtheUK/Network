@@ -33,7 +33,7 @@
 
         <btuk.proxy.version>develop-2749ad3406-1</btuk.proxy.version>
         <btuk.lib.version>main-36b0421e66-1</btuk.lib.version>
-        <btuk.networklib.version>60202edfff</btuk.networklib.version>
+        <networklib.version>main-SNAPSHOT</networklib.version>
 
         <kyori.version>5.2.0</kyori.version>
 
@@ -108,7 +108,7 @@
             <dependency>
                 <groupId>com.github.BuildtheUK</groupId>
                 <artifactId>NetworkLib</artifactId>
-                <version>${btuk.networklib.version}</version>
+                <version>${networklib.version}</version>
             </dependency>
 
             <dependency>
